@@ -1,0 +1,31 @@
+{
+  "name": "@lazy-map/application",
+  "version": "1.0.0",
+  "description": "Application layer for lazy-map - contains use cases, ports, and application services",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint src --config ../oxlint.json",
+    "lint:fix": "oxlint src --config ../oxlint.json --fix"
+  },
+  "keywords": [
+    "lazy-map",
+    "application",
+    "clean-architecture",
+    "use-cases",
+    "ports"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^22.15.31",
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@lazy-map/domain": "workspace:*"
+  }
+}

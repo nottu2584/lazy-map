@@ -1,0 +1,26 @@
+{
+  "linter": "oxlint",
+  "exts": ["ts", "tsx", "js", "jsx"],
+  "formatter": "stylish",
+  "parserOptions": { 
+    "lang": "typescript",
+    "jsx": true
+  },
+  "rules": {
+    "all": "warn",
+    "correctness": "error",
+    "suspicious": "error",
+    "complexity": "off",
+    "no-explicit-any": "off",
+    "no-console": "warn"
+  },
+  "ignores": [
+    "dist/**",
+    "node_modules/**",
+    "coverage/**",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
+}

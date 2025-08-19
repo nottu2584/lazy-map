@@ -1,0 +1,38 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint src --config oxlint.json",
+    "lint:fix": "oxlint src --config oxlint.json --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@lazy-map/core": "workspace:*",
+    "@lazy-map/terrain": "workspace:*",
+    "@lazy-map/features": "workspace:*",
+    "@lazy-map/generation": "workspace:*",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "konva": "^9.3.15",
+    "react-konva": "^18.2.10",
+    "zustand": "^5.0.2",
+    "@tanstack/react-query": "^5.64.0",
+    "tailwindcss": "^4.1.8",
+    "axios": "^1.7.9"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "globals": "^16.0.0",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1"
+  }
+}

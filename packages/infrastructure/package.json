@@ -1,0 +1,41 @@
+{
+  "name": "@lazy-map/infrastructure",
+  "version": "1.0.0",
+  "description": "Infrastructure layer for Lazy Map - implements output ports with concrete services",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint src/",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@lazy-map/domain": "workspace:*",
+    "@lazy-map/application": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.31",
+    "typescript": "^5.3.3",
+    "vitest": "^3.2.4",
+    "oxlint": "^0.32.0"
+  },
+  "peerDependencies": {
+    "mongodb": "^6.0.0",
+    "redis": "^4.0.0",
+    "winston": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "mongodb": {
+      "optional": true
+    },
+    "redis": {
+      "optional": true
+    },
+    "winston": {
+      "optional": true
+    }
+  }
+}

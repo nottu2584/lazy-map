@@ -1,0 +1,22 @@
+{
+  "name": "@lazy-map/domain",
+  "version": "1.0.0",
+  "description": "Domain layer for lazy-map - contains core business logic, entities, and domain services",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint src --config ../oxlint.json",
+    "lint:fix": "oxlint src --config ../oxlint.json --fix"
+  },
+  "keywords": ["lazy-map", "domain", "clean-architecture", "entities", "value-objects"],
+  "author": "",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {}
+}

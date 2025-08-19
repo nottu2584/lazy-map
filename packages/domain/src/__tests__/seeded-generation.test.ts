@@ -1,0 +1,225 @@
+import { describe, it, expect } from 'vitest';
+import { SeededRandom } from '../common/utils/SeededRandom';
+import { DeterministicIdGenerator } from '../common/utils/DeterministicIdGenerator';
+import { CoordinatedRandomGenerator } from '../common/utils/CoordinatedRandomGenerator';
+import { SeedUtils } from '../common/utils/SeedUtils';
+
+describe('Seeded Generation System', () => {
+  describe('SeededRandom', () => {
+    it('should generate identical sequences with the same seed', () => {
+      const seed = 12345;
+      const rng1 = new SeededRandom(seed);
+      const rng2 = new SeededRandom(seed);
+
+      // Generate multiple values to test consistency
+      const values1 = Array.from({ length: 10 }, () => rng1.next());
+      const values2 = Array.from({ length: 10 }, () => rng2.next());
+
+      expect(values1).toEqual(values2);
+    });
+
+    it('should generate different sequences with different seeds', () => {
+      const rng1 = new SeededRandom(12345);
+      const rng2 = new SeededRandom(54321);
+
+      const values1 = Array.from({ length: 10 }, () => rng1.next());
+      const values2 = Array.from({ length: 10 }, () => rng2.next());
+
+      expect(values1).not.toEqual(values2);
+    });
+
+    it('should provide consistent integer generation', () => {
+      const seed = 999;
+      const rng1 = new SeededRandom(seed);
+      const rng2 = new SeededRandom(seed);
+
+      const ints1 = Array.from({ length: 5 }, () => rng1.nextInt(1, 100));
+      const ints2 = Array.from({ length: 5 }, () => rng2.nextInt(1, 100));
+
+      expect(ints1).toEqual(ints2);
+      expect(ints1.every(n => n >= 1 && n < 100)).toBe(true);
+    });
+  });
+
+  describe('CoordinatedRandomGenerator', () => {
+    it('should create consistent sub-generators', () => {
+      const masterSeed = 42;
+      const coord1 = new CoordinatedRandomGenerator(masterSeed);
+      const coord2 = new CoordinatedRandomGenerator(masterSeed);
+
+      const terrain1 = coord1.getSubGenerator('terrain');
+      const terrain2 = coord2.getSubGenerator('terrain');
+
+      const values1 = Array.from({ length: 5 }, () => terrain1.next());
+      const values2 = Array.from({ length: 5 }, () => terrain2.next());
+
+      expect(values1).toEqual(values2);
+    });
+
+    it('should provide different seeds for different contexts', () => {
+      const coord = new CoordinatedRandomGenerator(123);
+      
+      const terrainSeed = coord.getSubSeed('terrain');
+      const forestSeed = coord.getSubSeed('forest');
+      const riverSeed = coord.getSubSeed('river');
+
+      expect(terrainSeed).not.toEqual(forestSeed);
+      expect(forestSeed).not.toEqual(riverSeed);
+      expect(terrainSeed).not.toEqual(riverSeed);
+    });
+
+    it('should maintain state consistency', () => {
+      const coord1 = new CoordinatedRandomGenerator(777);
+      const coord2 = new CoordinatedRandomGenerator(777);
+
+      // Get same contexts in same order
+      coord1.getSubGenerator('a');
+      coord1.getSubGenerator('b');
+      coord2.getSubGenerator('a');
+      coord2.getSubGenerator('b');
+
+      expect(coord1.getState().subSeeds).toEqual(coord2.getState().subSeeds);
+    });
+  });
+
+  describe('DeterministicIdGenerator', () => {
+    it('should generate identical IDs with same seed', () => {
+      const idGen1 = new DeterministicIdGenerator(456);
+      const idGen2 = new DeterministicIdGenerator(456);
+
+      const ids1 = [
+        idGen1.generateStringId('test'),
+        idGen1.generateStringId('feature'),
+        idGen1.generateStringId('test')
+      ];
+
+      const ids2 = [
+        idGen2.generateStringId('test'),
+        idGen2.generateStringId('feature'),
+        idGen2.generateStringId('test')
+      ];
+
+      expect(ids1).toEqual(ids2);
+    });
+
+    it('should generate different IDs for different types', () => {
+      const idGen = new DeterministicIdGenerator(789);
+
+      const testId = idGen.generateStringId('test');
+      const featureId = idGen.generateStringId('feature');
+
+      expect(testId).not.toEqual(featureId);
+      expect(testId.startsWith('test-')).toBe(true);
+      expect(featureId.startsWith('feature-')).toBe(true);
+    });
+
+    it('should create consistent sub-generators', () => {
+      const idGen1 = new DeterministicIdGenerator(100);
+      const idGen2 = new DeterministicIdGenerator(100);
+
+      const sub1 = idGen1.createSubGenerator('forest');
+      const sub2 = idGen2.createSubGenerator('forest');
+
+      const id1 = sub1.generateStringId('tree');
+      const id2 = sub2.generateStringId('tree');
+
+      expect(id1).toEqual(id2);
+    });
+  });
+
+  describe('SeedUtils', () => {
+    it('should validate numeric seeds correctly', () => {
+      const validResult = SeedUtils.validateSeed(12345);
+      expect(validResult.isValid).toBe(true);
+      expect(validResult.normalizedSeed).toBe(12345);
+
+      const negativeResult = SeedUtils.validateSeed(-500);
+      expect(negativeResult.isValid).toBe(true);
+      expect(negativeResult.normalizedSeed).toBe(500);
+
+      const zeroResult = SeedUtils.validateSeed(0);
+      expect(zeroResult.isValid).toBe(true);
+      expect(zeroResult.normalizedSeed).toBe(1);
+    });
+
+    it('should handle string seeds', () => {
+      const result1 = SeedUtils.validateSeed('my-map-name');
+      const result2 = SeedUtils.validateSeed('my-map-name');
+
+      expect(result1.isValid).toBe(true);
+      expect(result2.isValid).toBe(true);
+      expect(result1.normalizedSeed).toEqual(result2.normalizedSeed);
+      expect(result1.warnings?.[0]).toContain('converted to numeric seed');
+    });
+
+    it('should generate consistent seeds from strings', () => {
+      const seed1 = SeedUtils.generateFromString('test-map');
+      const seed2 = SeedUtils.generateFromString('test-map');
+      const seed3 = SeedUtils.generateFromString('different-map');
+
+      expect(seed1).toBe(seed2);
+      expect(seed1).not.toBe(seed3);
+      expect(seed1).toBeGreaterThan(0);
+      expect(seed1).toBeLessThanOrEqual(2147483647);
+    });
+
+    it('should check seed equivalence correctly', () => {
+      expect(SeedUtils.seedsAreEquivalent(100, 100)).toBe(true);
+      expect(SeedUtils.seedsAreEquivalent(-100, 100)).toBe(true); // Both normalize to 100
+      expect(SeedUtils.seedsAreEquivalent(0, 1)).toBe(true); // Both normalize to 1
+      expect(SeedUtils.seedsAreEquivalent(100, 200)).toBe(false);
+    });
+  });
+
+  describe('End-to-End Reproducibility', () => {
+    it('should create identical generation contexts with same seed', () => {
+      const masterSeed = 2024;
+      
+      // Simulate map generation process
+      const setup1 = () => {
+        const coord = new CoordinatedRandomGenerator(masterSeed);
+        const idGen = new DeterministicIdGenerator(coord.getSubSeed('ids'));
+        
+        return {
+          mapId: idGen.generateStringId('map'),
+          terrainSeed: coord.getSubSeed('terrain'),
+          forestSeed: coord.getSubSeed('forest'),
+          featureIds: [
+            idGen.generateStringId('forest'),
+            idGen.generateStringId('river'),
+            idGen.generateStringId('forest')
+          ]
+        };
+      };
+
+      const result1 = setup1();
+      const result2 = setup1();
+
+      expect(result1).toEqual(result2);
+    });
+
+    it('should maintain reproducibility across multiple generation phases', () => {
+      const masterSeed = 'test-map-reproducible';
+      const normalizedSeed = SeedUtils.generateFromString(masterSeed);
+      
+      const generateMapData = () => {
+        const coord = new CoordinatedRandomGenerator(normalizedSeed);
+        const terrainRng = coord.getSubGenerator('terrain');
+        const forestRng = coord.getSubGenerator('forest');
+        
+        // Simulate terrain generation
+        const terrainData = Array.from({ length: 5 }, () => terrainRng.nextInt(1, 4));
+        
+        // Simulate forest generation
+        const forestData = Array.from({ length: 3 }, () => forestRng.nextFloat(0, 1));
+        
+        return { terrainData, forestData };
+      };
+
+      const map1 = generateMapData();
+      const map2 = generateMapData();
+
+      expect(map1).toEqual(map2);
+    });
+  });
+});

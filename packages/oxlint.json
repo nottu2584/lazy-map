@@ -1,0 +1,20 @@
+{
+  "linter": "oxlint",
+  "exts": ["ts", "js"],
+  "formatter": "stylish",
+  "parserOptions": { "lang": "typescript" },
+  "rules": {
+    "all": "warn",
+    "correctness": "error",
+    "suspicious": "error",
+    "complexity": "off",
+    "no-explicit-any": "off",
+    "no-empty-interface": "off"
+  },
+  "ignores": [
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
+}

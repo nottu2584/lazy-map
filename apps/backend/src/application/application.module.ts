@@ -1,33 +1,32 @@
 import { Module } from '@nestjs/common';
 import { InfrastructureModule } from '../infrastructure/infrastructure.module';
-import { 
-  GenerateMapUseCase, 
+import {
+  GenerateMapUseCase,
   ValidateMapSettingsUseCase,
   GetMapUseCase,
   GetMapTileUseCase,
   ListMapsUseCase,
-  MapApplicationService
+  MapApplicationService,
 } from '@lazy-map/application';
 
 @Module({
   imports: [InfrastructureModule],
   providers: [
-    // Use cases
     {
       provide: GenerateMapUseCase,
       useFactory: (
         mapGenService,
-        vegetationGenService, 
-        mapPersistence, 
-        randomGen, 
-        notificationPort
+        vegetationGenService,
+        mapPersistence,
+        randomGen,
+        notificationPort,
       ) => {
         return new GenerateMapUseCase(
-          mapGenService, 
-          vegetationGenService, 
-          mapPersistence, 
-          randomGen, 
-          notificationPort
+          mapGenService,
+          vegetationGenService,
+          mapPersistence,
+          randomGen,
+          notificationPort,
         );
       },
       inject: [
@@ -65,7 +64,7 @@ import {
       },
       inject: ['IMapPersistencePort'],
     },
-    
+
     // Application services
     {
       provide: MapApplicationService,
@@ -74,14 +73,14 @@ import {
         validateMapSettingsUseCase,
         getMapUseCase,
         getMapTileUseCase,
-        listMapsUseCase
+        listMapsUseCase,
       ) => {
         return new MapApplicationService(
           generateMapUseCase,
           validateMapSettingsUseCase,
           getMapUseCase,
           getMapTileUseCase,
-          listMapsUseCase
+          listMapsUseCase,
         );
       },
       inject: [
@@ -89,7 +88,7 @@ import {
         ValidateMapSettingsUseCase,
         GetMapUseCase,
         GetMapTileUseCase,
-        ListMapsUseCase
+        ListMapsUseCase,
       ],
     },
   ],

@@ -21,7 +21,6 @@
     "test:e2e": "vitest run --config ./vitest.e2e.config.ts"
   },
   "dependencies": {
-    "@lazy-map/core": "workspace:*",
     "@lazy-map/domain": "workspace:*",
     "@lazy-map/application": "workspace:*",
     "@lazy-map/infrastructure": "workspace:*",

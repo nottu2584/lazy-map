@@ -12,10 +12,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@lazy-map/core": "workspace:*",
-    "@lazy-map/terrain": "workspace:*",
-    "@lazy-map/features": "workspace:*",
-    "@lazy-map/generation": "workspace:*",
+    "@lazy-map/domain": "workspace:*",
+    "@lazy-map/application": "workspace:*",
+    "@lazy-map/infrastructure": "workspace:*",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "konva": "^9.3.15",

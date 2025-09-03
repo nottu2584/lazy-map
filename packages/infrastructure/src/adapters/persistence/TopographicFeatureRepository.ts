@@ -1,4 +1,4 @@
-import { FeatureId, MapFeature } from '@lazy-map/domain/common/entities/MapFeature';
+import { FeatureId, MapFeature } from '@lazy-map/domain';
 import { InMemoryReliefRepository } from '../../contexts/relief/persistence/InMemoryReliefRepository';
 import { InMemoryNaturalRepository } from '../../contexts/natural/persistence/InMemoryNaturalRepository';
 import { InMemoryArtificialRepository } from '../../contexts/artificial/persistence/InMemoryArtificialRepository';
@@ -36,7 +36,7 @@ export class TopographicFeatureRepository {
   /**
    * Get all features across all contexts
    */
-  async getAllFeatures(): Promise<MapFeature[]> {
+  async getAllFeatures(): Promise<any[]> {
     const [relief, natural, artificial, cultural] = await Promise.all([
       this.reliefRepo.getAllReliefFeatures(),
       this.naturalRepo.getAllNaturalFeatures(),
@@ -50,7 +50,7 @@ export class TopographicFeatureRepository {
   /**
    * Find a feature by ID across all contexts
    */
-  async findFeatureById(id: FeatureId): Promise<MapFeature | null> {
+  async findFeatureById(id: FeatureId): Promise<any | null> {
     // Try relief features
     const mountain = await this.reliefRepo.getMountain(id);
     if (mountain) return mountain;

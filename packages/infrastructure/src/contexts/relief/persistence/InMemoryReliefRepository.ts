@@ -3,8 +3,8 @@ import {
   Hill,
   Valley,
   Plateau,
-} from '@lazy-map/domain/contexts/relief/entities';
-import { FeatureId } from '@lazy-map/domain/common/entities/MapFeature';
+} from '@lazy-map/domain';
+import { FeatureId } from '@lazy-map/domain';
 
 /**
  * In-memory repository for relief features
@@ -17,11 +17,11 @@ export class InMemoryReliefRepository {
 
   // Mountain operations
   async saveMountain(mountain: Mountain): Promise<void> {
-    this.mountains.set(mountain.id, mountain);
+    this.mountains.set(mountain.id.value, mountain);
   }
 
   async getMountain(id: FeatureId): Promise<Mountain | null> {
-    return this.mountains.get(id) || null;
+    return this.mountains.get(id.value) || null;
   }
 
   async getAllMountains(): Promise<Mountain[]> {
@@ -29,16 +29,16 @@ export class InMemoryReliefRepository {
   }
 
   async deleteMountain(id: FeatureId): Promise<void> {
-    this.mountains.delete(id);
+    this.mountains.delete(id.value);
   }
 
   // Hill operations
   async saveHill(hill: Hill): Promise<void> {
-    this.hills.set(hill.id, hill);
+    this.hills.set(hill.id.value, hill);
   }
 
   async getHill(id: FeatureId): Promise<Hill | null> {
-    return this.hills.get(id) || null;
+    return this.hills.get(id.value) || null;
   }
 
   async getAllHills(): Promise<Hill[]> {
@@ -46,16 +46,16 @@ export class InMemoryReliefRepository {
   }
 
   async deleteHill(id: FeatureId): Promise<void> {
-    this.hills.delete(id);
+    this.hills.delete(id.value);
   }
 
   // Valley operations
   async saveValley(valley: Valley): Promise<void> {
-    this.valleys.set(valley.id, valley);
+    this.valleys.set(valley.id.value, valley);
   }
 
   async getValley(id: FeatureId): Promise<Valley | null> {
-    return this.valleys.get(id) || null;
+    return this.valleys.get(id.value) || null;
   }
 
   async getAllValleys(): Promise<Valley[]> {
@@ -63,16 +63,16 @@ export class InMemoryReliefRepository {
   }
 
   async deleteValley(id: FeatureId): Promise<void> {
-    this.valleys.delete(id);
+    this.valleys.delete(id.value);
   }
 
   // Plateau operations
   async savePlateau(plateau: Plateau): Promise<void> {
-    this.plateaus.set(plateau.id, plateau);
+    this.plateaus.set(plateau.id.value, plateau);
   }
 
   async getPlateau(id: FeatureId): Promise<Plateau | null> {
-    return this.plateaus.get(id) || null;
+    return this.plateaus.get(id.value) || null;
   }
 
   async getAllPlateaus(): Promise<Plateau[]> {
@@ -80,7 +80,7 @@ export class InMemoryReliefRepository {
   }
 
   async deletePlateau(id: FeatureId): Promise<void> {
-    this.plateaus.delete(id);
+    this.plateaus.delete(id.value);
   }
 
   // Bulk operations

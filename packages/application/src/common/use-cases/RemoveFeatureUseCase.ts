@@ -1,9 +1,7 @@
 import { FeatureId } from '@lazy-map/domain';
-import { RemoveFeatureCommand, FeatureOperationResult } from '../../ports/input';
-import { 
-  IMapPersistencePort, 
-  INotificationPort 
-} from '../../ports/output';
+import { RemoveFeatureCommand, FeatureOperationResult } from '../ports/IFeatureManagementPort';
+import { INotificationPort } from '../ports';
+import { IMapPersistencePort } from '../../map/ports';
 
 /**
  * Use case for removing features from maps

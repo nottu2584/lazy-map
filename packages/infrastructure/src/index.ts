@@ -1,14 +1,14 @@
 // Export services
-export * from './services/MapGenerationService';
-export * from './services/MapExportService';
-export * from './services/ConsoleNotificationService';
-export * from './services/RandomGeneratorService';
+export * from './map/services/MapGenerationService';
+export * from './adapters/export/MapExportService';
+export * from './adapters/notification/ConsoleNotificationService';
+export * from './common/utils/RandomGeneratorService';
 
 // Export new vegetation service
 export * from './contexts/natural/services/VegetationGenerationService';
 
 // Export persistence
-export * from './persistence/InMemoryMapPersistence';
+export * from './map/persistence/InMemoryMapPersistence';
 
 // Export new topographic architecture
 export * from './adapters/persistence/TopographicFeatureRepository';

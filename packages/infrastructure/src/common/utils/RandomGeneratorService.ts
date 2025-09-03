@@ -1,10 +1,10 @@
-import { IRandomGeneratorPort } from '@lazy-map/application';
+import { IRandomGeneratorPort, ISeededRandomGenerator } from '@lazy-map/application';
 
 /**
  * Simple Linear Congruential Generator for seeded random numbers
  * Based on the algorithm used by Java's Random class
  */
-class SeededRandom {
+class SeededRandom implements ISeededRandomGenerator {
   private seed: number;
 
   constructor(seed: number) {
@@ -16,17 +16,14 @@ class SeededRandom {
     return this.seed / 0x7fffffff;
   }
 
-  nextFloat(min: number = 0, max: number = 1): number {
+  nextFloat(min: number, max: number): number {
     return min + this.next() * (max - min);
   }
 
-  nextInt(min: number = 0, max: number = 100): number {
+  nextInt(min: number, max: number): number {
     return Math.floor(this.nextFloat(min, max));
   }
 
-  nextBool(probability: number = 0.5): boolean {
-    return this.next() < probability;
-  }
 
   choice<T>(array: T[]): T {
     if (array.length === 0) {
@@ -68,35 +65,75 @@ class SeededRandom {
     return items[items.length - 1];
   }
 
-  gaussian(mean: number = 0, stdDev: number = 1): number {
+  // Interface-required methods
+  nextBoolean(): boolean {
+    return this.next() < 0.5;
+  }
+
+  nextBooleanWithProbability(probability: number): boolean {
+    return this.next() < probability;
+  }
+
+  choices<T>(items: T[], count: number, withReplacement: boolean = true): T[] {
+    const result: T[] = [];
+    if (withReplacement) {
+      for (let i = 0; i < count; i++) {
+        result.push(this.choice(items));
+      }
+    } else {
+      const available = [...items];
+      for (let i = 0; i < Math.min(count, available.length); i++) {
+        const index = this.nextInt(0, available.length);
+        result.push(available.splice(index, 1)[0]);
+      }
+    }
+    return result;
+  }
+
+  nextGaussian(mean: number = 0, standardDeviation: number = 1): number {
     // Box-Muller transform to generate normally distributed random numbers
     const u1 = this.next();
     const u2 = this.next();
     
     const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-    return mean + stdDev * z0;
+    return mean + standardDeviation * z0;
+  }
+
+  nextExponential(lambda: number = 1): number {
+    return -Math.log(1 - this.next()) / lambda;
+  }
+
+  getSeed(): number {
+    return this.seed;
+  }
+
+  // Keep the old method for backwards compatibility
+  nextBool(probability: number = 0.5): boolean {
+    return this.nextBooleanWithProbability(probability);
+  }
+
+  // Keep the old gaussian method for backwards compatibility  
+  gaussian(mean: number = 0, stdDev: number = 1): number {
+    return this.nextGaussian(mean, stdDev);
   }
 }
 
 /**
  * Non-seeded random generator using Math.random()
  */
-class DefaultRandom {
+class DefaultRandom implements ISeededRandomGenerator {
   next(): number {
     return Math.random();
   }
 
-  nextFloat(min: number = 0, max: number = 1): number {
+  nextFloat(min: number, max: number): number {
     return min + this.next() * (max - min);
   }
 
-  nextInt(min: number = 0, max: number = 100): number {
+  nextInt(min: number, max: number): number {
     return Math.floor(this.nextFloat(min, max));
   }
 
-  nextBool(probability: number = 0.5): boolean {
-    return this.next() < probability;
-  }
 
   choice<T>(array: T[]): T {
     if (array.length === 0) {
@@ -138,12 +175,55 @@ class DefaultRandom {
     return items[items.length - 1];
   }
 
+  // Interface-required methods
+  nextBoolean(): boolean {
+    return this.next() < 0.5;
+  }
+
+  nextBooleanWithProbability(probability: number): boolean {
+    return this.next() < probability;
+  }
+
+  choices<T>(items: T[], count: number, withReplacement: boolean = true): T[] {
+    const result: T[] = [];
+    if (withReplacement) {
+      for (let i = 0; i < count; i++) {
+        result.push(this.choice(items));
+      }
+    } else {
+      const available = [...items];
+      for (let i = 0; i < Math.min(count, available.length); i++) {
+        const index = this.nextInt(0, available.length);
+        result.push(available.splice(index, 1)[0]);
+      }
+    }
+    return result;
+  }
+
+  nextGaussian(mean: number = 0, standardDeviation: number = 1): number {
+    return this.gaussian(mean, standardDeviation);
+  }
+
+  nextExponential(lambda: number = 1): number {
+    return -Math.log(1 - this.next()) / lambda;
+  }
+
+  getSeed(): number | undefined {
+    return undefined; // DefaultRandom has no seed
+  }
+
+  // Keep existing methods
   gaussian(mean: number = 0, stdDev: number = 1): number {
     const u1 = this.next();
     const u2 = this.next();
     
     const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
     return mean + stdDev * z0;
+  }
+
+  // Keep the old method for backwards compatibility
+  nextBool(probability: number = 0.5): boolean {
+    return this.nextBooleanWithProbability(probability);
   }
 }
 
@@ -152,12 +232,12 @@ class DefaultRandom {
  * Provides both seeded and unseeded random number generation
  */
 export class RandomGeneratorService implements IRandomGeneratorPort {
-  createRandom(): DefaultRandom {
+  createRandom(): ISeededRandomGenerator {
     return new DefaultRandom();
   }
 
-  createSeeded(seed: number): SeededRandom {
-    return new SeededRandom(seed);
+  createSeeded(seed?: number): ISeededRandomGenerator {
+    return new SeededRandom(seed || Date.now());
   }
 
   // Convenience methods for quick access

@@ -1,6 +1,6 @@
 import { GridMap, MapId } from '@lazy-map/domain';
-import { GetMapQuery, MapQueryResult } from '../../ports/input';
-import { IMapPersistencePort } from '../../ports/output';
+import { GetMapQuery, MapQueryResult } from '../ports/IMapQueryPort';
+import { IMapPersistencePort } from '../ports';
 
 /**
  * Use case for retrieving map data

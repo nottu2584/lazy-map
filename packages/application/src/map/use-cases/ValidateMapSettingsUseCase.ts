@@ -1,4 +1,4 @@
-import { GenerateMapCommand, ValidationResult } from '../../ports/input';
+import { GenerateMapCommand, ValidationResult } from '../ports/IMapGenerationPort';
 
 /**
  * Use case for validating map generation settings
@@ -105,19 +105,19 @@ export class ValidateMapSettingsUseCase {
       const values = Object.values(distribution);
       
       // Check for negative values
-      if (values.some(val => val < 0)) {
+      if (values.some((val: unknown) => (val as number) < 0)) {
         errors.push('Terrain distribution values cannot be negative');
       }
 
       // Check sum
-      const sum = values.reduce((total, val) => total + val, 0);
+      const sum = values.reduce((total: number, val) => total + (val as number), 0);
       if (Math.abs(sum - 1.0) > 0.01) {
         if (sum === 0) {
           errors.push('Terrain distribution cannot be all zeros');
         } else if (sum > 1.1) {
           errors.push('Terrain distribution sum cannot exceed 1.1');
         } else {
-          warnings.push(`Terrain distribution sum is ${sum.toFixed(2)}, should be 1.0`);
+          warnings.push(`Terrain distribution sum is ${(sum as number).toFixed(2)}, should be 1.0`);
         }
       }
     }

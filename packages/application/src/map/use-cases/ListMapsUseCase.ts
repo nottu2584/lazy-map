@@ -1,6 +1,6 @@
 import { MapMetadata } from '@lazy-map/domain';
-import { ListMapsQuery, MapQueryResult } from '../../ports/input';
-import { IMapPersistencePort } from '../../ports/output';
+import { ListMapsQuery, MapQueryResult } from '../ports/IMapQueryPort';
+import { IMapPersistencePort } from '../ports';
 
 /**
  * Use case for listing available maps with optional filtering

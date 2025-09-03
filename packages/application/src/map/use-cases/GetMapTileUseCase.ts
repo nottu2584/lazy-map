@@ -1,6 +1,6 @@
 import { MapTile, MapId, Position } from '@lazy-map/domain';
-import { GetMapTileQuery, MapQueryResult } from '../../ports/input';
-import { IMapPersistencePort } from '../../ports/output';
+import { GetMapTileQuery, MapQueryResult } from '../ports/IMapQueryPort';
+import { IMapPersistencePort } from '../ports';
 
 /**
  * Use case for retrieving specific tile data from a map

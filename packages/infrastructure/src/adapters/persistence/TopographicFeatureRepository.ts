@@ -1,4 +1,4 @@
-import { FeatureId, MapFeature } from '@lazy-map/domain';
+import { FeatureId } from '@lazy-map/domain';
 import { InMemoryReliefRepository } from '../../contexts/relief/persistence/InMemoryReliefRepository';
 import { InMemoryNaturalRepository } from '../../contexts/natural/persistence/InMemoryNaturalRepository';
 import { InMemoryArtificialRepository } from '../../contexts/artificial/persistence/InMemoryArtificialRepository';

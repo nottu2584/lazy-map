@@ -6,7 +6,6 @@ import {
   TerrainType,
   Terrain,
   Position,
-  MapId,
   MapMetadata,
   CoordinatedRandomGenerator,
   DeterministicIdGenerator,
@@ -179,8 +178,8 @@ export class MapGenerationService implements IMapGenerationService {
       0;
     const heightMultiplier = Math.max(0.1, baseHeight + heightVariation);
 
-    // Calculate movement cost based on terrain
-    const movementCost = this.calculateMovementCost(terrainType, heightMultiplier);
+    // Calculate movement cost based on terrain (handled by Terrain class)
+    const _movementCost = this.calculateMovementCost(terrainType, heightMultiplier);
     
     // Determine if blocked
     const isBlocked = this.shouldBeBlocked(terrainType, heightMultiplier, noiseValue);

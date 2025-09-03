@@ -16,7 +16,6 @@ import {
   HerbaceousPlant,
   GroundCoverPlant,
   PlantSize,
-  PlantGrowthForm,
   PlantProperties,
   FeatureArea,
   SubTilePosition,
@@ -37,7 +36,7 @@ export class VegetationGenerationService implements IVegetationGenerationService
     try {
       const plants: Plant[] = [];
       let generatedTrees = 0;
-      let generatedUnderstory = 0;
+      let _generatedUnderstory = 0;
 
       // Generate trees first (canopy layer)
       const trees = await this.generateCanopyTrees(area, settings, biome, randomGenerator);
@@ -48,7 +47,7 @@ export class VegetationGenerationService implements IVegetationGenerationService
       if (settings.generateUnderstory) {
         const understory = await this.generateUnderstoryForArea(area, trees, settings, biome, randomGenerator);
         plants.push(...understory);
-        generatedUnderstory = understory.length;
+        _generatedUnderstory = understory.length;
       }
 
       // Calculate plant interactions

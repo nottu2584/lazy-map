@@ -1,8 +1,7 @@
 import { 
   Forest,
   TreePlant,
-  FeatureId,
-  MapFeature
+  FeatureId
 } from '@lazy-map/domain';
 
 /**

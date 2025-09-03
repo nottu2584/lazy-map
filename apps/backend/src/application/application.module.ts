@@ -17,6 +17,7 @@ import {
       useFactory: (
         mapGenService,
         vegetationGenService,
+        featureMixingService,
         mapPersistence,
         randomGen,
         notificationPort,
@@ -24,6 +25,7 @@ import {
         return new GenerateMapUseCase(
           mapGenService,
           vegetationGenService,
+          featureMixingService,
           mapPersistence,
           randomGen,
           notificationPort,
@@ -32,6 +34,7 @@ import {
       inject: [
         'IMapGenerationService',
         'IVegetationGenerationService',
+        'IFeatureMixingService',
         'IMapPersistencePort',
         'IRandomGeneratorService',
         'INotificationPort',

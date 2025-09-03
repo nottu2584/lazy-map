@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { ApiResponse as ApiResponseType } from '@lazy-map/application';
-import { MapFeature } from '@lazy-map/domain/common/entities/MapFeature';
-import { TopographicFeatureRepository } from '@lazy-map/infrastructure/adapters/persistence/TopographicFeatureRepository';
+import { MapFeature, FeatureId } from '@lazy-map/domain';
+import { TopographicFeatureRepository } from '@lazy-map/infrastructure';
 
 @ApiTags('features')
 @Controller('features')
@@ -23,7 +23,8 @@ export class FeaturesController {
             features = await this.featureRepository.relief.getAllReliefFeatures();
             break;
           case 'natural':
-            features = await this.featureRepository.natural.getAllNaturalFeatures();
+            // Get only forests since TreePlant doesn't extend MapFeature
+            features = await this.featureRepository.natural.getAllForests();
             break;
           case 'artificial':
             features = await this.featureRepository.artificial.getAllArtificialFeatures();
@@ -87,7 +88,8 @@ export class FeaturesController {
   @ApiParam({ name: 'id', description: 'Feature ID' })
   async getFeature(@Param('id') id: string): Promise<ApiResponseType<MapFeature>> {
     try {
-      const feature = await this.featureRepository.findFeatureById(id);
+      const featureId = new FeatureId(id);
+      const feature = await this.featureRepository.findFeatureById(featureId);
       
       if (!feature) {
         return {

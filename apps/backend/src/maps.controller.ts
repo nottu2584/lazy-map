@@ -2,7 +2,7 @@ import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ApiResponse as ApiResponseType } from '@lazy-map/application';
 import { GridMap, MapId } from '@lazy-map/domain';
-import { GenerateMapCommand, MapGenerationResult } from '@lazy-map/application';
+import { GenerateMapCommand, MapGenerationResult, GetMapQuery } from '@lazy-map/application';
 import { MapApplicationService } from '@lazy-map/application';
 import { GenerateMapDto } from './dto';
 
@@ -17,7 +17,7 @@ export class MapsController {
   async generateMap(@Body() dto: GenerateMapDto): Promise<ApiResponseType<GridMap>> {
     try {
       // Convert DTO to command
-      const command = new GenerateMapCommand({
+      const command: GenerateMapCommand = {
         name: dto.name || 'New Map',
         description: dto.description || '',
         width: dto.width || dto.dimensions?.width || 100,
@@ -26,7 +26,7 @@ export class MapsController {
         seed: dto.seed || Math.floor(Math.random() * 1000000),
         tags: dto.tags || [],
         author: dto.author || 'Anonymous',
-        terrainDistribution: dto.terrainDistribution || {
+        terrainDistribution: (dto.terrainDistribution as any) || {
           grassland: 0.4,
           forest: 0.3,
           mountain: 0.2,
@@ -50,8 +50,8 @@ export class MapsController {
           enableInosculation: true,
           underbrushDensity: 0.4
         },
-        biomeType: dto.biomeType || 'temperate'
-      });
+        biomeType: (dto.biomeType as any) || 'temperate'
+      };
       
       // Execute use case via application service
       const result: MapGenerationResult = await this.mapApplicationService.generateMap(command);
@@ -59,8 +59,7 @@ export class MapsController {
       return {
         success: result.success,
         data: result.map,
-        message: 'Map generated successfully',
-        warnings: result.warnings,
+        message: 'Map generated successfully'
       };
     } catch (error) {
       return {
@@ -76,8 +75,8 @@ export class MapsController {
   @ApiResponse({ status: 404, description: 'Map not found' })
   async getMap(@Param('id') id: string): Promise<ApiResponseType<GridMap>> {
     try {
-      const mapId = new MapId(id);
-      const result = await this.mapApplicationService.getMap(mapId);
+      const query: GetMapQuery = { mapId: id };
+      const result = await this.mapApplicationService.getMap(query);
       
       if (!result.success || !result.data) {
         return {

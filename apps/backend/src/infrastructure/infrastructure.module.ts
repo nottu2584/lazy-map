@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import {
   MapGenerationService,
   VegetationGenerationService,
+  FeatureMixingService,
   RandomGeneratorService,
   ConsoleNotificationService,
   InMemoryMapPersistence,
@@ -13,6 +14,7 @@ import {
     // Domain service implementations
     { provide: 'IMapGenerationService', useClass: MapGenerationService },
     { provide: 'IVegetationGenerationService', useClass: VegetationGenerationService },
+    { provide: 'IFeatureMixingService', useClass: FeatureMixingService },
     { provide: 'IRandomGeneratorService', useClass: RandomGeneratorService },
 
     // Output port implementations
@@ -25,6 +27,7 @@ import {
   exports: [
     'IMapGenerationService',
     'IVegetationGenerationService',
+    'IFeatureMixingService',
     'IRandomGeneratorService',
     'IMapPersistencePort',
     'INotificationPort',

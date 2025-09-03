@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
-import { ApiResponse as ApiResponseType } from '@lazy-map/core';
+import { ApiResponse as ApiResponseType } from '@lazy-map/application';
 import { MapFeature } from '@lazy-map/domain/common/entities/MapFeature';
 import { TopographicFeatureRepository } from '@lazy-map/infrastructure/adapters/persistence/TopographicFeatureRepository';
 

@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { ApiResponse as ApiResponseType } from '@lazy-map/core';
+import { ApiResponse as ApiResponseType } from '@lazy-map/application';
 import { GridMap, MapId } from '@lazy-map/domain';
 import { GenerateMapCommand, MapGenerationResult } from '@lazy-map/application';
 import { MapApplicationService } from '@lazy-map/application';

@@ -14,11 +14,11 @@ import {
     { provide: 'IMapGenerationService', useClass: MapGenerationService },
     { provide: 'IVegetationGenerationService', useClass: VegetationGenerationService },
     { provide: 'IRandomGeneratorService', useClass: RandomGeneratorService },
-    
+
     // Output port implementations
     { provide: 'IMapPersistencePort', useClass: InMemoryMapPersistence },
     { provide: 'INotificationPort', useClass: ConsoleNotificationService },
-    
+
     // Topographic feature repository
     TopographicFeatureRepository,
   ],

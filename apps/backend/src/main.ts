@@ -5,17 +5,17 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+
   // Enable validation
   app.useGlobalPipes(new ValidationPipe({
     transform: true,
     whitelist: true,
     forbidNonWhitelisted: true,
   }));
-  
+
   // Enable CORS
   app.enableCors();
-  
+
   // Setup Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Lazy Map API')
@@ -25,7 +25,7 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-  
+
   // Start server
   await app.listen(process.env.PORT ?? 3000);
 }

@@ -14,7 +14,7 @@ import {
 import {
   IRandomGeneratorPort,
   INotificationPort
-} from '../../../ports/output';
+} from '../../../common/ports';
 
 /**
  * Command for generating diverse vegetation

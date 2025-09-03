@@ -1,11 +1,13 @@
-// Re-export from ports
-export * from './ports/input';
-export * from './ports/output';
+// Re-export ports
+export * from './common/ports';
+export * from './map/ports';
 
-// Re-export from use cases
-export * from './use-cases/map-generation';
-export * from './use-cases/feature-management';
-export * from './use-cases/map-query';
+// Re-export use cases
+export * from './common/use-cases';
+export * from './contexts/natural/use-cases';
+export * from './map/use-cases';
 
-// Re-export from services
-export * from './services';
+// Re-export services
+export * from './common/adapters';
+export * from './contexts/natural/services';
+export * from './map/services';

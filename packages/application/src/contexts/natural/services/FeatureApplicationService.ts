@@ -8,7 +8,7 @@ import {
   UpdateForestCommand,
   RemoveFeatureCommand,
   FeatureOperationResult
-} from '../../../ports/input';
+} from '../../../common/ports/IFeatureManagementPort';
 
 /**
  * Application service for feature-related operations

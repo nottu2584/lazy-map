@@ -7,12 +7,9 @@ import {
   PlantSpecies,
   Position
 } from '@lazy-map/domain';
-import { CreateForestCommand, FeatureOperationResult } from '../../../ports/input';
-import { 
-  IMapPersistencePort, 
-  IRandomGeneratorPort, 
-  INotificationPort 
-} from '../../../ports/output';
+import { CreateForestCommand, FeatureOperationResult } from '../../../common/ports/IFeatureManagementPort';
+import { IRandomGeneratorPort, INotificationPort } from '../../../common/ports';
+import { IMapPersistencePort } from '../../../map/ports';
 import { RandomGeneratorAdapter } from '../../../common/adapters';
 
 /**

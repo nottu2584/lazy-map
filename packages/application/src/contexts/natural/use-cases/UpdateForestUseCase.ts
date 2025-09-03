@@ -3,12 +3,9 @@ import {
   FeatureId,
   IVegetationGenerationService
 } from '@lazy-map/domain';
-import { UpdateForestCommand, FeatureOperationResult } from '../../../ports/input';
-import { 
-  IMapPersistencePort, 
-  IRandomGeneratorPort, 
-  INotificationPort 
-} from '../../../ports/output';
+import { UpdateForestCommand, FeatureOperationResult } from '../../../common/ports/IFeatureManagementPort';
+import { IRandomGeneratorPort, INotificationPort } from '../../../common/ports';
+import { IMapPersistencePort } from '../../../map/ports';
 import { RandomGeneratorAdapter } from '../../../common/adapters';
 
 /**
@@ -78,7 +75,7 @@ export class UpdateForestUseCase {
       // Remove trees if requested
       if (command.removeTrees && command.removeTrees.length > 0) {
         // Remove specified trees by ID
-        command.removeTrees.forEach(_treeId => {
+        command.removeTrees.forEach((_treeId: string) => {
           // Implementation would remove tree from forest
         });
         updated = true;

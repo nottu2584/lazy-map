@@ -2,8 +2,8 @@ import {
   Territory,
   Settlement,
   Region,
-} from '@lazy-map/domain/contexts/cultural/entities';
-import { FeatureId } from '@lazy-map/domain/common/entities/MapFeature';
+} from '@lazy-map/domain';
+import { FeatureId } from '@lazy-map/domain';
 
 /**
  * In-memory repository for cultural features
@@ -15,11 +15,11 @@ export class InMemoryCulturalRepository {
 
   // Territory operations
   async saveTerritory(territory: Territory): Promise<void> {
-    this.territories.set(territory.id, territory);
+    this.territories.set(territory.id.value, territory);
   }
 
   async getTerritory(id: FeatureId): Promise<Territory | null> {
-    return this.territories.get(id) || null;
+    return this.territories.get(id.value) || null;
   }
 
   async getAllTerritories(): Promise<Territory[]> {
@@ -27,16 +27,16 @@ export class InMemoryCulturalRepository {
   }
 
   async deleteTerritory(id: FeatureId): Promise<void> {
-    this.territories.delete(id);
+    this.territories.delete(id.value);
   }
 
   // Settlement operations
   async saveSettlement(settlement: Settlement): Promise<void> {
-    this.settlements.set(settlement.id, settlement);
+    this.settlements.set(settlement.id.value, settlement);
   }
 
   async getSettlement(id: FeatureId): Promise<Settlement | null> {
-    return this.settlements.get(id) || null;
+    return this.settlements.get(id.value) || null;
   }
 
   async getAllSettlements(): Promise<Settlement[]> {
@@ -44,16 +44,16 @@ export class InMemoryCulturalRepository {
   }
 
   async deleteSettlement(id: FeatureId): Promise<void> {
-    this.settlements.delete(id);
+    this.settlements.delete(id.value);
   }
 
   // Region operations
   async saveRegion(region: Region): Promise<void> {
-    this.regions.set(region.id, region);
+    this.regions.set(region.id.value, region);
   }
 
   async getRegion(id: FeatureId): Promise<Region | null> {
-    return this.regions.get(id) || null;
+    return this.regions.get(id.value) || null;
   }
 
   async getAllRegions(): Promise<Region[]> {
@@ -61,7 +61,7 @@ export class InMemoryCulturalRepository {
   }
 
   async deleteRegion(id: FeatureId): Promise<void> {
-    this.regions.delete(id);
+    this.regions.delete(id.value);
   }
 
   // Bulk operations

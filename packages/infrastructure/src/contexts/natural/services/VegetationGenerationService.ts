@@ -4,10 +4,7 @@ import {
   GrasslandGenerationSettings,
   BiomeType,
   IRandomGenerator,
-  VegetationGenerationResult
-} from '@lazy-map/domain/contexts/natural/services/IVegetationGenerationService';
-
-import {
+  VegetationGenerationResult,
   Forest,
   Grassland,
   GrasslandType,
@@ -20,12 +17,11 @@ import {
   GroundCoverPlant,
   PlantSize,
   PlantGrowthForm,
-  PlantProperties
-} from '@lazy-map/domain/contexts/natural/entities';
-
-import { FeatureArea } from '@lazy-map/domain/common/value-objects/FeatureArea';
-import { SubTilePosition } from '@lazy-map/domain/common/value-objects/Position';
-import { FeatureId } from '@lazy-map/domain/common/entities/MapFeature';
+  PlantProperties,
+  FeatureArea,
+  SubTilePosition,
+  FeatureId
+} from '@lazy-map/domain';
 
 /**
  * Implementation of vegetation generation service
@@ -187,7 +183,7 @@ export class VegetationGenerationService implements IVegetationGenerationService
   ): Promise<Plant[]> {
     const understoryPlants: Plant[] = [];
     const area = forest.area;
-    const trees = forest.getTrees();
+    const trees = forest.getTreePlants();
 
     // Calculate light levels under canopy
     const lightMap = this.calculateLightLevels(area, trees);
@@ -595,10 +591,12 @@ export class VegetationGenerationService implements IVegetationGenerationService
 
   private generateAgeForSize(size: PlantSize, rng: IRandomGenerator): number {
     const ageRanges = {
+      [PlantSize.TINY]: { min: 1, max: 5 },
       [PlantSize.SMALL]: { min: 1, max: 10 },
       [PlantSize.MEDIUM]: { min: 10, max: 30 },
       [PlantSize.LARGE]: { min: 30, max: 100 },
-      [PlantSize.HUGE]: { min: 100, max: 500 }
+      [PlantSize.HUGE]: { min: 100, max: 500 },
+      [PlantSize.MASSIVE]: { min: 500, max: 2000 }
     };
 
     const range = ageRanges[size] || { min: 10, max: 50 };

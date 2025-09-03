@@ -10,12 +10,9 @@ import {
   CoordinatedRandomGenerator,
   SeedUtils
 } from '@lazy-map/domain';
-import { GenerateMapCommand, MapGenerationResult } from '../../ports/input';
-import { 
-  IMapPersistencePort, 
-  IRandomGeneratorPort, 
-  INotificationPort 
-} from '../../ports/output';
+import { GenerateMapCommand, MapGenerationResult } from '../ports/IMapGenerationPort';
+import { IMapPersistencePort } from '../ports';
+import { IRandomGeneratorPort, INotificationPort } from '../../common/ports';
 import { RandomGeneratorAdapter } from '../../common/adapters';
 
 /**
@@ -188,7 +185,7 @@ export class GenerateMapUseCase {
 
     // Terrain distribution validation
     if (command.terrainDistribution) {
-      const total = Object.values(command.terrainDistribution).reduce((sum, val) => sum + val, 0);
+      const total = Object.values(command.terrainDistribution).reduce((sum: number, val) => sum + (val as number), 0);
       if (Math.abs(total - 1.0) > 0.01) {
         warnings.push('Terrain distribution should sum to 1.0');
       }

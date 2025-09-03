@@ -20,7 +20,7 @@
     "@types/node": "^22.15.31",
     "typescript": "^5.3.3",
     "vitest": "^3.2.4",
-    "oxlint": "^0.32.0"
+    "oxlint": "^1.14.0"
   },
   "peerDependencies": {
     "mongodb": "^6.0.0",

@@ -2,8 +2,8 @@ import {
   Building,
   Road,
   Bridge,
-} from '@lazy-map/domain/contexts/artificial/entities';
-import { FeatureId } from '@lazy-map/domain/common/entities/MapFeature';
+  FeatureId
+} from '@lazy-map/domain';
 
 /**
  * In-memory repository for artificial features
@@ -15,11 +15,11 @@ export class InMemoryArtificialRepository {
 
   // Building operations
   async saveBuilding(building: Building): Promise<void> {
-    this.buildings.set(building.id, building);
+    this.buildings.set(building.id.value, building);
   }
 
   async getBuilding(id: FeatureId): Promise<Building | null> {
-    return this.buildings.get(id) || null;
+    return this.buildings.get(id.value) || null;
   }
 
   async getAllBuildings(): Promise<Building[]> {
@@ -27,16 +27,16 @@ export class InMemoryArtificialRepository {
   }
 
   async deleteBuilding(id: FeatureId): Promise<void> {
-    this.buildings.delete(id);
+    this.buildings.delete(id.value);
   }
 
   // Road operations
   async saveRoad(road: Road): Promise<void> {
-    this.roads.set(road.id, road);
+    this.roads.set(road.id.value, road);
   }
 
   async getRoad(id: FeatureId): Promise<Road | null> {
-    return this.roads.get(id) || null;
+    return this.roads.get(id.value) || null;
   }
 
   async getAllRoads(): Promise<Road[]> {
@@ -44,16 +44,16 @@ export class InMemoryArtificialRepository {
   }
 
   async deleteRoad(id: FeatureId): Promise<void> {
-    this.roads.delete(id);
+    this.roads.delete(id.value);
   }
 
   // Bridge operations
   async saveBridge(bridge: Bridge): Promise<void> {
-    this.bridges.set(bridge.id, bridge);
+    this.bridges.set(bridge.id.value, bridge);
   }
 
   async getBridge(id: FeatureId): Promise<Bridge | null> {
-    return this.bridges.get(id) || null;
+    return this.bridges.get(id.value) || null;
   }
 
   async getAllBridges(): Promise<Bridge[]> {
@@ -61,7 +61,7 @@ export class InMemoryArtificialRepository {
   }
 
   async deleteBridge(id: FeatureId): Promise<void> {
-    this.bridges.delete(id);
+    this.bridges.delete(id.value);
   }
 
   // Bulk operations

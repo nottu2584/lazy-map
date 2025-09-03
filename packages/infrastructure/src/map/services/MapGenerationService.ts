@@ -4,6 +4,7 @@ import {
   GridMap,
   MapTile,
   TerrainType,
+  Terrain,
   Position,
   MapId,
   MapMetadata,
@@ -184,13 +185,12 @@ export class MapGenerationService implements IMapGenerationService {
     // Determine if blocked
     const isBlocked = this.shouldBeBlocked(terrainType, heightMultiplier, noiseValue);
 
-    return new MapTile(
-      position,
-      terrainType,
-      heightMultiplier,
-      movementCost,
-      isBlocked
-    );
+    const terrain = this.createTerrainFromType(terrainType);
+    const tile = new MapTile(position, terrain, heightMultiplier);
+    if (isBlocked) {
+      tile.block();
+    }
+    return tile;
   }
 
   private normalizeTerrainDistribution(distribution: Record<string, number>): Record<string, number> {
@@ -232,7 +232,7 @@ export class MapGenerationService implements IMapGenerationService {
     }
     
     // Fallback
-    return TerrainType.GRASSLAND;
+    return TerrainType.GRASS;
   }
 
   private stringToTerrainType(terrainName: string): TerrainType {
@@ -241,7 +241,7 @@ export class MapGenerationService implements IMapGenerationService {
     switch (normalized) {
       case 'grassland':
       case 'grass':
-        return TerrainType.GRASSLAND;
+        return TerrainType.GRASS;
       case 'forest':
       case 'woods':
         return TerrainType.FOREST;
@@ -261,7 +261,7 @@ export class MapGenerationService implements IMapGenerationService {
       case 'marsh':
         return TerrainType.SWAMP;
       default:
-        return TerrainType.GRASSLAND;
+        return TerrainType.GRASS;
     }
   }
 
@@ -270,7 +270,7 @@ export class MapGenerationService implements IMapGenerationService {
     let baseCost: number;
     
     switch (terrainType) {
-      case TerrainType.GRASSLAND:
+      case TerrainType.GRASS:
         baseCost = 1.0;
         break;
       case TerrainType.FOREST:
@@ -347,14 +347,16 @@ export class MapGenerationService implements IMapGenerationService {
         const newMovementCost = this.calculateMovementCost(tile.terrainType, newHeight);
         const newIsBlocked = this.shouldBeBlocked(tile.terrainType, newHeight, elevationNoise);
         
-        tiles[y][x] = new MapTile(
-          tile.position,
-          tile.terrainType,
-          newHeight,
-          newMovementCost,
-          newIsBlocked,
-          tile.customProperties
-        );
+        const terrain = this.createTerrainFromType(tile.terrainType);
+        const newTile = new MapTile(tile.position, terrain, newHeight);
+        if (newIsBlocked) {
+          newTile.block();
+        }
+        // Copy custom properties
+        Object.entries(tile.customProperties).forEach(([key, value]) => {
+          newTile.setCustomProperty(key, value);
+        });
+        tiles[y][x] = newTile;
       }
     }
   }
@@ -388,14 +390,20 @@ export class MapGenerationService implements IMapGenerationService {
           const inclinationPenalty = maxHeightDiff * 0.5;
           const newMovementCost = currentTile.movementCost + inclinationPenalty;
           
-          tiles[y][x] = new MapTile(
+          const terrain = this.createTerrainFromType(currentTile.terrainType);
+          const newTile = new MapTile(
             currentTile.position,
-            currentTile.terrainType,
-            currentTile.heightMultiplier,
-            Math.round(newMovementCost * 10) / 10,
-            currentTile.isBlocked,
-            currentTile.customProperties
+            terrain,
+            currentTile.heightMultiplier
           );
+          if (currentTile.isBlocked) {
+            newTile.block();
+          }
+          // Copy custom properties
+          Object.entries(currentTile.customProperties).forEach(([key, value]) => {
+            newTile.setCustomProperty(key, value);
+          });
+          tiles[y][x] = newTile;
         }
       }
     }
@@ -419,6 +427,33 @@ export class MapGenerationService implements IMapGenerationService {
   }
 
   // Keep old method for backward compatibility but make it deterministic
+  private createTerrainFromType(terrainType: TerrainType): Terrain {
+    switch (terrainType) {
+      case TerrainType.GRASS:
+        return Terrain.grass();
+      case TerrainType.FOREST:
+        return Terrain.forest();
+      case TerrainType.MOUNTAIN:
+        return Terrain.mountain();
+      case TerrainType.WATER:
+        return Terrain.water();
+      case TerrainType.DESERT:
+        return new Terrain(TerrainType.DESERT, 2, true, false);
+      case TerrainType.SNOW:
+        return new Terrain(TerrainType.SNOW, 2, true, false);
+      case TerrainType.SWAMP:
+        return new Terrain(TerrainType.SWAMP, 3, true, false);
+      case TerrainType.ROAD:
+        return new Terrain(TerrainType.ROAD, 0.5, true, false);
+      case TerrainType.BUILDING:
+        return new Terrain(TerrainType.BUILDING, Infinity, false, false);
+      case TerrainType.WALL:
+        return new Terrain(TerrainType.WALL, Infinity, false, false);
+      default:
+        return Terrain.grass();
+    }
+  }
+
   private createNoiseGenerator(seed?: number): (x: number, y: number) => number {
     const actualSeed = seed || 123456; // Use fixed fallback instead of Math.random()
     

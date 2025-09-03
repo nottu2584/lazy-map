@@ -1,3 +1,6 @@
+// Re-export types
+export * from './common/types';
+
 // Re-export ports
 export * from './common/ports';
 export * from './map/ports';

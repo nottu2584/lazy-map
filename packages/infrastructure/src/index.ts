@@ -3,6 +3,7 @@ export * from './map/services/MapGenerationService';
 export * from './adapters/export/MapExportService';
 export * from './adapters/notification/ConsoleNotificationService';
 export * from './common/utils/RandomGeneratorService';
+export * from './common/services/FeatureMixingService';
 
 // Export new vegetation service
 export * from './contexts/natural/services/VegetationGenerationService';

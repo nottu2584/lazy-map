@@ -1,16 +1,19 @@
 import {
-  IMapGenerationService,
-  MapGenerationSettings,
-  GridMap,
-  MapTile,
-  TerrainType,
-  Terrain,
-  Position,
-  MapMetadata,
   CoordinatedRandomGenerator,
   DeterministicIdGenerator,
-  SeedUtils
+  GridMap,
+  IMapGenerationService,
+  MapGenerationSettings,
+  MapMetadata,
+  MapTile,
+  Position,
+  SeedUtils,
+  Terrain,
+  TerrainType
 } from '@lazy-map/domain';
+
+import { FeatureArea, IHydrographicGenerationService } from '@lazy-map/domain';
+import { HydrographicGenerationService } from '../../contexts/natural/services/HydrographicGenerationService';
 
 // Using the domain interface for MapGenerationResult
 
@@ -18,6 +21,11 @@ import {
  * Concrete implementation of map generation service
  */
 export class MapGenerationService implements IMapGenerationService {
+  private hydrographicService: IHydrographicGenerationService;
+
+  constructor(hydrographicService?: IHydrographicGenerationService) {
+    this.hydrographicService = hydrographicService || new HydrographicGenerationService();
+  }
   /**
    * Validates map generation settings
    */
@@ -50,6 +58,25 @@ export class MapGenerationService implements IMapGenerationService {
     // Validate biome type
     if (settings.biomeType && !this.getSupportedBiomes().includes(settings.biomeType)) {
       warnings.push(`Unsupported biome type: ${settings.biomeType}. Using default.`);
+    }
+    
+    // Validate hydrographic settings
+    if (settings.integrateWaterFeatures) {
+      if (!settings.hydrographicSettings) {
+        warnings.push('Water feature integration enabled but no hydrographic settings provided');
+      } else {
+        // Validate hydrographic density settings
+        const hydrographicSettings = settings.hydrographicSettings;
+        if (hydrographicSettings.riverDensity < 0 || hydrographicSettings.riverDensity > 1) {
+          warnings.push('River density must be between 0 and 1');
+        }
+        if (hydrographicSettings.lakeDensity < 0 || hydrographicSettings.lakeDensity > 1) {
+          warnings.push('Lake density must be between 0 and 1');
+        }
+        if (hydrographicSettings.naturalismLevel < 0 || hydrographicSettings.naturalismLevel > 1) {
+          warnings.push('Naturalism level must be between 0 and 1');
+        }
+      }
     }
     
     return warnings;
@@ -112,11 +139,51 @@ export class MapGenerationService implements IMapGenerationService {
       metadata
     );
 
+    // Generate hydrographic features if enabled
+    let waterFeatures;
+    if (settings.integrateWaterFeatures && settings.hydrographicSettings) {
+      const mapArea = new FeatureArea(
+        new Position(0, 0),
+        settings.dimensions
+      );
+
+      const hydrographicRandom = coordinatedRandom.getSubGenerator(CoordinatedRandomGenerator.CONTEXTS.FEATURES);
+      const hydrographicResult = await this.hydrographicService.generateWaterSystem(
+        mapArea,
+        settings.hydrographicSettings,
+        hydrographicRandom
+      );
+
+      if (hydrographicResult.success) {
+        // Integrate water features into the map terrain
+        this.integrateWaterFeaturesIntoTerrain(tiles, hydrographicResult, settings);
+
+        waterFeatures = {
+          riversGenerated: hydrographicResult.rivers.length,
+          lakesGenerated: hydrographicResult.lakes.length,
+          springsGenerated: hydrographicResult.springs.length,
+          pondsGenerated: hydrographicResult.ponds.length,
+          wetlandsGenerated: hydrographicResult.wetlands.length,
+          totalWaterCoverage: hydrographicResult.totalWaterCoverage,
+          interconnectionScore: hydrographicResult.interconnectionScore,
+          biodiversityScore: hydrographicResult.biodiversityScore
+        };
+
+        warnings.push(...hydrographicResult.warnings);
+      } else {
+        warnings.push(`Hydrographic generation failed: ${hydrographicResult.error}`);
+      }
+    }
+
     return {
       map,
-      featuresGenerated: 0, // Features are generated separately
+      featuresGenerated: waterFeatures ? 
+        (waterFeatures.riversGenerated + waterFeatures.lakesGenerated + 
+         waterFeatures.springsGenerated + waterFeatures.pondsGenerated + 
+         waterFeatures.wetlandsGenerated) : 0,
       generationTime: performance.now() - startTime,
-      warnings
+      warnings,
+      waterFeatures
     };
   }
 
@@ -467,5 +534,237 @@ export class MapGenerationService implements IMapGenerationService {
       
       return Math.max(0, Math.min(1, n + dx + dy));
     };
+  }
+
+  /**
+   * Integrate hydrographic features into the map terrain
+   */
+  private integrateWaterFeaturesIntoTerrain(
+    tiles: MapTile[][],
+    hydrographicResult: any,
+    settings: MapGenerationSettings
+  ): void {
+    // Convert rivers to water terrain
+    for (const river of hydrographicResult.rivers) {
+      this.applyRiverToTerrain(tiles, river, settings);
+    }
+
+    // Convert lakes to water terrain
+    for (const lake of hydrographicResult.lakes) {
+      this.applyLakeToTerrain(tiles, lake, settings);
+    }
+
+    // Convert ponds to water terrain
+    for (const pond of hydrographicResult.ponds) {
+      this.applyPondToTerrain(tiles, pond, settings);
+    }
+
+    // Convert wetlands to swamp terrain
+    for (const wetland of hydrographicResult.wetlands) {
+      this.applyWetlandToTerrain(tiles, wetland, settings);
+    }
+
+    // Springs create small water areas
+    for (const spring of hydrographicResult.springs) {
+      this.applySpringToTerrain(tiles, spring, settings);
+    }
+  }
+
+  private applyRiverToTerrain(tiles: MapTile[][], river: any, settings: MapGenerationSettings): void {
+    for (const riverPoint of river.path) {
+      const x = Math.floor(riverPoint.position.x / settings.cellSize);
+      const y = Math.floor(riverPoint.position.y / settings.cellSize);
+
+      if (this.isValidTilePosition(tiles, x, y)) {
+        const currentTile = tiles[y][x];
+        const waterTerrain = Terrain.water();
+        const waterTile = new MapTile(
+          currentTile.position,
+          waterTerrain,
+          currentTile.heightMultiplier * 0.8 // Rivers are slightly lower
+        );
+
+        // Add river metadata
+        waterTile.setCustomProperty('featureType', 'river');
+        waterTile.setCustomProperty('riverId', river.id.value);
+        waterTile.setCustomProperty('riverName', river.name);
+        waterTile.setCustomProperty('width', riverPoint.width);
+        waterTile.setCustomProperty('depth', riverPoint.depth);
+        waterTile.setCustomProperty('flowDirection', riverPoint.flowDirection);
+
+        tiles[y][x] = waterTile;
+
+        // Apply river width (affect adjacent tiles)
+        const widthInTiles = Math.ceil(riverPoint.width / settings.cellSize);
+        for (let dx = -widthInTiles; dx <= widthInTiles; dx++) {
+          for (let dy = -widthInTiles; dy <= widthInTiles; dy++) {
+            const nx = x + dx;
+            const ny = y + dy;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (this.isValidTilePosition(tiles, nx, ny) && distance <= widthInTiles) {
+              if (distance === 0) continue; // Skip center tile (already processed)
+
+              const adjacentTile = tiles[ny][nx];
+              if (adjacentTile.terrainType !== TerrainType.WATER) {
+                // Create riverbank terrain (modify existing)
+                adjacentTile.setCustomProperty('nearRiver', true);
+                adjacentTile.setCustomProperty('riverDistance', distance);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private applyLakeToTerrain(tiles: MapTile[][], lake: any, settings: MapGenerationSettings): void {
+    // Apply water terrain to the entire lake area
+    const startX = Math.floor(lake.area.x / settings.cellSize);
+    const startY = Math.floor(lake.area.y / settings.cellSize);
+    const endX = Math.floor((lake.area.x + lake.area.width) / settings.cellSize);
+    const endY = Math.floor((lake.area.y + lake.area.height) / settings.cellSize);
+
+    for (let y = startY; y <= endY; y++) {
+      for (let x = startX; x <= endX; x++) {
+        if (this.isValidTilePosition(tiles, x, y)) {
+          // Check if position is actually within lake (for irregular shapes)
+          const tileCenter = new Position(
+            x * settings.cellSize + settings.cellSize / 2,
+            y * settings.cellSize + settings.cellSize / 2
+          );
+
+          if (lake.containsPosition(tileCenter)) {
+            const currentTile = tiles[y][x];
+            const waterTerrain = Terrain.water();
+            const depth = lake.getDepthAt(tileCenter);
+            const waterTile = new MapTile(
+              currentTile.position,
+              waterTerrain,
+              Math.max(0.1, currentTile.heightMultiplier - (depth * 0.1)) // Lower based on depth
+            );
+
+            // Add lake metadata
+            waterTile.setCustomProperty('featureType', 'lake');
+            waterTile.setCustomProperty('lakeId', lake.id.value);
+            waterTile.setCustomProperty('lakeName', lake.name);
+            waterTile.setCustomProperty('depth', depth);
+            waterTile.setCustomProperty('lakeSize', lake.sizeCategory);
+            waterTile.setCustomProperty('navigable', lake.isNavigable);
+
+            tiles[y][x] = waterTile;
+          }
+        }
+      }
+    }
+  }
+
+  private applyPondToTerrain(tiles: MapTile[][], pond: any, settings: MapGenerationSettings): void {
+    const startX = Math.floor(pond.area.x / settings.cellSize);
+    const startY = Math.floor(pond.area.y / settings.cellSize);
+    const endX = Math.floor((pond.area.x + pond.area.width) / settings.cellSize);
+    const endY = Math.floor((pond.area.y + pond.area.height) / settings.cellSize);
+
+    for (let y = startY; y <= endY; y++) {
+      for (let x = startX; x <= endX; x++) {
+        if (this.isValidTilePosition(tiles, x, y)) {
+          const currentTile = tiles[y][x];
+          const waterTerrain = Terrain.water();
+          const waterTile = new MapTile(
+            currentTile.position,
+            waterTerrain,
+            Math.max(0.1, currentTile.heightMultiplier - (pond.depth * 0.05))
+          );
+
+          // Add pond metadata
+          waterTile.setCustomProperty('featureType', 'pond');
+          waterTile.setCustomProperty('pondId', pond.id.value);
+          waterTile.setCustomProperty('pondName', pond.name);
+          waterTile.setCustomProperty('depth', pond.depth);
+          waterTile.setCustomProperty('seasonal', pond.seasonal);
+
+          tiles[y][x] = waterTile;
+        }
+      }
+    }
+  }
+
+  private applyWetlandToTerrain(tiles: MapTile[][], wetland: any, settings: MapGenerationSettings): void {
+    const startX = Math.floor(wetland.area.x / settings.cellSize);
+    const startY = Math.floor(wetland.area.y / settings.cellSize);
+    const endX = Math.floor((wetland.area.x + wetland.area.width) / settings.cellSize);
+    const endY = Math.floor((wetland.area.y + wetland.area.height) / settings.cellSize);
+
+    for (let y = startY; y <= endY; y++) {
+      for (let x = startX; x <= endX; x++) {
+        if (this.isValidTilePosition(tiles, x, y)) {
+          const currentTile = tiles[y][x];
+          const swampTerrain = new Terrain(TerrainType.SWAMP, 2.5, true, false);
+          const swampTile = new MapTile(
+            currentTile.position,
+            swampTerrain,
+            Math.max(0.1, currentTile.heightMultiplier - 0.2) // Slightly lower
+          );
+
+          // Add wetland metadata
+          swampTile.setCustomProperty('featureType', 'wetland');
+          swampTile.setCustomProperty('wetlandId', wetland.id.value);
+          swampTile.setCustomProperty('wetlandName', wetland.name);
+          swampTile.setCustomProperty('wetlandType', wetland.wetlandType);
+          swampTile.setCustomProperty('vegetationDensity', wetland.vegetationDensity);
+          swampTile.setCustomProperty('biodiversityScore', wetland.biodiversityScore);
+
+          tiles[y][x] = swampTile;
+        }
+      }
+    }
+  }
+
+  private applySpringToTerrain(tiles: MapTile[][], spring: any, settings: MapGenerationSettings): void {
+    const centerX = Math.floor((spring.area.x + spring.area.width / 2) / settings.cellSize);
+    const centerY = Math.floor((spring.area.y + spring.area.height / 2) / settings.cellSize);
+
+    // Springs affect a small area (typically 1-2 tiles)
+    const radius = 1;
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        const x = centerX + dx;
+        const y = centerY + dy;
+
+        if (this.isValidTilePosition(tiles, x, y)) {
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance <= radius) {
+            const currentTile = tiles[y][x];
+            
+            if (distance === 0) {
+              // Center tile becomes water
+              const waterTerrain = Terrain.water();
+              const springTile = new MapTile(
+                currentTile.position,
+                waterTerrain,
+                currentTile.heightMultiplier
+              );
+
+              springTile.setCustomProperty('featureType', 'spring');
+              springTile.setCustomProperty('springId', spring.id.value);
+              springTile.setCustomProperty('springName', spring.name);
+              springTile.setCustomProperty('springType', spring.springType);
+              springTile.setCustomProperty('flowRate', spring.flowRate);
+              springTile.setCustomProperty('temperature', spring.temperature);
+
+              tiles[y][x] = springTile;
+            } else {
+              // Adjacent tiles are marked as near spring
+              currentTile.setCustomProperty('nearSpring', true);
+              currentTile.setCustomProperty('springDistance', distance);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private isValidTilePosition(tiles: MapTile[][], x: number, y: number): boolean {
+    return y >= 0 && y < tiles.length && x >= 0 && x < tiles[0].length;
   }
 }

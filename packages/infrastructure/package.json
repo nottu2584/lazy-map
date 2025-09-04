@@ -2,7 +2,6 @@
   "name": "@lazy-map/infrastructure",
   "version": "1.0.0",
   "description": "Infrastructure layer for Lazy Map - implements output ports with concrete services",
-  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

@@ -1,5 +1,6 @@
-import { GridMap } from '../entities';
 import { Dimensions } from '../../common/value-objects/Dimensions';
+import { HydrographicGenerationSettings } from '../../contexts/natural/services/IHydrographicGenerationService';
+import { GridMap } from '../entities';
 
 /**
  * Settings for map generation
@@ -18,6 +19,10 @@ export interface MapGenerationSettings {
   generateRoads: boolean;
   generateBuildings: boolean;
   biomeType?: 'temperate' | 'tropical' | 'arctic' | 'desert' | 'mixed';
+
+  // Hydrographic generation settings
+  hydrographicSettings?: HydrographicGenerationSettings;
+  integrateWaterFeatures?: boolean;
 }
 
 /**
@@ -28,6 +33,18 @@ export interface MapGenerationResult {
   generationTime: number;
   featuresGenerated: number;
   warnings: string[];
+
+  // Hydrographic generation results
+  waterFeatures?: {
+    riversGenerated: number;
+    lakesGenerated: number;
+    springsGenerated: number;
+    pondsGenerated: number;
+    wetlandsGenerated: number;
+    totalWaterCoverage: number;
+    interconnectionScore: number;
+    biodiversityScore: number;
+  };
 }
 
 /**

@@ -1,4 +1,4 @@
-import { GridMap, MapId } from '@lazy-map/domain';
+import { MapGrid, MapId } from '@lazy-map/domain';
 import { GetMapQuery, MapQueryResult } from '../ports/IMapQueryPort';
 import { IMapPersistencePort } from '../ports';
 
@@ -10,7 +10,7 @@ export class GetMapUseCase {
     private readonly mapPersistence: IMapPersistencePort
   ) {}
 
-  async execute(query: GetMapQuery): Promise<MapQueryResult<GridMap | null>> {
+  async execute(query: GetMapQuery): Promise<MapQueryResult<MapGrid | null>> {
     try {
       // Validate query
       const validationResult = this.validateQuery(query);

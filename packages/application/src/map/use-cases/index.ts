@@ -3,3 +3,6 @@ export * from './GetMapTileUseCase';
 export * from './GetMapUseCase';
 export * from './ListMapsUseCase';
 export * from './ValidateMapSettingsUseCase';
+export * from './GetUserMapHistoryUseCase';
+export * from './SaveMapToHistoryUseCase';
+export * from './GetUserMapsUseCase';

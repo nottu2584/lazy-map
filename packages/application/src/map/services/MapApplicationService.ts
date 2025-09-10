@@ -3,7 +3,9 @@ import {
   ValidateMapSettingsUseCase,
   GetMapUseCase,
   GetMapTileUseCase,
-  ListMapsUseCase
+  ListMapsUseCase,
+  GetUserMapsUseCase,
+  GetUserMapsQuery
 } from '../use-cases';
 import { 
   GenerateMapCommand, 
@@ -14,7 +16,7 @@ import {
   ListMapsQuery,
   MapQueryResult
 } from '../ports/input';
-import { GridMap, MapTile, MapMetadata } from '@lazy-map/domain';
+import { MapGrid, MapTile, MapMetadata } from '@lazy-map/domain';
 
 /**
  * Application service for map-related operations
@@ -26,7 +28,8 @@ export class MapApplicationService {
     private readonly validateMapSettingsUseCase: ValidateMapSettingsUseCase,
     private readonly getMapUseCase: GetMapUseCase,
     private readonly getMapTileUseCase: GetMapTileUseCase,
-    private readonly listMapsUseCase: ListMapsUseCase
+    private readonly listMapsUseCase: ListMapsUseCase,
+    private readonly getUserMapsUseCase: GetUserMapsUseCase
   ) {}
 
   /**
@@ -46,7 +49,7 @@ export class MapApplicationService {
   /**
    * Retrieve a map by its ID
    */
-  async getMap(query: GetMapQuery): Promise<MapQueryResult<GridMap | null>> {
+  async getMap(query: GetMapQuery): Promise<MapQueryResult<MapGrid | null>> {
     return await this.getMapUseCase.execute(query);
   }
 
@@ -103,5 +106,13 @@ export class MapApplicationService {
       },
       biomeType: 'temperate'
     };
+  }
+
+  /**
+   * Get all maps owned by a specific user
+   */
+  async getUserMaps(userId: string): Promise<{ success: boolean; data?: MapGrid[]; error?: string }> {
+    const query = new GetUserMapsQuery(userId);
+    return await this.getUserMapsUseCase.execute(query);
   }
 }

@@ -1,5 +1,5 @@
 import { 
-  GridMap, 
+  MapGrid, 
   Dimensions,
   IMapGenerationService,
   IVegetationGenerationService,
@@ -8,7 +8,8 @@ import {
   BiomeType,
   EnhancedForestGenerationSettings,
   CoordinatedRandomGenerator,
-  SeedUtils
+  SeedUtils,
+  UserId
 } from '@lazy-map/domain';
 import { GenerateMapCommand, MapGenerationResult } from '../ports/IMapGenerationPort';
 import { IMapPersistencePort } from '../ports';
@@ -46,11 +47,13 @@ export class GenerateMapUseCase {
       const dimensions = new Dimensions(command.width, command.height);
       
       // Create empty map first
-      const map = GridMap.createEmpty(
+      const ownerUserId = command.userId ? UserId.fromString(command.userId) : undefined;
+      const map = MapGrid.createEmpty(
         command.name,
         dimensions,
         command.cellSize || 32,
-        command.author
+        command.author,
+        ownerUserId
       );
 
       await this.notificationPort.notifyMapGenerationProgress(
@@ -217,7 +220,7 @@ export class GenerateMapUseCase {
   }
 
   private async generateForests(
-    map: GridMap,
+    map: MapGrid,
     forestSettings: NonNullable<GenerateMapCommand['forestSettings']>,
     seed?: number
   ): Promise<number> {
@@ -290,7 +293,7 @@ export class GenerateMapUseCase {
         );
         
         if (result.result.success) {
-          // Add forest to map (this would need proper integration with GridMap)
+          // Add forest to map (this would need proper integration with MapGrid)
           forestCount++;
         }
       } catch (error) {
@@ -302,7 +305,7 @@ export class GenerateMapUseCase {
     return forestCount;
   }
 
-  private async applyFeatureMixing(_map: GridMap): Promise<void> {
+  private async applyFeatureMixing(_map: MapGrid): Promise<void> {
     // Apply feature mixing logic using the feature mixing service
     // This would blend overlapping features on tiles
   }

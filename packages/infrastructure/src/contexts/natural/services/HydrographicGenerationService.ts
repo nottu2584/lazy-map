@@ -152,8 +152,11 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
       const widthMultiplier = 0.6 + (progress * 0.4) + (rng.next() * 0.2 - 0.1);
       const width = settings.averageWidth * widthMultiplier;
       
-      // Depth calculation
-      const depth = width * 0.1 + rng.next() * 2; // Rough depth calculation
+      // Depth calculation using same pattern as tile height
+      const baseDepth = width * 0.1; // Base depth proportional to width
+      const depthNoise = this.getDepthNoiseAt(position, rng);
+      const depthVariation = (depthNoise - 0.5) * 3; // Similar to heightVariance pattern
+      const depth = Math.max(0.5, baseDepth + depthVariation); // Ensure minimum depth
       
       // Flow direction toward next point
       let flowDir: FlowDirection;
@@ -206,8 +209,15 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
   ): Promise<Lake> {
     const rng = randomGenerator || this.createDefaultRandomGenerator();
 
+    // Calculate depth using same pattern as tile height
+    const centerPos = new Position(area.x + area.width/2, area.y + area.height/2);
+    const baseDepth = settings.averageDepth;
+    const depthNoise = this.getDepthNoiseAt(centerPos, rng);
+    const depthVariation = (depthNoise - 0.5) * (baseDepth * 0.4); // 40% variation
+    const actualDepth = Math.max(1.0, baseDepth + depthVariation);
+    
     // Create water level and quality
-    const waterLevel = WaterLevel.fromDepth(settings.averageDepth, false);
+    const waterLevel = WaterLevel.fromDepth(actualDepth, false);
     const waterQuality = settings.waterQuality;
 
     const lake = new Lake(
@@ -218,8 +228,8 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
       waterQuality,
       settings.formation,
       [],
-      settings.maxDepth,
-      settings.averageDepth,
+      Math.max(actualDepth, actualDepth * 1.2), // maxDepth slightly higher than actual
+      actualDepth,
       settings.thermalStability
     );
 
@@ -311,7 +321,12 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
   ): Promise<Pond> {
     const rng = randomGenerator || this.createDefaultRandomGenerator();
     
-    const depth = 2 + rng.next() * 4; // 2-6 feet depth
+    // Depth calculation using same pattern as tile height
+    const baseDepth = 3.0; // Base pond depth
+    const centerPos = new Position(area.x + area.width/2, area.y + area.height/2);
+    const depthNoise = this.getDepthNoiseAt(centerPos, rng);
+    const depthVariation = (depthNoise - 0.5) * 2; // Smaller variation for ponds
+    const depth = Math.max(1.0, baseDepth + depthVariation); // 1-5 feet depth
     const waterLevel = seasonal 
       ? WaterLevel.seasonal(depth, depth * 0.5, depth * 1.5)
       : WaterLevel.fromDepth(depth);
@@ -698,25 +713,98 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
     };
   }
 
-  private generateWaterLevel(settings: RiverGenerationSettings, rng: IRandomGenerator): WaterLevel {
-    const depth = 2 + rng.next() * 4; // 2-6 feet average
+  private generateWaterLevel(settings: RiverGenerationSettings, rng: IRandomGenerator, position?: Position): WaterLevel {
+    // Use same noise-based pattern as tile height if position provided
+    let depth: number;
+    if (position) {
+      const baseDepth = 3.0; // Base depth similar to tile base height
+      const depthNoise = this.getDepthNoiseAt(position, rng);
+      const depthVariation = (depthNoise - 0.5) * 3; // Same pattern as heightVariance
+      depth = Math.max(1.0, baseDepth + depthVariation); // 1-6 feet range
+    } else {
+      // Fallback to simpler calculation
+      depth = 2 + rng.next() * 4; // 2-6 feet average
+    }
+    
     return settings.seasonal 
       ? WaterLevel.seasonal(depth, depth * 0.7, depth * 1.3)
       : WaterLevel.fromDepth(depth);
   }
 
+  /**
+   * Generate deterministic depth noise using same pattern as tile height calculation
+   * Mimics the noise generation from MapGenerationService
+   */
+  private getDepthNoiseAt(position: Position, rng: IRandomGenerator): number {
+    // Validate position coordinates
+    if (!Number.isFinite(position.x) || !Number.isFinite(position.y)) {
+      console.warn('Invalid position coordinates:', position);
+      return 0.5; // Return neutral noise value
+    }
+    
+    // Create deterministic noise seed from random generator
+    const noiseSeed = rng.nextInt(1, 1000000);
+    
+    // Use same noise calculation pattern as MapGenerationService
+    // Scale factor 0.05 matches tile height generation
+    const x = position.x * 0.05;
+    const y = position.y * 0.05;
+    
+    // Validate scaled coordinates
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      console.warn('Invalid scaled coordinates:', { x, y, originalPosition: position });
+      return 0.5; // Return neutral noise value
+    }
+    
+    // Hash-based noise that's deterministic (same as MapGenerationService)
+    let n = Math.sin(x * 12.9898 + y * 78.233 + noiseSeed) * 43758.5453;
+    n = n - Math.floor(n);
+    
+    // Validate noise value
+    if (!Number.isFinite(n)) {
+      console.warn('Invalid noise value:', n);
+      n = 0.5;
+    }
+    
+    // Smooth the noise using deterministic functions
+    const dx = Math.sin((x + noiseSeed) * 0.1) * 0.1;
+    const dy = Math.sin((y + noiseSeed) * 0.1) * 0.1;
+    
+    const result = Math.max(0, Math.min(1, n + dx + dy));
+    
+    // Final validation
+    if (!Number.isFinite(result)) {
+      console.warn('Invalid final result:', result);
+      return 0.5;
+    }
+    
+    return result;
+  }
+
   private generateSourcePosition(area: FeatureArea, rng: IRandomGenerator): Position {
-    return new Position(
-      area.x + rng.next() * area.width,
-      area.y + rng.next() * area.height * 0.3 // Prefer upper part of area for sources
-    );
+    const x = area.x + rng.next() * area.width;
+    const y = area.y + rng.next() * area.height * 0.3; // Prefer upper part of area for sources
+    
+    // Validate coordinates
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      console.warn('Invalid source coordinates:', { x, y, area });
+      throw new Error('Position coordinates must be finite numbers');
+    }
+    
+    return new Position(x, y);
   }
 
   private generateMouthPosition(area: FeatureArea, source: Position, rng: IRandomGenerator): Position {
-    return new Position(
-      area.x + rng.next() * area.width,
-      area.y + area.height * 0.7 + rng.next() * area.height * 0.3 // Prefer lower part
-    );
+    const x = area.x + rng.next() * area.width;
+    const y = area.y + area.height * 0.7 + rng.next() * area.height * 0.3; // Prefer lower part
+    
+    // Validate coordinates
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      console.warn('Invalid mouth coordinates:', { x, y, area, source });
+      throw new Error('Position coordinates must be finite numbers');
+    }
+    
+    return new Position(x, y);
   }
 
   private generateShorelinePosition(area: FeatureArea, rng: IRandomGenerator): Position {
@@ -737,8 +825,12 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
     maxSize: number
   ): FeatureArea {
     const size = minSize + rng.next() * (maxSize - minSize);
-    const width = Math.sqrt(size) * (0.8 + rng.next() * 0.4);
-    const height = size / width;
+    const rawWidth = Math.max(1, Math.sqrt(size) * (0.8 + rng.next() * 0.4));
+    const rawHeight = Math.max(1, size / rawWidth);
+    
+    // Round dimensions before using them in position calculations
+    const width = Math.round(rawWidth);
+    const height = Math.round(rawHeight);
     
     const x = parentArea.x + rng.next() * Math.max(0, parentArea.width - width);
     const y = parentArea.y + rng.next() * Math.max(0, parentArea.height - height);

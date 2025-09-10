@@ -18,6 +18,10 @@
     "format": "turbo format",
     "setup": "pnpm install && turbo build --filter='@lazy-map/*'"
   },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
   "devDependencies": {
     "concurrently": "^8.2.2",
     "oxlint": "^1.9.0",

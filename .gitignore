@@ -3,3 +3,11 @@
 .vscode
 dist
 node_modules
+
+# Prevent npm/yarn artifacts
+package-lock.json
+yarn.lock
+.yarn/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

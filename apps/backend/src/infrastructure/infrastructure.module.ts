@@ -6,7 +6,11 @@ import {
   RandomGeneratorService,
   ConsoleNotificationService,
   InMemoryMapPersistence,
-  TopographicFeatureRepository
+  TopographicFeatureRepository,
+  BcryptPasswordService,
+  JwtAuthenticationService,
+  InMemoryUserRepository,
+  InMemoryMapHistoryRepository,
 } from '@lazy-map/infrastructure';
 
 @Module({
@@ -21,6 +25,12 @@ import {
     { provide: 'IMapPersistencePort', useClass: InMemoryMapPersistence },
     { provide: 'INotificationPort', useClass: ConsoleNotificationService },
 
+    // User infrastructure services
+    { provide: 'IPasswordService', useClass: BcryptPasswordService },
+    { provide: 'IAuthenticationPort', useClass: JwtAuthenticationService },
+    { provide: 'IUserRepository', useClass: InMemoryUserRepository },
+    { provide: 'IMapHistoryRepository', useClass: InMemoryMapHistoryRepository },
+
     // Topographic feature repository
     TopographicFeatureRepository,
   ],
@@ -31,6 +41,10 @@ import {
     'IRandomGeneratorService',
     'IMapPersistencePort',
     'INotificationPort',
+    'IPasswordService',
+    'IAuthenticationPort',
+    'IUserRepository',
+    'IMapHistoryRepository',
     TopographicFeatureRepository,
   ],
 })

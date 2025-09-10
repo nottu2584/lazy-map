@@ -26,7 +26,14 @@ Generate beautiful, customizable battlemaps with deterministic seeded generation
 
 ## 🚀 Quick Start
 
+> ⚠️ **This project requires [pnpm](https://pnpm.io/) as the package manager. Using npm or yarn will fail.**
+
 ```bash
+# Install pnpm globally if you haven't already
+npm install -g pnpm
+# or
+curl -fsSL https://get.pnpm.io/install.sh | sh
+
 # Clone and install
 git clone <repository-url>
 cd lazy-map
@@ -39,6 +46,12 @@ pnpm run dev
 # Backend API: http://localhost:3000
 # API Docs: http://localhost:3000/api/docs
 ```
+
+### 📦 Why pnpm?
+- **Faster installs** - Efficient dependency sharing
+- **Workspace support** - Perfect for monorepos
+- **Strict mode** - Better dependency management
+- **Smaller disk usage** - Hard-linked dependencies
 
 ## 🏛️ Architecture
 

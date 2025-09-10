@@ -1,4 +1,4 @@
-import { MapFeature, FeatureId, FeatureCategory } from '../../../common/entities/MapFeature';
+import { FeatureCategory, FeatureId, MapFeature } from '../../../common/entities/MapFeature';
 import { FeatureArea } from '../../../common/value-objects/FeatureArea';
 
 /**
@@ -40,7 +40,7 @@ export class Hill extends MapFeature {
     public readonly maxElevation: number,
     public readonly steepness: number = 0.4,
     public readonly erosionFactor: number = 0.2,
-    priority: number = 2
+    priority: number = 2,
   ) {
     super(id, name, FeatureCategory.RELIEF, area, priority);
     this.validateElevation(maxElevation);
@@ -57,18 +57,18 @@ export class Hill extends MapFeature {
     if (other.category === FeatureCategory.NATURAL) {
       return true;
     }
-    
+
     // Hills can mix with cultural features like territories
     if (other.category === FeatureCategory.CULTURAL) {
       return true;
     }
-    
+
     // Hills can sometimes mix with artificial features like roads
     if (other.category === FeatureCategory.ARTIFICIAL) {
       const otherType = other.getType();
       return otherType === 'road' || otherType === 'path';
     }
-    
+
     // Hills cannot mix with other relief features
     return false;
   }
@@ -91,8 +91,7 @@ export class Hill extends MapFeature {
    * Checks if this hill type would typically have a water source
    */
   canHaveWaterSource(): boolean {
-    return this.formation === HillFormation.ISOLATED || 
-           this.formation === HillFormation.TERRACED;
+    return this.formation === HillFormation.ISOLATED || this.formation === HillFormation.TERRACED;
   }
 
   /**
@@ -101,9 +100,11 @@ export class Hill extends MapFeature {
   getElevationProfile(distance: number): number {
     const radius = Math.max(this.area.dimensions.width, this.area.dimensions.height) / 2;
     const normalizedDistance = Math.min(distance / radius, 1);
-    
+
     // Bell curve-like elevation profile
-    return this.maxElevation * Math.exp(-Math.pow(normalizedDistance * 2 - 1, 2) / (2 * this.steepness));
+    return (
+      this.maxElevation * Math.exp(-Math.pow(normalizedDistance * 2 - 1, 2) / (2 * this.steepness))
+    );
   }
 
   private validateElevation(elevation: number): void {

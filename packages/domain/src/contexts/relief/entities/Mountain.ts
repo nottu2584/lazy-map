@@ -39,7 +39,7 @@ export class Mountain extends MapFeature {
     public readonly peakElevation: number,
     public readonly hasRidges: boolean = true,
     public readonly ruggednessFactor: number = 0.7,
-    priority: number = 3
+    priority: number = 3,
   ) {
     super(id, name, FeatureCategory.RELIEF, area, priority);
     this.validateElevation(peakElevation);
@@ -57,11 +57,11 @@ export class Mountain extends MapFeature {
       const otherType = other.getType();
       return otherType === 'forest' || otherType === 'tree';
     }
-    
+
     if (other.category === FeatureCategory.CULTURAL) {
       return true;
     }
-    
+
     // Mountains cannot mix with other relief features or artificial features
     return false;
   }
@@ -90,7 +90,7 @@ export class Mountain extends MapFeature {
     if (distanceFromCenter > radius) {
       return 0;
     }
-    
+
     return this.peakElevation * (1 - distanceFromCenter / radius);
   }
 

@@ -41,7 +41,7 @@ export class Plateau extends MapFeature {
     public readonly elevation: number,
     public readonly hasWaterSource: boolean = false,
     public readonly erosionLevel: number = 0.2,
-    priority: number = 3
+    priority: number = 3,
   ) {
     super(id, name, FeatureCategory.RELIEF, area, priority);
     this.validateElevation(elevation);
@@ -56,25 +56,25 @@ export class Plateau extends MapFeature {
     // Plateaus can mix with natural features based on their surface type
     if (other.category === FeatureCategory.NATURAL) {
       const otherType = other.getType();
-      
+
       // Forests can be on forested plateaus
       if (otherType === 'forest' && this.surface === PlateauSurface.FORESTED) {
         return true;
       }
-      
+
       // Lakes or ponds can exist on most plateau types if they have water sources
       if ((otherType === 'lake' || otherType === 'pond') && this.hasWaterSource) {
         return true;
       }
-      
+
       return false;
     }
-    
+
     // Plateaus can mix with cultural features
     if (other.category === FeatureCategory.CULTURAL) {
       return true;
     }
-    
+
     // Plateaus typically don't mix with other relief features
     return false;
   }
@@ -87,22 +87,22 @@ export class Plateau extends MapFeature {
     if (this.edgeType === PlateauEdge.GENTLE || this.edgeType === PlateauEdge.ERODED) {
       return true;
     }
-    
+
     // Terraced edges are somewhat accessible
     if (this.edgeType === PlateauEdge.TERRACED) {
       return true;
     }
-    
+
     // Steep edges are difficult to access but not impossible
     if (this.edgeType === PlateauEdge.STEEP) {
       return this.elevation < 150;
     }
-    
+
     // Cliff edges are inaccessible
     if (this.edgeType === PlateauEdge.CLIFF) {
       return false;
     }
-    
+
     return false;
   }
 
@@ -110,8 +110,10 @@ export class Plateau extends MapFeature {
    * Determines if the plateau provides tactical advantage
    */
   providesTacticalAdvantage(): boolean {
-    return this.elevation > 100 && 
-           (this.edgeType === PlateauEdge.CLIFF || this.edgeType === PlateauEdge.STEEP);
+    return (
+      this.elevation > 100 &&
+      (this.edgeType === PlateauEdge.CLIFF || this.edgeType === PlateauEdge.STEEP)
+    );
   }
 
   /**

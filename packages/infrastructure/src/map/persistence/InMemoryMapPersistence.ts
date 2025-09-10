@@ -1,9 +1,10 @@
 import { 
-  GridMap, 
+  MapGrid, 
   MapId, 
   MapFeature, 
   FeatureId, 
-  MapMetadata 
+  MapMetadata,
+  UserId
 } from '@lazy-map/domain';
 import { 
   IMapPersistencePort, 
@@ -40,11 +41,11 @@ class InMemoryTransactionContext implements TransactionContext {
  * Useful for development, testing, and demos
  */
 export class InMemoryMapPersistence implements IMapPersistencePort {
-  private maps = new Map<string, GridMap>();
+  private maps = new Map<string, MapGrid>();
   private features = new Map<string, MapFeature>();
   private mapFeatures = new Map<string, Set<string>>(); // mapId -> Set<featureId>
 
-  async saveMap(map: GridMap): Promise<void> {
+  async saveMap(map: MapGrid): Promise<void> {
     this.maps.set(map.id.value, map);
     
     // Initialize feature set for this map if it doesn't exist
@@ -53,14 +54,14 @@ export class InMemoryMapPersistence implements IMapPersistencePort {
     }
   }
 
-  async updateMap(map: GridMap): Promise<void> {
+  async updateMap(map: MapGrid): Promise<void> {
     if (!this.maps.has(map.id.value)) {
       throw new Error(`Map with ID ${map.id.value} does not exist`);
     }
     this.maps.set(map.id.value, map);
   }
 
-  async loadMap(mapId: MapId): Promise<GridMap | null> {
+  async loadMap(mapId: MapId): Promise<MapGrid | null> {
     return this.maps.get(mapId.value) || null;
   }
 
@@ -194,6 +195,16 @@ export class InMemoryMapPersistence implements IMapPersistencePort {
 
     // Return metadata for the filtered maps
     return filteredMaps.map(map => map.metadata);
+  }
+
+  async findByOwner(userId: UserId, limit: number = 10): Promise<MapGrid[]> {
+    const allMaps = Array.from(this.maps.values());
+    const userMaps = allMaps
+      .filter(map => map.ownerId?.equals(userId))
+      .sort((a, b) => b.metadata.createdAt.getTime() - a.metadata.createdAt.getTime()) // Sort by newest first
+      .slice(0, limit);
+    
+    return userMaps;
   }
 
   async beginTransaction(): Promise<TransactionContext> {

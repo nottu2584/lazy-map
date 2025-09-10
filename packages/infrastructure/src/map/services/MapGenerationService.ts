@@ -1,7 +1,7 @@
 import {
   CoordinatedRandomGenerator,
   DeterministicIdGenerator,
-  GridMap,
+  MapGrid,
   IMapGenerationService,
   MapGenerationSettings,
   MapMetadata,
@@ -97,7 +97,7 @@ export class MapGenerationService implements IMapGenerationService {
     if (!seedValidation.isValid) {
       warnings.push(`Seed validation failed: ${seedValidation.error}`);
       return {
-        map: {} as GridMap,
+        map: {} as MapGrid,
         featuresGenerated: 0,
         generationTime: 0,
         warnings
@@ -130,7 +130,7 @@ export class MapGenerationService implements IMapGenerationService {
     
     // Create the map with deterministic name
     const mapName = `Generated Map ${normalizedSeed}`;
-    const map = new GridMap(
+    const map = new MapGrid(
       mapId,
       mapName,
       settings.dimensions,

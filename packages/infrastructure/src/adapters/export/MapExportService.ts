@@ -1,4 +1,4 @@
-import { GridMap } from '@lazy-map/domain';
+import { MapGrid } from '@lazy-map/domain';
 import { 
   IMapExportPort, 
   ExportFormat, 
@@ -12,7 +12,7 @@ import {
  */
 export class MapExportService implements IMapExportPort {
   async exportMap(
-    map: GridMap, 
+    map: MapGrid, 
     options: ExportOptions
   ): Promise<ExportResult> {
     try {
@@ -34,7 +34,7 @@ export class MapExportService implements IMapExportPort {
     }
   }
 
-  async exportToJson(map: GridMap, options: ExportOptions): Promise<ExportResult> {
+  async exportToJson(map: MapGrid, options: ExportOptions): Promise<ExportResult> {
     const includeFeatures = options.includeFeatures !== false;
 
     const exportData: any = {
@@ -101,7 +101,7 @@ export class MapExportService implements IMapExportPort {
     };
   }
 
-  async exportToCsv(map: GridMap, options: ExportOptions): Promise<ExportResult> {
+  async exportToCsv(map: MapGrid, options: ExportOptions): Promise<ExportResult> {
     const delimiter = ',';
     const includeHeaders = true;
 
@@ -155,7 +155,7 @@ export class MapExportService implements IMapExportPort {
     };
   }
 
-  async exportToPng(map: GridMap, options: ExportOptions): Promise<ExportResult> {
+  async exportToPng(map: MapGrid, options: ExportOptions): Promise<ExportResult> {
     // This is a placeholder implementation
     // In a real implementation, you would use a library like 'canvas' or 'sharp'
     // to generate actual PNG images
@@ -183,7 +183,7 @@ export class MapExportService implements IMapExportPort {
     };
   }
 
-  async exportToSvg(map: GridMap, options: ExportOptions): Promise<ExportResult> {
+  async exportToSvg(map: MapGrid, options: ExportOptions): Promise<ExportResult> {
     const cellSize = 10; // Fixed cell size for SVG
     const width = map.dimensions.width * cellSize;
     const height = map.dimensions.height * cellSize;
@@ -337,7 +337,7 @@ export class MapExportService implements IMapExportPort {
     return errors;
   }
 
-  async estimateFileSize(map: GridMap, options: ExportOptions): Promise<number> {
+  async estimateFileSize(map: MapGrid, options: ExportOptions): Promise<number> {
     const tileCount = map.dimensions.width * map.dimensions.height;
     
     switch (options.format) {
@@ -357,7 +357,7 @@ export class MapExportService implements IMapExportPort {
     }
   }
 
-  async exportMapData(map: GridMap): Promise<ExportResult> {
+  async exportMapData(map: MapGrid): Promise<ExportResult> {
     // Export just the raw map data without visual formatting
     return this.exportMap(map, {
       format: ExportFormat.JSON,

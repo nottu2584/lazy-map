@@ -1,10 +1,11 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Post, Body, Get, Param, UseGuards, Request } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiResponse as ApiResponseType } from '@lazy-map/application';
-import { GridMap } from '@lazy-map/domain';
+import { MapGrid } from '@lazy-map/domain';
 import { GenerateMapCommand, MapGenerationResult, GetMapQuery } from '@lazy-map/application';
 import { MapApplicationService } from '@lazy-map/application';
 import { GenerateMapDto } from './dto';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @ApiTags('maps')
 @Controller('maps')
@@ -12,9 +13,12 @@ export class MapsController {
   constructor(private readonly mapApplicationService: MapApplicationService) {}
 
   @Post('generate')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Generate a new battlemap' })
   @ApiResponse({ status: 201, description: 'Map generated successfully' })
-  async generateMap(@Body() dto: GenerateMapDto): Promise<ApiResponseType<GridMap>> {
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  async generateMap(@Body() dto: GenerateMapDto, @Request() req: any): Promise<ApiResponseType<MapGrid>> {
     try {
       // Convert DTO to command
       const command: GenerateMapCommand = {
@@ -25,7 +29,8 @@ export class MapsController {
         cellSize: dto.cellSize || 32,
         seed: dto.seed || Math.floor(Math.random() * 1000000),
         tags: dto.tags || [],
-        author: dto.author || 'Anonymous',
+        author: dto.author || req.user.email || 'Anonymous',
+        userId: req.user.userId,
         terrainDistribution: (dto.terrainDistribution as any) || {
           grassland: 0.4,
           forest: 0.3,
@@ -73,7 +78,7 @@ export class MapsController {
   @ApiOperation({ summary: 'Get a map by ID' })
   @ApiResponse({ status: 200, description: 'Map found' })
   @ApiResponse({ status: 404, description: 'Map not found' })
-  async getMap(@Param('id') id: string): Promise<ApiResponseType<GridMap>> {
+  async getMap(@Param('id') id: string): Promise<ApiResponseType<MapGrid>> {
     try {
       const query: GetMapQuery = { mapId: id };
       const result = await this.mapApplicationService.getMap(query);
@@ -94,6 +99,30 @@ export class MapsController {
       return {
         success: false,
         error: error.message || 'Failed to get map',
+      };
+    }
+  }
+
+  @Get('my-maps')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current user\'s map history' })
+  @ApiResponse({ status: 200, description: 'Map history retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  async getMyMaps(@Request() req: any): Promise<ApiResponseType<MapGrid[]>> {
+    try {
+      const result = await this.mapApplicationService.getUserMaps(req.user.userId);
+      
+      return {
+        success: result.success,
+        data: result.data,
+        message: result.success ? 'Maps retrieved successfully' : undefined,
+        error: result.error,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message || 'Failed to get user maps',
       };
     }
   }

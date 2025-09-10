@@ -6,7 +6,11 @@ import {
   GetMapUseCase,
   GetMapTileUseCase,
   ListMapsUseCase,
+  GetUserMapsUseCase,
   MapApplicationService,
+  RegisterUserUseCase,
+  LoginUserUseCase,
+  GetUserProfileUseCase,
 } from '@lazy-map/application';
 
 @Module({
@@ -67,6 +71,13 @@ import {
       },
       inject: ['IMapPersistencePort'],
     },
+    {
+      provide: GetUserMapsUseCase,
+      useFactory: (mapPersistence) => {
+        return new GetUserMapsUseCase(mapPersistence);
+      },
+      inject: ['IMapPersistencePort'],
+    },
 
     // Application services
     {
@@ -77,6 +88,7 @@ import {
         getMapUseCase,
         getMapTileUseCase,
         listMapsUseCase,
+        getUserMapsUseCase,
       ) => {
         return new MapApplicationService(
           generateMapUseCase,
@@ -84,6 +96,7 @@ import {
           getMapUseCase,
           getMapTileUseCase,
           listMapsUseCase,
+          getUserMapsUseCase,
         );
       },
       inject: [
@@ -92,9 +105,38 @@ import {
         GetMapUseCase,
         GetMapTileUseCase,
         ListMapsUseCase,
+        GetUserMapsUseCase,
       ],
     },
+
+    // User use cases
+    {
+      provide: RegisterUserUseCase,
+      useFactory: (userRepository, passwordService, authenticationPort) => {
+        return new RegisterUserUseCase(userRepository, passwordService, authenticationPort);
+      },
+      inject: ['IUserRepository', 'IPasswordService', 'IAuthenticationPort'],
+    },
+    {
+      provide: LoginUserUseCase,
+      useFactory: (userRepository, passwordService, authenticationPort) => {
+        return new LoginUserUseCase(userRepository, passwordService, authenticationPort);
+      },
+      inject: ['IUserRepository', 'IPasswordService', 'IAuthenticationPort'],
+    },
+    {
+      provide: GetUserProfileUseCase,
+      useFactory: (userRepository) => {
+        return new GetUserProfileUseCase(userRepository);
+      },
+      inject: ['IUserRepository'],
+    },
   ],
-  exports: [MapApplicationService],
+  exports: [
+    MapApplicationService,
+    RegisterUserUseCase,
+    LoginUserUseCase,
+    GetUserProfileUseCase,
+  ],
 })
 export class ApplicationModule {}

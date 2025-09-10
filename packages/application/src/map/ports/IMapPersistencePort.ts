@@ -1,4 +1,4 @@
-import { GridMap, MapId, MapFeature, FeatureId, MapMetadata } from '@lazy-map/domain';
+import { MapGrid, MapId, MapFeature, FeatureId, MapMetadata, UserId } from '@lazy-map/domain';
 
 /**
  * Transaction context for atomic operations
@@ -16,17 +16,17 @@ export interface IMapPersistencePort {
   /**
    * Saves a complete map with all its features
    */
-  saveMap(map: GridMap): Promise<void>;
+  saveMap(map: MapGrid): Promise<void>;
 
   /**
    * Updates an existing map
    */
-  updateMap(map: GridMap): Promise<void>;
+  updateMap(map: MapGrid): Promise<void>;
 
   /**
    * Loads a map by its ID
    */
-  loadMap(mapId: MapId): Promise<GridMap | null>;
+  loadMap(mapId: MapId): Promise<MapGrid | null>;
 
   /**
    * Deletes a map and all its features
@@ -72,6 +72,11 @@ export interface IMapPersistencePort {
    * Lists maps with filtering criteria
    */
   listMaps(criteria?: any): Promise<MapMetadata[]>;
+
+  /**
+   * Finds all maps owned by a specific user
+   */
+  findByOwner(userId: UserId, limit?: number): Promise<MapGrid[]>;
 
   /**
    * Starts a transaction for atomic operations

@@ -1,4 +1,4 @@
-import { GridMap, MapId } from '@lazy-map/domain';
+import { MapGrid, MapId } from '@lazy-map/domain';
 
 /**
  * Command for generating a new map
@@ -12,6 +12,7 @@ export interface GenerateMapCommand {
   author?: string;
   description?: string;
   tags?: string[];
+  userId?: string;
   
   // Terrain settings
   terrainDistribution?: Record<string, number>;
@@ -45,7 +46,7 @@ export interface GenerateMapCommand {
  */
 export interface MapGenerationResult {
   success: boolean;
-  map?: GridMap;
+  map?: MapGrid;
   error?: string;
   warnings?: string[];
   generationTime?: number;

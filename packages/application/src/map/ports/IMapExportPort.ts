@@ -1,4 +1,4 @@
-import { GridMap } from '@lazy-map/domain';
+import { MapGrid } from '@lazy-map/domain';
 
 /**
  * Export format options
@@ -58,7 +58,7 @@ export interface IMapExportPort {
   /**
    * Exports a map to the specified format
    */
-  exportMap(map: GridMap, options: ExportOptions): Promise<ExportResult>;
+  exportMap(map: MapGrid, options: ExportOptions): Promise<ExportResult>;
 
   /**
    * Gets supported export formats
@@ -78,10 +78,10 @@ export interface IMapExportPort {
   /**
    * Gets estimated export file size
    */
-  estimateFileSize(map: GridMap, options: ExportOptions): Promise<number>;
+  estimateFileSize(map: MapGrid, options: ExportOptions): Promise<number>;
 
   /**
    * Exports map data only (without visual rendering)
    */
-  exportMapData(map: GridMap): Promise<ExportResult>;
+  exportMapData(map: MapGrid): Promise<ExportResult>;
 }

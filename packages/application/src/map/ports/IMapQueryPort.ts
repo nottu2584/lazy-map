@@ -1,4 +1,4 @@
-import { GridMap, MapId, MapTile } from '@lazy-map/domain';
+import { MapGrid, MapId, MapTile } from '@lazy-map/domain';
 
 /**
  * Query for retrieving a specific map
@@ -117,7 +117,7 @@ export interface IMapQueryPort {
   /**
    * Gets a map by its ID
    */
-  getMapById(mapId: string): Promise<GridMap | null>;
+  getMapById(mapId: string): Promise<MapGrid | null>;
 
   /**
    * Gets a map summary by its ID

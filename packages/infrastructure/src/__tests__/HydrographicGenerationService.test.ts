@@ -1,7 +1,4 @@
-import { IRandomGenerator } from '@lazy-map/domain/common/interfaces/IRandomGenerator';
-import { Dimensions } from '@lazy-map/domain/common/value-objects/Dimensions';
-import { FeatureArea } from '@lazy-map/domain/common/value-objects/FeatureArea';
-import { Position } from '@lazy-map/domain/common/value-objects/Position';
+import { IRandomGenerator, Dimensions, FeatureArea, Position } from '@lazy-map/domain';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
@@ -9,26 +6,42 @@ import {
   LakeGenerationSettings,
   RiverGenerationSettings,
   SpringGenerationSettings,
-  WetlandGenerationSettings
-} from '@lazy-map/domain/contexts/natural/services/IHydrographicGenerationService';
-import { HydrographicGenerationService } from '../contexts/natural/services/HydrographicGenerationService';
-
-import {
+  WetlandGenerationSettings,
   LakeFormation,
   SpringType,
-  WetlandType
-} from '@lazy-map/domain/contexts/natural/entities';
-
-import {
+  WetlandType,
   WaterLevel,
   WaterQuality
-} from '@lazy-map/domain/contexts/natural/value-objects';
+} from '@lazy-map/domain';
+import { HydrographicGenerationService } from '../contexts/natural/services/HydrographicGenerationService';
 
 class MockRandomGenerator implements IRandomGenerator {
   private value = 0.5;
 
   next(): number {
     return this.value;
+  }
+
+  nextInt(min: number, max: number): number {
+    return Math.floor(min + this.value * (max - min));
+  }
+
+  nextFloat(min: number, max: number): number {
+    return min + this.value * (max - min);
+  }
+
+  choice<T>(items: T[]): T {
+    const index = Math.floor(this.value * items.length);
+    return items[index];
+  }
+
+  shuffle<T>(items: T[]): T[] {
+    return [...items];
+  }
+
+  seed(seed: number): void {
+    // Simple seed implementation for testing
+    this.value = (seed % 1000000) / 1000000;
   }
 
   setSeed(seed: string): void {
@@ -173,8 +186,10 @@ describe('HydrographicGenerationService', () => {
       expect(lake).toBeDefined();
       expect(lake.name).toBeDefined();
       expect(lake.formation).toBe(LakeFormation.NATURAL);
-      expect(lake.maxDepth).toBe(30);
-      expect(lake.averageDepth).toBe(15);
+      // Depths now use noise-based calculation, so they vary from the settings
+      expect(lake.maxDepth).toBeGreaterThan(10);
+      expect(lake.averageDepth).toBeGreaterThan(5);
+      expect(lake.averageDepth).toBeLessThan(25); // Should be around 15 with variation
       expect(lake.shoreline.length).toBeGreaterThan(0);
     });
 
@@ -380,6 +395,10 @@ describe('HydrographicGenerationService', () => {
 
       const result = await service.generateWaterSystem(testArea, settings, mockRandom);
 
+      if (!result.success) {
+        console.log('Generation failed with error:', result.error);
+        console.log('Warnings:', result.warnings);
+      }
       expect(result.success).toBe(true);
       expect(result.generationTime).toBeGreaterThan(0);
       expect(result.totalWaterCoverage).toBeGreaterThanOrEqual(0);

@@ -1,5 +1,6 @@
-import { GridMap, MapId } from '../entities';
+import { MapGrid, MapId } from '../entities';
 import { FeatureArea } from '../../common/value-objects/FeatureArea';
+import { UserId } from '../../contexts/user/value-objects/UserId';
 
 /**
  * Query parameters for map searches
@@ -8,6 +9,7 @@ export interface MapQuery {
   authorFilter?: string;
   tagFilter?: string[];
   nameFilter?: string;
+  ownerFilter?: UserId; // Filter by map owner
   sizeFilter?: {
     minWidth?: number;
     maxWidth?: number;
@@ -24,7 +26,7 @@ export interface MapQuery {
  * Paginated result for map queries
  */
 export interface PaginatedMapResult {
-  maps: GridMap[];
+  maps: MapGrid[];
   total: number;
   hasMore: boolean;
 }
@@ -36,12 +38,12 @@ export interface IMapRepository {
   /**
    * Saves a map to the repository
    */
-  save(map: GridMap): Promise<void>;
+  save(map: MapGrid): Promise<void>;
 
   /**
    * Finds a map by its ID
    */
-  findById(id: MapId): Promise<GridMap | null>;
+  findById(id: MapId): Promise<MapGrid | null>;
 
   /**
    * Finds maps based on query parameters
@@ -51,7 +53,7 @@ export interface IMapRepository {
   /**
    * Finds maps that intersect with a given area
    */
-  findByArea(area: FeatureArea): Promise<GridMap[]>;
+  findByArea(area: FeatureArea): Promise<MapGrid[]>;
 
   /**
    * Deletes a map by its ID
@@ -66,10 +68,30 @@ export interface IMapRepository {
   /**
    * Updates an existing map
    */
-  update(map: GridMap): Promise<void>;
+  update(map: MapGrid): Promise<void>;
 
   /**
    * Gets the total count of maps
    */
   count(): Promise<number>;
+
+  /**
+   * Finds maps owned by a specific user
+   */
+  findByOwnerId(ownerId: UserId): Promise<MapGrid[]>;
+
+  /**
+   * Finds recent maps owned by a specific user
+   */
+  findRecentByOwnerId(ownerId: UserId, limit?: number): Promise<MapGrid[]>;
+
+  /**
+   * Counts maps owned by a specific user
+   */
+  countByOwnerId(ownerId: UserId): Promise<number>;
+
+  /**
+   * Checks if a user can access a specific map
+   */
+  canUserAccessMap(mapId: MapId, userId?: UserId): Promise<boolean>;
 }

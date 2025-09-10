@@ -1,5 +1,5 @@
 import { FeatureId } from '../entities/MapFeature';
-import { MapId } from '../../map/entities/GridMap';
+import { MapId } from '../../map/entities/MapGrid';
 import { SeededRandom } from './SeededRandom';
 
 /**

@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { 
-  GridMap, 
+  MapGrid, 
   MapId, 
   MapMetadata
-} from '../map/entities/GridMap';
+} from '../map/entities/MapGrid';
 import { MapTile } from '../map/entities/MapTile';
 import { Position, Dimensions, FeatureArea, SubTilePosition } from '../common/value-objects';
 
@@ -15,9 +15,9 @@ describe('Basic Domain Entities', () => {
     });
   });
 
-  describe('GridMap', () => {
+  describe('MapGrid', () => {
     it('should create a map with valid dimensions', () => {
-      const map = GridMap.createEmpty('Test Map', new Dimensions(10, 10), 32, 'Test Author');
+      const map = MapGrid.createEmpty('Test Map', new Dimensions(10, 10), 32, 'Test Author');
       
       expect(map.name).toBe('Test Map');
       expect(map.dimensions.width).toBe(10);

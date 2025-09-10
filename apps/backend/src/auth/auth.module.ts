@@ -6,6 +6,8 @@ import { ApplicationModule } from '../application/application.module';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AdminGuard } from './admin.guard';
+import { AuthGuard } from './auth.guard';
 
 @Module({
   imports: [
@@ -24,7 +26,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     ApplicationModule,
   ],
   controllers: [AuthController],
-  providers: [JwtStrategy, JwtAuthGuard],
-  exports: [JwtStrategy, JwtAuthGuard, PassportModule],
+  providers: [JwtStrategy, JwtAuthGuard, AdminGuard, AuthGuard],
+  exports: [JwtStrategy, JwtAuthGuard, AdminGuard, AuthGuard, PassportModule],
 })
 export class AuthModule {}

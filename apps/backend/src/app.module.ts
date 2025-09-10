@@ -6,6 +6,7 @@ import { MapsController } from './maps.controller';
 import { FeaturesController } from './features.controller';
 import { ApplicationModule } from './application/application.module';
 import { InfrastructureModule } from './infrastructure/infrastructure.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { InfrastructureModule } from './infrastructure/infrastructure.module';
     }),
     ApplicationModule,
     InfrastructureModule,
+    AuthModule,
   ],
   controllers: [AppController, MapsController, FeaturesController],
   providers: [AppService],

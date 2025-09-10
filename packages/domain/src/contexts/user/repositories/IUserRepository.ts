@@ -1,5 +1,5 @@
 import { User } from '../entities/User';
-import { UserId, Email, Username } from '../value-objects';
+import { UserId, Email, Username, UserRole, UserStatus } from '../value-objects';
 
 /**
  * Repository interface for User aggregate
@@ -44,4 +44,51 @@ export interface IUserRepository {
    * Get total count of users
    */
   count(): Promise<number>;
+
+  /**
+   * Find all users with optional filtering and pagination
+   */
+  findAll(options?: {
+    role?: UserRole;
+    status?: UserStatus;
+    limit?: number;
+    offset?: number;
+    searchTerm?: string;
+  }): Promise<User[]>;
+
+  /**
+   * Find users by role
+   */
+  findByRole(role: UserRole): Promise<User[]>;
+
+  /**
+   * Find users by status
+   */
+  findByStatus(status: UserStatus): Promise<User[]>;
+
+  /**
+   * Get paginated users with filtering
+   */
+  findPaginated(options: {
+    limit: number;
+    offset: number;
+    role?: UserRole;
+    status?: UserStatus;
+    searchTerm?: string;
+  }): Promise<{
+    users: User[];
+    total: number;
+    hasMore: boolean;
+  }>;
+
+  /**
+   * Get user statistics for admin dashboard
+   */
+  getStats(): Promise<{
+    totalUsers: number;
+    activeUsers: number;
+    suspendedUsers: number;
+    pendingUsers: number;
+    adminUsers: number;
+  }>;
 }

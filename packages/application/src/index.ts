@@ -3,11 +3,13 @@ export * from './common/types';
 
 // Re-export ports
 export * from './common/ports';
+export * from './contexts/user/ports';
 export * from './map/ports';
 
 // Re-export use cases
 export * from './common/use-cases';
 export * from './contexts/natural/use-cases';
+export * from './contexts/user/use-cases';
 export * from './map/use-cases';
 
 // Re-export services

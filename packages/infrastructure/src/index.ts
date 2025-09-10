@@ -19,3 +19,9 @@ export * from './contexts/relief/persistence/InMemoryReliefRepository';
 export * from './contexts/natural/persistence/InMemoryNaturalRepository';
 export * from './contexts/artificial/persistence/InMemoryArtificialRepository';
 export * from './contexts/cultural/persistence/InMemoryCulturalRepository';
+
+// Export user context services and repositories
+export * from './contexts/user/services/BcryptPasswordService';
+export * from './contexts/user/services/JwtAuthenticationService';
+export * from './contexts/user/repositories/InMemoryUserRepository';
+export * from './contexts/user/repositories/InMemoryMapHistoryRepository';

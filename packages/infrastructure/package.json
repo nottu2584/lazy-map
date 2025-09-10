@@ -13,10 +13,14 @@
   },
   "dependencies": {
     "@lazy-map/domain": "workspace:*",
-    "@lazy-map/application": "workspace:*"
+    "@lazy-map/application": "workspace:*",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@types/node": "^22.15.31",
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.7",
     "typescript": "^5.3.3",
     "vitest": "^3.2.4",
     "oxlint": "^1.14.0"

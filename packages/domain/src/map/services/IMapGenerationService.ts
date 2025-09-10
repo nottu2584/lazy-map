@@ -1,6 +1,6 @@
 import { Dimensions } from '../../common/value-objects/Dimensions';
 import { HydrographicGenerationSettings } from '../../contexts/natural/services/IHydrographicGenerationService';
-import { GridMap } from '../entities';
+import { MapGrid } from '../entities';
 
 /**
  * Settings for map generation
@@ -29,7 +29,7 @@ export interface MapGenerationSettings {
  * Result of map generation operation
  */
 export interface MapGenerationResult {
-  map: GridMap;
+  map: MapGrid;
   generationTime: number;
   featuresGenerated: number;
   warnings: string[];

@@ -1,5 +1,6 @@
 import { Dimensions, Position, FeatureArea } from '../../common/value-objects';
 import { MapTile } from './MapTile';
+import { UserId } from '../../contexts/user/value-objects/UserId';
 
 /**
  * Unique identifier for maps
@@ -63,7 +64,7 @@ export class MapMetadata {
 /**
  * Main map entity representing a grid-based map
  */
-export class GridMap {
+export class MapGrid {
   private _tiles: MapTile[][];
   private _featureIds: Set<string>;
 
@@ -73,7 +74,8 @@ export class GridMap {
     public readonly dimensions: Dimensions,
     public readonly cellSize: number,
     tiles: MapTile[][],
-    public readonly metadata: MapMetadata
+    public readonly metadata: MapMetadata,
+    public readonly ownerId?: UserId
   ) {
     this.validateCellSize(cellSize);
     this.validateTiles(tiles);
@@ -86,8 +88,9 @@ export class GridMap {
     name: string,
     dimensions: Dimensions,
     cellSize: number = 32,
-    author?: string
-  ): GridMap {
+    author?: string,
+    ownerId?: UserId
+  ): MapGrid {
     const id = MapId.generate();
     const metadata = new MapMetadata(new Date(), new Date(), author);
     
@@ -100,7 +103,7 @@ export class GridMap {
       }
     }
 
-    return new GridMap(id, name, dimensions, cellSize, tiles, metadata);
+    return new MapGrid(id, name, dimensions, cellSize, tiles, metadata, ownerId);
   }
 
   // Tile access methods
@@ -168,6 +171,28 @@ export class GridMap {
     return Array.from(this._featureIds);
   }
 
+  // User ownership methods
+  get isOwned(): boolean {
+    return this.ownerId !== undefined;
+  }
+
+  isOwnedBy(userId: UserId): boolean {
+    return this.ownerId !== undefined && this.ownerId.equals(userId);
+  }
+
+  canBeAccessedBy(userId?: UserId): boolean {
+    // If the map has no owner, it's public
+    if (!this.isOwned) {
+      return true;
+    }
+    // If user is not provided, they can only access public maps
+    if (!userId) {
+      return false;
+    }
+    // User can access their own maps
+    return this.isOwnedBy(userId);
+  }
+
   // Validation methods
   private isValidPosition(position: Position): boolean {
     return this.dimensions.contains(position);
@@ -203,6 +228,6 @@ export class GridMap {
   }
 
   toString(): string {
-    return `GridMap(id: ${this.id}, name: ${this.name}, size: ${this.dimensions})`;
+    return `MapGrid(id: ${this.id}, name: ${this.name}, size: ${this.dimensions})`;
   }
 }

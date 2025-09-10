@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { MapsController } from '../src/maps.controller';
 import { MapApplicationService } from '@lazy-map/application';
 import { GenerateMapDto } from '../src/dto';
-import { GridMap, MapId, Position, Dimensions, TerrainType, MapTile, MapMetadata } from '@lazy-map/domain';
+import { MapGrid, MapId, Position, Dimensions, TerrainType, MapTile, MapMetadata } from '@lazy-map/domain';
 
 describe('MapsController', () => {
   let mapsController: MapsController;
@@ -43,7 +43,7 @@ describe('MapsController', () => {
         )
       );
       
-      const mockMap = new GridMap(
+      const mockMap = new MapGrid(
         mockMapId,
         'Test Map',
         mockDimensions,
@@ -98,7 +98,7 @@ describe('MapsController', () => {
         )
       );
       
-      const mockMap = new GridMap(
+      const mockMap = new MapGrid(
         mockMapId,
         'Test Map',
         mockDimensions,

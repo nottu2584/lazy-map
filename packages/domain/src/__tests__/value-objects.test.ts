@@ -82,27 +82,30 @@ describe('Domain Value Objects', () => {
     it('should calculate intersection correctly', () => {
       const area1 = new FeatureArea(new Position(0, 0), new Dimensions(5, 5));
       const area2 = new FeatureArea(new Position(2, 2), new Dimensions(5, 5));
-      const intersection = area1.intersect(area2);
+      const intersection = area1.intersection(area2);
       
-      expect(intersection.x).toBe(2);
-      expect(intersection.y).toBe(2);
-      expect(intersection.width).toBe(3);
-      expect(intersection.height).toBe(3);
+      expect(intersection).not.toBeNull();
+      expect(intersection!.x).toBe(2);
+      expect(intersection!.y).toBe(2);
+      expect(intersection!.width).toBe(3);
+      expect(intersection!.height).toBe(3);
     });
   });
 
   describe('TerrainType', () => {
     it('should validate terrain types', () => {
-      expect(TerrainType.PLAINS).toBe('plains');
+      expect(TerrainType.GRASS).toBe('grass');
       expect(TerrainType.FOREST).toBe('forest');
-      expect(TerrainType.MOUNTAINS).toBe('mountains');
+      expect(TerrainType.MOUNTAIN).toBe('mountain');
       expect(TerrainType.WATER).toBe('water');
     });
 
     it('should create terrain with type and properties', () => {
-      const terrain = new Terrain(TerrainType.PLAINS, { elevation: 100 });
-      expect(terrain.type).toBe(TerrainType.PLAINS);
-      expect(terrain.properties.elevation).toBe(100);
+      const terrain = new Terrain(TerrainType.GRASS, 1, true, false);
+      expect(terrain.type).toBe(TerrainType.GRASS);
+      expect(terrain.movementCost).toBe(1);
+      expect(terrain.isPassable).toBe(true);
+      expect(terrain.isWater).toBe(false);
     });
   });
 });

@@ -4,8 +4,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Lazy Map is a monorepo for generating graphical battlemaps with grid-based systems. The project consists of:
+Lazy Map is a monorepo for generating graphical battlemaps with grid-based systems. The project follows **Clean Architecture** and **Domain-Driven Design** principles with a contexts-based organization.
 
+**Recent Refactoring (Sept 2025):**
+- ✅ Reorganized domain layer into bounded contexts (relief, natural, artificial, cultural)
+- ✅ Cleaned up obsolete folder structures and build artifacts
+- ✅ Established proper dependency boundaries between architectural layers
+- ✅ Implemented context-specific use cases and services
+- ✅ Removed superfluous folders not aligned with Clean Architecture
+- ✅ Updated documentation to reflect current structure
+- ⚠️ Test suite needs updating for new structure (some tests still reference old paths)
+
+**Project Status:**
+- ✅ **Building**: All packages compile successfully
+- ✅ **Structure**: Clean Architecture boundaries properly enforced  
+- ✅ **Dependencies**: Proper workspace dependencies configured
+- ⚠️ **Testing**: Some tests need to be updated after refactoring
+- ✅ **Documentation**: README.md and CLAUDE.md reflect current structure
+
+### Components:
 - **Backend**: NestJS API server for map generation services
 - **Frontend**: React + TypeScript app with Konva for canvas rendering
 - **Clean Architecture packages**: Domain, application, and infrastructure layers
@@ -100,18 +117,37 @@ packages/domain/src/
 ├── common/           # Shared Kernel
 │   ├── entities/     # Cross-context entities (MapFeature)
 │   ├── value-objects/# Common values (Position, Dimensions, FeatureArea)
+│   ├── services/     # Cross-context domain services
+│   ├── repositories/ # Base repository interfaces
 │   ├── utils/        # Seeded generation utilities
 │   └── interfaces/   # Base interfaces (IRandomGenerator)
 ├── contexts/         # Bounded Contexts
 │   ├── relief/       # Terrain, topography, elevation
+│   │   ├── entities/     # Terrain-specific entities
+│   │   ├── value-objects/# Terrain values (Elevation, Slope)
+│   │   ├── services/     # Terrain generation services
+│   │   └── repositories/ # Terrain persistence interfaces
 │   ├── natural/      # Vegetation, forests, water bodies
+│   │   ├── entities/     # Tree, Forest, River, Lake entities
+│   │   ├── value-objects/# Natural feature values
+│   │   ├── services/     # Vegetation/water generation
+│   │   └── repositories/ # Natural feature persistence
 │   ├── artificial/   # Human-made structures (roads, buildings)
+│   │   ├── entities/     # Building, Road entities
+│   │   ├── value-objects/# Structure properties
+│   │   ├── services/     # Structure generation
+│   │   └── repositories/ # Structure persistence
 │   └── cultural/     # Settlements, territories, regions
+│       ├── entities/     # Settlement, Territory entities
+│       ├── value-objects/# Cultural properties
+│       ├── services/     # Cultural generation
+│       └── repositories/ # Cultural persistence
 ├── map/              # Map Aggregate Root
 │   ├── entities/     # GridMap, MapTile, MapId
+│   ├── value-objects/# Map-specific values
 │   ├── services/     # IMapGenerationService
 │   └── repositories/ # IMapRepository
-└── shared/           # Cross-cutting utilities (formerly core package)
+└── shared/           # Cross-cutting utilities (constants, types)
 ```
 
 ### Backend Architecture (NestJS)
@@ -191,9 +227,16 @@ packages/domain/src/
 **When adding new domain concepts**:
 1. **Start with the Domain** - Define entities, value objects, and business rules first
 2. **Identify the Bounded Context** - Place in appropriate context (relief, natural, artificial, cultural)
-3. **Define interfaces** - Create domain service interfaces in the domain layer
-4. **Implement use cases** - Add application services that orchestrate domain logic
-5. **Add infrastructure** - Implement repositories, external services in infrastructure layer
+3. **Follow the layer structure** - Each context has entities/, value-objects/, services/, repositories/
+4. **Define interfaces** - Create domain service interfaces in the domain layer
+5. **Implement use cases** - Add application services that orchestrate domain logic
+6. **Add infrastructure** - Implement repositories, external services in infrastructure layer
+
+**Context-Based Organization**:
+- **relief/** - Terrain types, elevation, topography, slopes
+- **natural/** - Forests, trees, rivers, lakes, vegetation
+- **artificial/** - Buildings, roads, bridges, structures  
+- **cultural/** - Settlements, territories, regions, civilizations
 
 **Dependency Rules** (enforced by build system):
 - ✅ Domain → Nothing (pure business logic)  

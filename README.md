@@ -58,7 +58,14 @@ This project follows **Clean Architecture** principles with **Domain-Driven Desi
 │             Application Layer                │
 │  ┌─────────────────────────────────────────┐ │
 │  │        @lazy-map/application         │ │
-│  │   Use Cases, Ports, Commands         │ │
+│  │   Use Cases, Commands, Queries       │ │
+│  │                                     │ │
+│  │ contexts/                           │ │
+│  │ ├── natural/   (forest use cases)   │ │
+│  │ └── [others]/  (future contexts)    │ │
+│  │                                     │ │
+│  │ map/                                │ │
+│  │ └── use-cases/ (core map generation) │ │
 │  └─────────────────────────────────────────┘ │
 └─────────────────────────────────────────────┘
               │
@@ -69,11 +76,14 @@ This project follows **Clean Architecture** principles with **Domain-Driven Desi
 │  │         @lazy-map/domain             │ │
 │  │  Entities, Value Objects, Services   │ │
 │  │                                     │ │
-│  │ contexts/                           │ │
+│  │ common/     (shared kernel)         │ │
+│  │ contexts/   (bounded contexts)      │ │
 │  │ ├── relief/     (terrain, topo)     │ │
 │  │ ├── natural/    (forests, rivers)   │ │
 │  │ ├── artificial/ (roads, buildings)  │ │
 │  │ └── cultural/   (settlements)       │ │
+│  │ map/        (map aggregate)         │ │
+│  │ shared/     (constants, types)      │ │
 │  └─────────────────────────────────────────┘ │
 └─────────────────────────────────────────────┘
               │
@@ -82,7 +92,12 @@ This project follows **Clean Architecture** principles with **Domain-Driven Desi
 │           Infrastructure Layer               │
 │  ┌─────────────────────────────────────────┐ │
 │  │      @lazy-map/infrastructure        │ │
-│  │   Persistence, External Services     │ │
+│  │   Adapters, External Services        │ │
+│  │                                     │ │
+│  │ adapters/   (port implementations)   │ │
+│  │ contexts/   (context-specific impls) │ │
+│  │ map/        (map persistence)        │ │
+│  │ common/     (shared infrastructure)  │ │
 │  └─────────────────────────────────────────┘ │
 └─────────────────────────────────────────────┘
 ```
@@ -93,7 +108,64 @@ This project follows **Clean Architecture** principles with **Domain-Driven Desi
 |---------|---------|--------------|
 | **@lazy-map/domain** | Business logic, entities, rules | None (pure) |
 | **@lazy-map/application** | Use cases, orchestration | Domain only |
-| **@lazy-map/infrastructure** | Data access, external APIs | Domain + Application |
+| **@lazy-map/infrastructure** | Adapters, external APIs | Domain + Application |
+
+### 🗂️ Project Structure
+
+```
+lazy-map/
+├── apps/                          # Applications (interface layer)
+│   ├── backend/                   # NestJS API server
+│   │   ├── src/
+│   │   │   ├── main.ts           # Application entry point
+│   │   │   ├── app.module.ts     # Root module
+│   │   │   ├── maps.controller.ts # Map generation endpoints
+│   │   │   └── dto/              # API data transfer objects
+│   │   └── test/                 # Integration tests
+│   └── frontend/                 # React application  
+│       ├── src/
+│       │   ├── App.tsx           # Main React component
+│       │   ├── main.tsx          # Application entry
+│       │   └── assets/           # Static assets
+│       └── public/               # Public files
+├── packages/                     # Clean Architecture layers
+│   ├── domain/                   # @lazy-map/domain
+│   │   └── src/
+│   │       ├── common/           # Shared kernel
+│   │       │   ├── entities/     # Cross-context entities
+│   │       │   ├── value-objects/# Common values
+│   │       │   ├── services/     # Domain services
+│   │       │   └── repositories/ # Repository interfaces
+│   │       ├── contexts/         # Bounded contexts
+│   │       │   ├── relief/       # Terrain & elevation
+│   │       │   ├── natural/      # Forests, rivers, lakes
+│   │       │   ├── artificial/   # Buildings, roads
+│   │       │   └── cultural/     # Settlements, regions
+│   │       ├── map/              # Map aggregate root
+│   │       │   ├── entities/     # GridMap, MapTile
+│   │       │   ├── services/     # Map generation
+│   │       │   └── repositories/ # Map persistence
+│   │       └── shared/           # Constants, utilities
+│   ├── application/              # @lazy-map/application
+│   │   └── src/
+│   │       ├── common/           # Shared application logic
+│   │       │   ├── ports/        # Output port interfaces
+│   │       │   ├── adapters/     # Input port adapters
+│   │       │   └── use-cases/    # Common use cases
+│   │       ├── contexts/         # Context-specific use cases
+│   │       │   └── natural/      # Forest/water use cases
+│   │       └── map/              # Map-related use cases
+│   │           ├── commands/     # Map generation commands
+│   │           ├── queries/      # Map query operations
+│   │           └── use-cases/    # Core map use cases
+│   └── infrastructure/           # @lazy-map/infrastructure
+│       └── src/
+│           ├── adapters/         # Port implementations
+│           ├── common/           # Shared infrastructure
+│           ├── contexts/         # Context implementations
+│           └── map/              # Map persistence
+└── Configuration files (package.json, turbo.json, etc.)
+```
 
 ## 🎮 Usage Examples
 
@@ -144,6 +216,24 @@ await mapApi.export(mapId, {
 - **pnpm** (package manager)
 - **TypeScript** knowledge
 - Basic understanding of **Clean Architecture** concepts
+
+### 🏗️ Recent Architecture Refactoring
+
+This project has been refactored to follow **Clean Architecture** and **Domain-Driven Design** principles:
+
+**✅ What was done:**
+- **Context-based organization** - Domain logic organized by bounded contexts (relief, natural, artificial, cultural)
+- **Clean dependency boundaries** - Each layer only depends on inner layers
+- **Monorepo structure** - Separate packages for each architectural layer
+- **Seeded generation** - Deterministic map generation with coordinated randomization
+- **Removed obsolete folders** - Cleaned up old structure artifacts
+
+**🎯 Current Architecture Benefits:**
+- **Domain-First** - Business rules are independent and testable
+- **Context Boundaries** - Clear separation of concerns by domain area  
+- **Type Safety** - Full TypeScript coverage with strict configuration
+- **Testability** - Each layer can be tested in isolation
+- **Maintainability** - Clear structure makes changes predictable
 
 ### Project Commands
 ```bash

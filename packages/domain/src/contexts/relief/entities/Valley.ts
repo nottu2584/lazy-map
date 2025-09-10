@@ -1,4 +1,4 @@
-import { MapFeature, FeatureId, FeatureCategory } from '../../../common/entities/MapFeature';
+import { FeatureCategory, FeatureId, MapFeature } from '../../../common/entities/MapFeature';
 import { FeatureArea } from '../../../common/value-objects/FeatureArea';
 
 /**
@@ -30,7 +30,7 @@ export class Valley extends MapFeature {
     public readonly depth: number,
     public readonly fertilitySoilLevel: number = 0.7,
     public readonly floodRisk: number = 0.3,
-    priority: number = 2
+    priority: number = 2,
   ) {
     super(id, name, FeatureCategory.RELIEF, area, priority);
     this.validateDepth(depth);
@@ -47,24 +47,20 @@ export class Valley extends MapFeature {
     if (other.category === FeatureCategory.NATURAL) {
       const otherType = other.getType();
       // Valleys often have rivers or forests
-      return otherType === 'river' || 
-             otherType === 'forest' || 
-             otherType === 'lake';
+      return otherType === 'river' || otherType === 'forest' || otherType === 'lake';
     }
-    
+
     // Valleys can mix with cultural features
     if (other.category === FeatureCategory.CULTURAL) {
       return true;
     }
-    
+
     // Valleys can sometimes mix with artificial features
     if (other.category === FeatureCategory.ARTIFICIAL) {
       const otherType = other.getType();
-      return otherType === 'road' || 
-             otherType === 'settlement' || 
-             otherType === 'farm';
+      return otherType === 'road' || otherType === 'settlement' || otherType === 'farm';
     }
-    
+
     // Valleys cannot mix with other relief features
     return false;
   }
@@ -82,7 +78,7 @@ export class Valley extends MapFeature {
   getWidthAtPosition(position: number): number {
     const length = Math.max(this.area.dimensions.width, this.area.dimensions.height);
     const normalizedPosition = Math.min(Math.max(position / length, 0), 1);
-    
+
     // Width varies based on formation type
     switch (this.formation) {
       case ValleyFormation.V_SHAPED:

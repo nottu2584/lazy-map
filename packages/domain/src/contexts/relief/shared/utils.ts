@@ -1,24 +1,13 @@
 import { generateId } from '../../../shared';
 import { Position } from '../../../common/value-objects';
-import { MapTile, TerrainType, TERRAIN_CONFIG } from './index';
+import { TerrainType, TERRAIN_CONFIG } from './index';
+import { MapTile } from '../../../map/entities';
+import { Terrain } from '../value-objects';
 
 // Tile creation utilities
 export function createEmptyTile(x: number, y: number): MapTile {
-  return {
-    id: generateId(),
-    position: new Position(x, y),
-    terrainType: TerrainType.GRASS,
-    heightMultiplier: 1, // Default to 1x tile height
-    inclination: {
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    },
-    isBlocked: false,
-    movementCost: 1,
-    visibility: true,
-  };
+  const position = new Position(x, y);
+  return new MapTile(position, Terrain.grass(), 1.0);
 }
 
 // Terrain utilities

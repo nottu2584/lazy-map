@@ -9,6 +9,8 @@ export enum TerrainType {
   DESERT = 'desert',
   SNOW = 'snow',
   SWAMP = 'swamp',
+  ROCK = 'rock',
+  CAVE = 'cave',
   ROAD = 'road',
   BUILDING = 'building',
   WALL = 'wall',

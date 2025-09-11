@@ -10,6 +10,10 @@ export class Username {
     this.validate();
   }
 
+  static fromString(value: string): Username {
+    return new Username(value);
+  }
+
   private validate(): void {
     if (!this.value || typeof this.value !== 'string') {
       throw new Error('Username must be a non-empty string');

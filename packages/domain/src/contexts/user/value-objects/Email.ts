@@ -8,6 +8,10 @@ export class Email {
     this.validate();
   }
 
+  static fromString(value: string): Email {
+    return new Email(value);
+  }
+
   private validate(): void {
     if (!this.value || typeof this.value !== 'string') {
       throw new Error('Email must be a non-empty string');

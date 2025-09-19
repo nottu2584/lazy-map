@@ -84,7 +84,7 @@ pnpm --filter backend test:e2e       # End-to-end tests
 pnpm run lint
 pnpm run lint:fix
 
-# Format all workspaces  
+# Format all workspaces
 pnpm run format
 
 # Workspace-specific linting (uses oxlint)
@@ -147,7 +147,7 @@ packages/domain/src/
 │       ├── services/     # Cultural generation
 │       └── repositories/ # Cultural persistence
 ├── map/              # Map Aggregate Root
-│   ├── entities/     # GridMap, MapTile, MapId
+│   ├── entities/     # MapGrid, MapTile, MapId
 │   ├── value-objects/# Map-specific values
 │   ├── services/     # IMapGenerationService
 │   └── repositories/ # IMapRepository
@@ -176,7 +176,7 @@ packages/domain/src/
 1. Frontend sends generation settings to `/maps/generate`
 2. `MapsController` delegates to `MapsProvider`
 3. `MapsProvider` creates `MapGenerationService` with `FeatureGenerationService`
-4. Services generate `GridMap` with terrain tiles and features
+4. Services generate `MapGrid` with terrain tiles and features
 5. Response includes success/error status with generated map data
 
 ### Key Features
@@ -196,7 +196,7 @@ packages/domain/src/
 ### Key Types and Interfaces
 
 **Domain Entities** (with identity and lifecycle):
-- `GridMap` - Complete map aggregate root with dimensions, tiles, and features
+- `MapGrid` - Complete map aggregate root with dimensions, tiles, and features
 - `MapTile` - Individual grid cell with terrain, elevation, and feature associations
 - `Tree`, `Forest` - Natural vegetation entities with properties and behavior
 - `Building`, `Road` - Artificial structure entities

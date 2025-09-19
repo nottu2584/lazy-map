@@ -12,7 +12,7 @@ import {
   TerrainType
 } from '@lazy-map/domain';
 
-import { FeatureArea, IHydrographicGenerationService } from '@lazy-map/domain';
+import { SpatialBounds, IHydrographyService } from '@lazy-map/domain';
 import { HydrographicGenerationService } from '../../contexts/natural/services/HydrographicGenerationService';
 
 // Using the domain interface for MapGenerationResult
@@ -21,9 +21,9 @@ import { HydrographicGenerationService } from '../../contexts/natural/services/H
  * Concrete implementation of map generation service
  */
 export class MapGenerationService implements IMapGenerationService {
-  private hydrographicService: IHydrographicGenerationService;
+  private hydrographicService: IHydrographyService;
 
-  constructor(hydrographicService?: IHydrographicGenerationService) {
+  constructor(hydrographicService?: IHydrographyService) {
     this.hydrographicService = hydrographicService || new HydrographicGenerationService();
   }
   /**
@@ -142,7 +142,7 @@ export class MapGenerationService implements IMapGenerationService {
     // Generate hydrographic features if enabled
     let waterFeatures;
     if (settings.integrateWaterFeatures && settings.hydrographicSettings) {
-      const mapArea = new FeatureArea(
+      const mapArea = new SpatialBounds(
         new Position(0, 0),
         settings.dimensions
       );

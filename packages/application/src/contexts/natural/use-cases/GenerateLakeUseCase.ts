@@ -1,10 +1,10 @@
-import { FeatureArea, IHydrographicGenerationService, IRandomGenerator, Lake, LakeGenerationSettings, LakeSize, Position } from '@lazy-map/domain';
+import { SpatialBounds, IHydrographyService, IRandomGenerator, Lake, LakeGenerationSettings, LakeSize, Position } from '@lazy-map/domain';
 
 /**
  * Command for generating a lake
  */
 export interface GenerateLakeCommand {
-  area: FeatureArea;
+  area: SpatialBounds;
   settings: LakeGenerationSettings;
   connectToRivers?: boolean;
   seed?: string;
@@ -28,7 +28,7 @@ export interface GenerateLakeResult {
  */
 export class GenerateLakeUseCase {
   constructor(
-    private readonly hydrographicService: IHydrographicGenerationService,
+    private readonly hydrographicService: IHydrographyService,
     private readonly randomGenerator: IRandomGenerator
   ) {}
 

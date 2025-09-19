@@ -22,7 +22,7 @@ import { MapGrid, MapTile, MapMetadata } from '@lazy-map/domain';
  * Application service for map-related operations
  * Coordinates use cases and provides a clean interface for external systems
  */
-export class MapApplicationService {
+export class MapService {
   constructor(
     private readonly generateMapUseCase: GenerateMapUseCase,
     private readonly validateMapSettingsUseCase: ValidateMapSettingsUseCase,

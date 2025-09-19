@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { IUserRepository } from '@lazy-map/domain';
 import {
   UserAdministrationService,
@@ -16,7 +16,7 @@ export class AdminService {
   private readonly userAdministrationService: UserAdministrationService;
 
   constructor(
-    private readonly userRepository: IUserRepository
+    @Inject('IUserRepository') private readonly userRepository: IUserRepository
   ) {
     this.userAdministrationService = new UserAdministrationService(userRepository);
   }

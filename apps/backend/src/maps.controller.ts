@@ -3,14 +3,14 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { ApiResponse as ApiResponseType } from '@lazy-map/application';
 import { MapGrid } from '@lazy-map/domain';
 import { GenerateMapCommand, MapGenerationResult, GetMapQuery } from '@lazy-map/application';
-import { MapApplicationService } from '@lazy-map/application';
+import { MapService } from '@lazy-map/application';
 import { GenerateMapDto } from './dto';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @ApiTags('maps')
 @Controller('maps')
 export class MapsController {
-  constructor(private readonly mapApplicationService: MapApplicationService) {}
+  constructor(private readonly mapService: MapService) {}
 
   @Post('generate')
   @UseGuards(JwtAuthGuard)
@@ -59,7 +59,7 @@ export class MapsController {
       };
       
       // Execute use case via application service
-      const result: MapGenerationResult = await this.mapApplicationService.generateMap(command);
+      const result: MapGenerationResult = await this.mapService.generateMap(command);
       
       return {
         success: result.success,
@@ -81,7 +81,7 @@ export class MapsController {
   async getMap(@Param('id') id: string): Promise<ApiResponseType<MapGrid>> {
     try {
       const query: GetMapQuery = { mapId: id };
-      const result = await this.mapApplicationService.getMap(query);
+      const result = await this.mapService.getMap(query);
       
       if (!result.success || !result.data) {
         return {
@@ -111,7 +111,7 @@ export class MapsController {
   @ApiResponse({ status: 401, description: 'Authentication required' })
   async getMyMaps(@Request() req: any): Promise<ApiResponseType<MapGrid[]>> {
     try {
-      const result = await this.mapApplicationService.getUserMaps(req.user.userId);
+      const result = await this.mapService.getUserMaps(req.user.userId);
       
       return {
         success: result.success,

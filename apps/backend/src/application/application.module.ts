@@ -7,7 +7,7 @@ import {
   GetMapTileUseCase,
   ListMapsUseCase,
   GetUserMapsUseCase,
-  MapApplicationService,
+  MapService,
   RegisterUserUseCase,
   LoginUserUseCase,
   GetUserProfileUseCase,
@@ -81,7 +81,7 @@ import {
 
     // Application services
     {
-      provide: MapApplicationService,
+      provide: MapService,
       useFactory: (
         generateMapUseCase,
         validateMapSettingsUseCase,
@@ -90,7 +90,7 @@ import {
         listMapsUseCase,
         getUserMapsUseCase,
       ) => {
-        return new MapApplicationService(
+        return new MapService(
           generateMapUseCase,
           validateMapSettingsUseCase,
           getMapUseCase,
@@ -133,7 +133,7 @@ import {
     },
   ],
   exports: [
-    MapApplicationService,
+    MapService,
     RegisterUserUseCase,
     LoginUserUseCase,
     GetUserProfileUseCase,

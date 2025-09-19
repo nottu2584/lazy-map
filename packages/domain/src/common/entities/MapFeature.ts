@@ -1,4 +1,4 @@
-import { FeatureArea } from '../value-objects/FeatureArea';
+import { SpatialBounds } from '../value-objects/SpatialBounds';
 
 /**
  * Unique identifier for features
@@ -41,7 +41,7 @@ export abstract class MapFeature {
     public readonly id: FeatureId,
     public readonly name: string,
     public readonly category: FeatureCategory,
-    public readonly area: FeatureArea,
+    public readonly area: SpatialBounds,
     public readonly priority: number = 1,
     private _properties: Record<string, any> = {}
   ) {
@@ -74,7 +74,7 @@ export abstract class MapFeature {
     return this.area.overlaps(other.area);
   }
 
-  intersectionWith(other: MapFeature): FeatureArea | null {
+  intersectionWith(other: MapFeature): SpatialBounds | null {
     return this.area.intersection(other.area);
   }
 

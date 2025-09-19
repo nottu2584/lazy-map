@@ -1,5 +1,5 @@
 import { FeatureCategory, FeatureId, MapFeature } from '../../../common/entities/MapFeature';
-import { FeatureArea } from '../../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 
 /**
  * Valley-specific feature type
@@ -24,7 +24,7 @@ export class Valley extends MapFeature {
   constructor(
     id: FeatureId,
     name: string,
-    area: FeatureArea,
+    area: SpatialBounds,
     public readonly formation: ValleyFormation,
     public readonly hasRiver: boolean,
     public readonly depth: number,

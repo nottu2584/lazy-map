@@ -1,5 +1,5 @@
 import { MapFeature, FeatureId, FeatureCategory } from '../../../common/entities/MapFeature';
-import { FeatureArea } from '../../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 import { Plant, PlantCategory, PlantSpecies, HerbaceousPlant, ShrubPlant, GroundCoverPlant } from './Plant';
 
 /**
@@ -56,7 +56,7 @@ export class Grassland extends MapFeature {
   constructor(
     id: FeatureId,
     name: string,
-    area: FeatureArea,
+    area: SpatialBounds,
     public readonly grasslandType: GrasslandType,
     public readonly soilMoisture: number = 0.5,
     public readonly fertility: number = 0.5,

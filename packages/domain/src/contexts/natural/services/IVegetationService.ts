@@ -1,4 +1,4 @@
-import { FeatureArea } from '../../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 import { Forest, Grassland, GrasslandType } from '../entities';
 import { Plant, PlantSpecies, PlantCategory } from '../entities/Plant';
 import { IRandomGenerator } from '../../../common/interfaces/IRandomGenerator';
@@ -20,9 +20,9 @@ export enum BiomeType {
 }
 
 /**
- * Enhanced forest generation settings
+ * Forest generation options
  */
-export interface EnhancedForestGenerationSettings {
+export interface ForestGenerationOptions {
   // Basic forest properties
   treeDensity: number;
   treeClumping: number;
@@ -124,13 +124,13 @@ export interface VegetationGenerationResult {
 /**
  * Service interface for generating diverse vegetation
  */
-export interface IVegetationGenerationService {
+export interface IVegetationService {
   /**
    * Generate an enhanced forest with diverse plant life
    */
   generateEnhancedForest(
-    area: FeatureArea,
-    settings: EnhancedForestGenerationSettings,
+    area: SpatialBounds,
+    settings: ForestGenerationOptions,
     biome: BiomeType,
     randomGenerator: IRandomGenerator
   ): Promise<{ forest: Forest; result: VegetationGenerationResult }>;
@@ -139,7 +139,7 @@ export interface IVegetationGenerationService {
    * Generate a grassland with various plant types
    */
   generateGrassland(
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: GrasslandGenerationSettings,
     biome: BiomeType,
     randomGenerator: IRandomGenerator
@@ -150,7 +150,7 @@ export interface IVegetationGenerationService {
    */
   generateUnderstoryVegetation(
     forest: Forest,
-    settings: Partial<EnhancedForestGenerationSettings>,
+    settings: Partial<ForestGenerationOptions>,
     randomGenerator: IRandomGenerator
   ): Promise<Plant[]>;
 
@@ -158,7 +158,7 @@ export interface IVegetationGenerationService {
    * Generate transition zone between different vegetation types
    */
   generateTransitionZone(
-    area: FeatureArea,
+    area: SpatialBounds,
     fromBiome: BiomeType,
     toBiome: BiomeType,
     transitionWidth: number,
@@ -173,13 +173,13 @@ export interface IVegetationGenerationService {
   /**
    * Get default settings for a biome and vegetation type
    */
-  getDefaultForestSettings(biome: BiomeType): EnhancedForestGenerationSettings;
+  getDefaultForestSettings(biome: BiomeType): ForestGenerationOptions;
   getDefaultGrasslandSettings(biome: BiomeType): GrasslandGenerationSettings;
 
   /**
    * Validate vegetation generation settings
    */
-  validateForestSettings(settings: EnhancedForestGenerationSettings): string[];
+  validateForestSettings(settings: ForestGenerationOptions): string[];
   validateGrasslandSettings(settings: GrasslandGenerationSettings): string[];
 
   /**
@@ -213,7 +213,7 @@ export interface IVegetationGenerationService {
    * Calculate optimal plant density for an area
    */
   calculateOptimalPlantDensity(
-    area: FeatureArea,
+    area: SpatialBounds,
     vegetationType: 'forest' | 'grassland',
     biome: BiomeType
   ): number;

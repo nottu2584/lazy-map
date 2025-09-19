@@ -2,9 +2,9 @@ import { Position } from './Position';
 import { Dimensions } from './Dimensions';
 
 /**
- * Represents a rectangular area where features can be placed
+ * Represents a rectangular spatial boundary for positioning elements
  */
-export class FeatureArea {
+export class SpatialBounds {
   constructor(
     public readonly position: Position,
     public readonly dimensions: Dimensions
@@ -27,14 +27,14 @@ export class FeatureArea {
            position.y < this.bottom;
   }
 
-  overlaps(other: FeatureArea): boolean {
+  overlaps(other: SpatialBounds): boolean {
     return !(this.right <= other.left || 
              other.right <= this.left || 
              this.bottom <= other.top || 
              other.bottom <= this.top);
   }
 
-  intersection(other: FeatureArea): FeatureArea | null {
+  intersection(other: SpatialBounds): SpatialBounds | null {
     const left = Math.max(this.left, other.left);
     const right = Math.min(this.right, other.right);
     const top = Math.max(this.top, other.top);
@@ -44,7 +44,7 @@ export class FeatureArea {
       return null;
     }
 
-    return new FeatureArea(
+    return new SpatialBounds(
       new Position(left, top),
       new Dimensions(right - left, bottom - top)
     );
@@ -54,12 +54,12 @@ export class FeatureArea {
     return this.dimensions.width > 0 && this.dimensions.height > 0;
   }
 
-  equals(other: FeatureArea): boolean {
+  equals(other: SpatialBounds): boolean {
     return this.position.equals(other.position) && 
            this.dimensions.equals(other.dimensions);
   }
 
   toString(): string {
-    return `FeatureArea(pos: ${this.position}, dim: ${this.dimensions})`;
+    return `SpatialBounds(pos: ${this.position}, dim: ${this.dimensions})`;
   }
 }

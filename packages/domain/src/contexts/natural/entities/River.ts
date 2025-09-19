@@ -1,5 +1,5 @@
 import { FeatureCategory, FeatureId, MapFeature } from '../../../common/entities/MapFeature';
-import { FeatureArea } from '../../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 import { Position } from '../../../common/value-objects/Position';
 import { FlowDirection } from '../value-objects/FlowDirection';
 import { WaterLevel } from '../value-objects/WaterLevel';
@@ -77,7 +77,7 @@ export class River extends MapFeature {
   constructor(
     id: FeatureId,
     name: string,
-    area: FeatureArea,
+    area: SpatialBounds,
     public readonly waterLevel: WaterLevel,
     public readonly waterQuality: WaterQuality,
     public readonly averageWidth: number,

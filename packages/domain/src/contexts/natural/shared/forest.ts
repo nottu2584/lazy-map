@@ -1,4 +1,4 @@
-import { Position } from '../../../common/value-objects';
+import { Position, Dimensions, SpatialBounds } from '../../../common/value-objects';
 import {
   Tree,
   TreeType,
@@ -6,7 +6,6 @@ import {
   SubTilePosition,
   ForestGenerationSettings,
   MapFeature,
-  FeatureArea,
   FeatureCategory,
   NaturalFeatureType,
 } from './types';
@@ -24,7 +23,7 @@ export interface ForestFeature extends MapFeature {
 // Create a forest feature with generated trees
 export function createForest(
   name: string,
-  area: FeatureArea,
+  area: SpatialBounds,
   settings: ForestGenerationSettings,
   seed?: number,
 ): ForestFeature {
@@ -56,7 +55,7 @@ export function createForest(
 
 // Generate trees within a forest area
 export function generateTreesInArea(
-  area: FeatureArea,
+  area: SpatialBounds,
   settings: ForestGenerationSettings,
   seed?: number,
 ): Tree[] {
@@ -85,7 +84,7 @@ export function generateTreesInArea(
 
 // Generate clumped tree positions using Poisson disk sampling with clusters
 function generateClumpedPositions(
-  area: FeatureArea,
+  area: SpatialBounds,
   targetCount: number,
   clumpiness: number,
   rng: () => number,

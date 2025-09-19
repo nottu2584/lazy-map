@@ -1,5 +1,5 @@
 import { MapFeature, FeatureId, FeatureCategory } from '../../../common/entities/MapFeature';
-import { FeatureArea } from '../../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 import { Position } from '../../../common/value-objects/Position';
 
 /**
@@ -37,7 +37,7 @@ export class Bridge extends MapFeature {
   constructor(
     id: FeatureId,
     name: string,
-    area: FeatureArea,
+    area: SpatialBounds,
     public readonly material: BridgeMaterial,
     public readonly structure: BridgeStructure,
     public readonly length: number,

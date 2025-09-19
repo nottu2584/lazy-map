@@ -1,5 +1,5 @@
 import { FeatureCategory, FeatureId, MapFeature } from '../../../common/entities/MapFeature';
-import { FeatureArea } from '../../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 import { Position } from '../../../common/value-objects/Position';
 import { WaterLevel } from '../value-objects/WaterLevel';
 import { WaterQuality } from '../value-objects/WaterQuality';
@@ -95,7 +95,7 @@ export class Lake extends MapFeature {
   constructor(
     id: FeatureId,
     name: string,
-    area: FeatureArea,
+    area: SpatialBounds,
     public readonly waterLevel: WaterLevel,
     public readonly waterQuality: WaterQuality,
     public readonly formation: LakeFormation,

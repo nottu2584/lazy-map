@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { FeatureId } from '../common/entities/MapFeature';
 import { Dimensions } from '../common/value-objects/Dimensions';
-import { FeatureArea } from '../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../common/value-objects/SpatialBounds';
 import { Position } from '../common/value-objects/Position';
 
 import {
@@ -166,12 +166,12 @@ describe('Hydrographic Entities', () => {
   });
 
   describe('River', () => {
-    let testArea: FeatureArea;
+    let testArea: SpatialBounds;
     let waterLevel: WaterLevel;
     let waterQuality: WaterQuality;
 
     beforeEach(() => {
-      testArea = new FeatureArea(new Position(0, 0), new Dimensions(100, 100));
+      testArea = new SpatialBounds(new Position(0, 0), new Dimensions(100, 100));
       waterLevel = WaterLevel.fromDepth(3);
       waterQuality = WaterQuality.river();
     });
@@ -249,7 +249,7 @@ describe('Hydrographic Entities', () => {
       const tributary = new River(
         FeatureId.generate(),
         'Tributary',
-        new FeatureArea(new Position(20, 20), new Dimensions(50, 50)),
+        new SpatialBounds(new Position(20, 20), new Dimensions(50, 50)),
         waterLevel,
         waterQuality,
         10
@@ -292,12 +292,12 @@ describe('Hydrographic Entities', () => {
   });
 
   describe('Lake', () => {
-    let testArea: FeatureArea;
+    let testArea: SpatialBounds;
     let waterLevel: WaterLevel;
     let waterQuality: WaterQuality;
 
     beforeEach(() => {
-      testArea = new FeatureArea(new Position(0, 0), new Dimensions(100, 100));
+      testArea = new SpatialBounds(new Position(0, 0), new Dimensions(100, 100));
       waterLevel = WaterLevel.fromDepth(10);
       waterQuality = WaterQuality.lake();
     });
@@ -322,8 +322,8 @@ describe('Hydrographic Entities', () => {
     });
 
     it('should categorize lake size correctly', () => {
-      const smallArea = new FeatureArea(new Position(0, 0), new Dimensions(20, 20));
-      const largeArea = new FeatureArea(new Position(0, 0), new Dimensions(200, 200));
+      const smallArea = new SpatialBounds(new Position(0, 0), new Dimensions(20, 20));
+      const largeArea = new SpatialBounds(new Position(0, 0), new Dimensions(200, 200));
 
       const smallLake = new Lake(FeatureId.generate(), 'Small', smallArea, waterLevel, waterQuality, LakeFormation.NATURAL);
       const largeLake = new Lake(FeatureId.generate(), 'Large', largeArea, waterLevel, waterQuality, LakeFormation.NATURAL);
@@ -376,7 +376,7 @@ describe('Hydrographic Entities', () => {
       const shallowPond = new Lake(
         FeatureId.generate(),
         'Shallow',
-        new FeatureArea(new Position(0, 0), new Dimensions(20, 20)),
+        new SpatialBounds(new Position(0, 0), new Dimensions(20, 20)),
         WaterLevel.fromDepth(2),
         freezingWaterQuality,
         LakeFormation.NATURAL
@@ -402,7 +402,7 @@ describe('Hydrographic Entities', () => {
       const artesian = new Spring(
         FeatureId.generate(),
         'Artesian Spring',
-        new FeatureArea(new Position(0, 0), new Dimensions(10, 10)),
+        new SpatialBounds(new Position(0, 0), new Dimensions(10, 10)),
         SpringType.ARTESIAN,
         WaterQuality.pristine(),
         10, // 10 GPM
@@ -413,7 +413,7 @@ describe('Hydrographic Entities', () => {
       const hotSpring = new Spring(
         FeatureId.generate(),
         'Hot Spring',
-        new FeatureArea(new Position(0, 0), new Dimensions(10, 10)),
+        new SpatialBounds(new Position(0, 0), new Dimensions(10, 10)),
         SpringType.THERMAL,
         WaterQuality.hotSpring(),
         5,
@@ -433,7 +433,7 @@ describe('Hydrographic Entities', () => {
       const spring = new Spring(
         FeatureId.generate(),
         'Test Spring',
-        new FeatureArea(new Position(0, 0), new Dimensions(10, 10)),
+        new SpatialBounds(new Position(0, 0), new Dimensions(10, 10)),
         SpringType.GRAVITY,
         WaterQuality.pristine(),
         10, // 10 GPM
@@ -449,7 +449,7 @@ describe('Hydrographic Entities', () => {
       const largeSpring = new Spring(
         FeatureId.generate(),
         'Large Spring',
-        new FeatureArea(new Position(0, 0), new Dimensions(10, 10)),
+        new SpatialBounds(new Position(0, 0), new Dimensions(10, 10)),
         SpringType.ARTESIAN,
         WaterQuality.pristine(),
         100, // 100 GPM
@@ -460,7 +460,7 @@ describe('Hydrographic Entities', () => {
       const smallSpring = new Spring(
         FeatureId.generate(),
         'Small Spring',
-        new FeatureArea(new Position(0, 0), new Dimensions(10, 10)),
+        new SpatialBounds(new Position(0, 0), new Dimensions(10, 10)),
         SpringType.SEASONAL,
         WaterQuality.pristine(),
         1, // 1 GPM
@@ -478,7 +478,7 @@ describe('Hydrographic Entities', () => {
       const marsh = new Wetland(
         FeatureId.generate(),
         'Test Marsh',
-        new FeatureArea(new Position(0, 0), new Dimensions(50, 50)),
+        new SpatialBounds(new Position(0, 0), new Dimensions(50, 50)),
         WetlandType.MARSH,
         WaterLevel.fromDepth(1), // depth < 2
         WaterQuality.wetland(),
@@ -488,7 +488,7 @@ describe('Hydrographic Entities', () => {
       const swamp = new Wetland(
         FeatureId.generate(),
         'Test Swamp',
-        new FeatureArea(new Position(0, 0), new Dimensions(100, 100)),
+        new SpatialBounds(new Position(0, 0), new Dimensions(100, 100)),
         WetlandType.SWAMP,
         WaterLevel.fromDepth(2),
         WaterQuality.wetland(),
@@ -505,7 +505,7 @@ describe('Hydrographic Entities', () => {
       const healthyWetland = new Wetland(
         FeatureId.generate(),
         'Healthy Wetland',
-        new FeatureArea(new Position(0, 0), new Dimensions(50, 50)),
+        new SpatialBounds(new Position(0, 0), new Dimensions(50, 50)),
         WetlandType.FEN,
         WaterLevel.fromDepth(1.5),
         WaterQuality.pristine(),
@@ -521,7 +521,7 @@ describe('Hydrographic Entities', () => {
       const marsh = new Wetland(
         FeatureId.generate(),
         'Migration Marsh',
-        new FeatureArea(new Position(0, 0), new Dimensions(50, 50)),
+        new SpatialBounds(new Position(0, 0), new Dimensions(50, 50)),
         WetlandType.MARSH,
         WaterLevel.fromDepth(1),
         WaterQuality.wetland(),
@@ -531,7 +531,7 @@ describe('Hydrographic Entities', () => {
       const bog = new Wetland(
         FeatureId.generate(),
         'Test Bog',
-        new FeatureArea(new Position(0, 0), new Dimensions(30, 30)),
+        new SpatialBounds(new Position(0, 0), new Dimensions(30, 30)),
         WetlandType.BOG,
         WaterLevel.fromDepth(0.5),
         WaterQuality.wetland(),
@@ -546,7 +546,7 @@ describe('Hydrographic Entities', () => {
       const wetland = new Wetland(
         FeatureId.generate(),
         'Nesting Wetland',
-        new FeatureArea(new Position(0, 0), new Dimensions(60, 60)),
+        new SpatialBounds(new Position(0, 0), new Dimensions(60, 60)),
         WetlandType.PRAIRIE_POTHOLE,
         WaterLevel.fromDepth(1),
         WaterQuality.wetland(),

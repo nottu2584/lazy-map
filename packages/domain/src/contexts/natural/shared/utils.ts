@@ -1,7 +1,6 @@
-import { Dimensions } from '../../../common/value-objects';
+import { Dimensions, Position, SpatialBounds } from '../../../common/value-objects';
 import {
   MapFeature,
-  FeatureArea,
   FeatureCategory,
   ReliefFeatureType,
   NaturalFeatureType,
@@ -14,7 +13,7 @@ export function createFeature(
   name: string,
   category: FeatureCategory,
   type: ReliefFeatureType | NaturalFeatureType | ArtificialFeatureType | CulturalFeatureType,
-  area: FeatureArea,
+  area: SpatialBounds,
   priority: number = 1,
   properties: Record<string, any> = {},
 ): MapFeature {
@@ -51,7 +50,7 @@ export function isFeatureInBounds(feature: MapFeature, mapDimensions: Dimensions
 export function getFeatureMapIntersection(
   feature: MapFeature,
   mapDimensions: Dimensions,
-): FeatureArea | null {
+): SpatialBounds | null {
   const { x, y, width, height } = feature.area;
 
   // Calculate intersection bounds
@@ -65,16 +64,14 @@ export function getFeatureMapIntersection(
     return null;
   }
 
-  return {
-    x: left,
-    y: top,
-    width: right - left,
-    height: bottom - top,
-  };
+  return new SpatialBounds(
+    new Position(left, top),
+    new Dimensions(right - left, bottom - top)
+  );
 }
 
 // Check if two feature areas overlap
-export function doFeaturesOverlap(area1: FeatureArea, area2: FeatureArea): boolean {
+export function doFeaturesOverlap(area1: SpatialBounds, area2: SpatialBounds): boolean {
   return !(
     area1.x >= area2.x + area2.width ||
     area2.x >= area1.x + area1.width ||
@@ -84,12 +81,12 @@ export function doFeaturesOverlap(area1: FeatureArea, area2: FeatureArea): boole
 }
 
 // Generate random feature area within extended bounds
-export function generateRandomFeatureArea(
+export function generateRandomSpatialBounds(
   mapDimensions: Dimensions,
   outOfBoundsExtension: number,
   minSize: number,
   maxSize: number,
-): FeatureArea {
+): SpatialBounds {
   // Random size within bounds
   const width = Math.floor(Math.random() * (maxSize - minSize + 1)) + minSize;
   const height = Math.floor(Math.random() * (maxSize - minSize + 1)) + minSize;
@@ -98,7 +95,7 @@ export function generateRandomFeatureArea(
     // If out-of-bounds is disabled, generate fully within map
     const x = Math.floor(Math.random() * Math.max(1, mapDimensions.width - width + 1));
     const y = Math.floor(Math.random() * Math.max(1, mapDimensions.height - height + 1));
-    return { x, y, width, height };
+    return new SpatialBounds(new Position(x, y), new Dimensions(width, height));
   }
 
   // For out-of-bounds features, ensure they're always partially visible
@@ -118,7 +115,7 @@ export function generateRandomFeatureArea(
   const x = Math.floor(Math.random() * (constrainedMaxX - constrainedMinX + 1)) + constrainedMinX;
   const y = Math.floor(Math.random() * (constrainedMaxY - constrainedMinY + 1)) + constrainedMinY;
 
-  return { x, y, width, height };
+  return new SpatialBounds(new Position(x, y), new Dimensions(width, height));
 }
 
 // Sort features by priority (higher priority first)

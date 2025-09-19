@@ -1,5 +1,5 @@
 import { MapGrid, MapId } from '../entities';
-import { FeatureArea } from '../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../common/value-objects/SpatialBounds';
 import { UserId } from '../../contexts/user/value-objects/UserId';
 
 /**
@@ -53,7 +53,7 @@ export interface IMapRepository {
   /**
    * Finds maps that intersect with a given area
    */
-  findByArea(area: FeatureArea): Promise<MapGrid[]>;
+  findByArea(area: SpatialBounds): Promise<MapGrid[]>;
 
   /**
    * Deletes a map by its ID

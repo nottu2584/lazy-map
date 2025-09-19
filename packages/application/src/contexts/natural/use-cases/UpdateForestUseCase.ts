@@ -1,7 +1,7 @@
 import { 
   Forest,
   FeatureId,
-  IVegetationGenerationService
+  IVegetationService
 } from '@lazy-map/domain';
 import { UpdateForestCommand, FeatureOperationResult } from '../../../common/ports/IFeatureManagementPort';
 import { IRandomGeneratorPort, INotificationPort } from '../../../common/ports';
@@ -13,7 +13,7 @@ import { RandomGeneratorAdapter } from '../../../common/adapters';
  */
 export class UpdateForestUseCase {
   constructor(
-    private readonly vegetationService: IVegetationGenerationService,
+    private readonly vegetationService: IVegetationService,
     private readonly mapPersistence: IMapPersistencePort,
     private readonly randomGeneratorPort: IRandomGeneratorPort,
     private readonly notificationPort: INotificationPort

@@ -2,11 +2,11 @@ import {
   MapGrid, 
   Dimensions,
   IMapGenerationService,
-  IVegetationGenerationService,
+  IVegetationService,
   IFeatureMixingService,
   MapGenerationSettings as DomainMapSettings,
   BiomeType,
-  EnhancedForestGenerationSettings,
+  ForestGenerationOptions,
   CoordinatedRandomGenerator,
   SeedUtils,
   UserId
@@ -22,7 +22,7 @@ import { RandomGeneratorAdapter } from '../../common/adapters';
 export class GenerateMapUseCase {
   constructor(
     private readonly mapGenerationService: IMapGenerationService,
-    private readonly vegetationGenerationService: IVegetationGenerationService,
+    private readonly vegetationGenerationService: IVegetationService,
     private readonly featureMixingService: IFeatureMixingService,
     private readonly mapPersistence: IMapPersistencePort,
     private readonly randomGenerator: IRandomGeneratorPort,
@@ -229,7 +229,7 @@ export class GenerateMapUseCase {
     const randomGen = new RandomGeneratorAdapter(seededRng);
 
     // Convert forest settings to enhanced format
-    const enhancedSettings: EnhancedForestGenerationSettings = {
+    const enhancedSettings: ForestGenerationOptions = {
       treeDensity: forestSettings.treeDensity || 0.6,
       treeClumping: forestSettings.treeClumping || 0.7,
       allowTreeOverlap: forestSettings.allowTreeOverlap || false,
@@ -279,7 +279,7 @@ export class GenerateMapUseCase {
       const y = randomGen.nextInt(0, map.dimensions.height - forestSize);
       
       try {
-        const area = new (await import('@lazy-map/domain')).FeatureArea(
+        const area = new (await import('@lazy-map/domain')).SpatialBounds(
           new (await import('@lazy-map/domain')).Position(x, y),
           new Dimensions(forestSize, forestSize)
         );

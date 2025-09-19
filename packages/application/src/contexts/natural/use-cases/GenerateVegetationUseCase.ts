@@ -1,12 +1,12 @@
 import {
   BiomeType,
   Dimensions,
-  EnhancedForestGenerationSettings,
-  FeatureArea,
+  ForestGenerationOptions,
+  SpatialBounds,
   Forest,
   Grassland,
   GrasslandGenerationSettings,
-  IVegetationGenerationService,
+  IVegetationService,
   Position,
   VegetationGenerationResult
 } from '@lazy-map/domain';
@@ -35,7 +35,7 @@ export interface GenerateVegetationCommand {
   biome: BiomeType;
   
   // Forest-specific settings (if applicable)
-  forestSettings?: Partial<EnhancedForestGenerationSettings>;
+  forestSettings?: Partial<ForestGenerationOptions>;
   
   // Grassland-specific settings (if applicable)
   grasslandSettings?: Partial<GrasslandGenerationSettings>;
@@ -79,7 +79,7 @@ export interface VegetationOperationResult {
  */
 export class GenerateVegetationUseCase {
   constructor(
-    private readonly vegetationService: IVegetationGenerationService,
+    private readonly vegetationService: IVegetationService,
     private readonly randomGeneratorPort: IRandomGeneratorPort,
     private readonly notificationPort: INotificationPort
   ) {}
@@ -103,7 +103,7 @@ export class GenerateVegetationUseCase {
       const randomGenerator = new (await import('../../../common/adapters')).RandomGeneratorAdapter(seededRng);
 
       // Create feature area
-      const area = new FeatureArea(
+      const area = new SpatialBounds(
         new Position(command.area.x, command.area.y),
         new Dimensions(command.area.width, command.area.height)
       );
@@ -162,7 +162,7 @@ export class GenerateVegetationUseCase {
   }
 
   private async generateForest(
-    area: FeatureArea,
+    area: SpatialBounds,
     command: GenerateVegetationCommand,
     randomGenerator: any
   ): Promise<VegetationOperationResult> {
@@ -200,7 +200,7 @@ export class GenerateVegetationUseCase {
   }
 
   private async generateGrassland(
-    area: FeatureArea,
+    area: SpatialBounds,
     command: GenerateVegetationCommand,
     randomGenerator: any
   ): Promise<VegetationOperationResult> {
@@ -238,17 +238,17 @@ export class GenerateVegetationUseCase {
   }
 
   private async generateMixedVegetation(
-    area: FeatureArea,
+    area: SpatialBounds,
     command: GenerateVegetationCommand,
     randomGenerator: any
   ): Promise<VegetationOperationResult> {
     // Create patches of different vegetation types
-    const forestArea = new FeatureArea(
+    const forestArea = new SpatialBounds(
       area.position,
       new Dimensions(Math.floor(area.dimensions.width * 0.6), area.dimensions.height)
     );
 
-    const grasslandArea = new FeatureArea(
+    const grasslandArea = new SpatialBounds(
       new Position(area.position.x + forestArea.dimensions.width, area.position.y),
       new Dimensions(area.dimensions.width - forestArea.dimensions.width, area.dimensions.height)
     );
@@ -259,7 +259,7 @@ export class GenerateVegetationUseCase {
 
     // Generate transition zone
     const transitionPlants = await this.vegetationService.generateTransitionZone(
-      new FeatureArea(
+      new SpatialBounds(
         new Position(forestArea.position.x + forestArea.dimensions.width - 2, area.position.y),
         new Dimensions(4, area.dimensions.height)
       ),
@@ -352,9 +352,9 @@ export class GenerateVegetationUseCase {
   }
 
   private mergeForestSettings(
-    defaultSettings: EnhancedForestGenerationSettings,
-    userSettings: Partial<EnhancedForestGenerationSettings>
-  ): EnhancedForestGenerationSettings {
+    defaultSettings: ForestGenerationOptions,
+    userSettings: Partial<ForestGenerationOptions>
+  ): ForestGenerationOptions {
     return {
       ...defaultSettings,
       ...userSettings
@@ -372,7 +372,7 @@ export class GenerateVegetationUseCase {
   }
 
   private applyEnvironmentalFactors(
-    settings: EnhancedForestGenerationSettings,
+    settings: ForestGenerationOptions,
     command: GenerateVegetationCommand
   ): void {
     if (command.climate) {

@@ -1,9 +1,9 @@
 import { 
   BiomeType,
   Dimensions,
-  EnhancedForestGenerationSettings,
-  FeatureArea,
-  IVegetationGenerationService,
+  ForestGenerationOptions,
+  SpatialBounds,
+  IVegetationService,
   PlantSpecies,
   Position
 } from '@lazy-map/domain';
@@ -17,7 +17,7 @@ import { RandomGeneratorAdapter } from '../../../common/adapters';
  */
 export class CreateForestUseCase {
   constructor(
-    private readonly vegetationService: IVegetationGenerationService,
+    private readonly vegetationService: IVegetationService,
     private readonly mapPersistence: IMapPersistencePort,
     private readonly randomGeneratorPort: IRandomGeneratorPort,
     private readonly notificationPort: INotificationPort
@@ -36,13 +36,13 @@ export class CreateForestUseCase {
       }
 
       // Create feature area
-      const area = new FeatureArea(
+      const area = new SpatialBounds(
         new Position(command.x, command.y),
         new Dimensions(command.width, command.height)
       );
 
       // Convert command settings to enhanced forest settings
-      const forestSettings: EnhancedForestGenerationSettings = {
+      const forestSettings: ForestGenerationOptions = {
         treeDensity: command.forestSettings.treeDensity,
         treeClumping: command.forestSettings.treeClumping,
         allowTreeOverlap: command.forestSettings.allowTreeOverlap,

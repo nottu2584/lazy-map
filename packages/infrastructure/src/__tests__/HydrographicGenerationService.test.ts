@@ -1,4 +1,4 @@
-import { IRandomGenerator, Dimensions, FeatureArea, Position } from '@lazy-map/domain';
+import { IRandomGenerator, Dimensions, SpatialBounds, Position } from '@lazy-map/domain';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
@@ -57,12 +57,12 @@ class MockRandomGenerator implements IRandomGenerator {
 describe('HydrographicGenerationService', () => {
   let service: HydrographicGenerationService;
   let mockRandom: MockRandomGenerator;
-  let testArea: FeatureArea;
+  let testArea: SpatialBounds;
 
   beforeEach(() => {
     service = new HydrographicGenerationService();
     mockRandom = new MockRandomGenerator();
-    testArea = new FeatureArea(new Position(0, 0), new Dimensions(1000, 1000));
+    testArea = new SpatialBounds(new Position(0, 0), new Dimensions(1000, 1000));
   });
 
   describe('generateRiver', () => {
@@ -264,7 +264,7 @@ describe('HydrographicGenerationService', () => {
 
   describe('generatePond', () => {
     it('should generate seasonal and permanent ponds', async () => {
-      const pondArea = new FeatureArea(new Position(400, 400), new Dimensions(50, 50));
+      const pondArea = new SpatialBounds(new Position(400, 400), new Dimensions(50, 50));
 
       const seasonalPond = await service.generatePond(pondArea, true, mockRandom);
       const permanentPond = await service.generatePond(pondArea, false, mockRandom);
@@ -282,7 +282,7 @@ describe('HydrographicGenerationService', () => {
 
   describe('generateWetland', () => {
     it('should generate different wetland types', async () => {
-      const wetlandArea = new FeatureArea(new Position(200, 200), new Dimensions(100, 100));
+      const wetlandArea = new SpatialBounds(new Position(200, 200), new Dimensions(100, 100));
 
       const marshSettings: WetlandGenerationSettings = {
         wetlandType: WetlandType.MARSH,
@@ -463,7 +463,7 @@ describe('HydrographicGenerationService', () => {
 
       // Create a valid lake
       const validLake = await service.generateLake(
-        new FeatureArea(new Position(200, 200), new Dimensions(100, 100)),
+        new SpatialBounds(new Position(200, 200), new Dimensions(100, 100)),
         {
           minSize: 400,
           maxSize: 1000,

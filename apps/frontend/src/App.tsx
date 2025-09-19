@@ -1,30 +1,41 @@
 import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
+import { MapGenerator } from './components/MapGenerator';
+import { Navigation } from './components/Navigation';
+import { AuthProvider } from './contexts/AuthContext';
 import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [currentView, setCurrentView] = useState<'generator' | 'gallery' | 'profile'>('generator');
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <AuthProvider>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation currentView={currentView} onViewChange={setCurrentView} />
+
+        <main className="container mx-auto px-4 py-8">
+          {currentView === 'generator' && (
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-8">Battlemap Generator</h1>
+              <MapGenerator />
+            </div>
+          )}
+
+          {currentView === 'gallery' && (
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-8">Map Gallery</h1>
+              <p className="text-gray-600">Your generated maps will appear here.</p>
+            </div>
+          )}
+
+          {currentView === 'profile' && (
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-8">Profile</h1>
+              <p className="text-gray-600">User profile and settings.</p>
+            </div>
+          )}
+        </main>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>count is {count}</button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">Click on the Vite and React logos to learn more</p>
-    </>
+    </AuthProvider>
   );
 }
 

@@ -16,11 +16,13 @@ Lazy Map is a monorepo for generating graphical battlemaps with grid-based syste
 - ⚠️ Test suite needs updating for new structure (some tests still reference old paths)
 
 **Project Status:**
-- ✅ **Building**: All packages compile successfully
-- ✅ **Structure**: Clean Architecture boundaries properly enforced  
+- ✅ **Building**: Domain and application packages compile successfully
+- ⚠️ **Infrastructure**: Build issues with user repository implementation (missing interface methods)
+- ✅ **Structure**: Clean Architecture boundaries properly enforced
 - ✅ **Dependencies**: Proper workspace dependencies configured
-- ⚠️ **Testing**: Some tests need to be updated after refactoring
-- ✅ **Documentation**: README.md and CLAUDE.md reflect current structure
+- ⚠️ **Testing**: Some tests need updating after refactoring
+- ⚠️ **Frontend**: Requires implementation of map rendering interface (currently default Vite template)
+- ✅ **Documentation**: Documentation reflects current structure and status
 
 ### Components:
 - **Backend**: NestJS API server for map generation services
@@ -235,11 +237,11 @@ packages/domain/src/
 **Context-Based Organization**:
 - **relief/** - Terrain types, elevation, topography, slopes
 - **natural/** - Forests, trees, rivers, lakes, vegetation
-- **artificial/** - Buildings, roads, bridges, structures  
+- **artificial/** - Buildings, roads, bridges, structures
 - **cultural/** - Settlements, territories, regions, civilizations
 
 **Dependency Rules** (enforced by build system):
-- ✅ Domain → Nothing (pure business logic)  
+- ✅ Domain → Nothing (pure business logic)
 - ✅ Application → Domain only
 - ✅ Infrastructure → Domain + Application
 - ❌ Never reverse these dependencies

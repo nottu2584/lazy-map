@@ -3,14 +3,15 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
-  UnauthorizedException
+  UnauthorizedException,
+  Inject
 } from '@nestjs/common';
 import { IUserRepository, UserId } from '@lazy-map/domain';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
   constructor(
-    private readonly userRepository: IUserRepository
+    @Inject('IUserRepository') private readonly userRepository: IUserRepository
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

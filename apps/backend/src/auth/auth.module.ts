@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ApplicationModule } from '../application/application.module';
+import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -24,6 +25,7 @@ import { AuthGuard } from './auth.guard';
       inject: [ConfigService],
     }),
     ApplicationModule,
+    InfrastructureModule,
   ],
   controllers: [AuthController],
   providers: [JwtStrategy, JwtAuthGuard, AdminGuard, AuthGuard],

@@ -1,6 +1,6 @@
 import {
-  IVegetationGenerationService,
-  EnhancedForestGenerationSettings,
+  IVegetationService,
+  ForestGenerationOptions,
   GrasslandGenerationSettings,
   BiomeType,
   IRandomGenerator,
@@ -17,7 +17,7 @@ import {
   GroundCoverPlant,
   PlantSize,
   PlantProperties,
-  FeatureArea,
+  SpatialBounds,
   SubTilePosition,
   FeatureId
 } from '@lazy-map/domain';
@@ -25,11 +25,11 @@ import {
 /**
  * Implementation of vegetation generation service
  */
-export class VegetationGenerationService implements IVegetationGenerationService {
+export class VegetationGenerationService implements IVegetationService {
   
   async generateEnhancedForest(
-    area: FeatureArea,
-    settings: EnhancedForestGenerationSettings,
+    area: SpatialBounds,
+    settings: ForestGenerationOptions,
     biome: BiomeType,
     randomGenerator: IRandomGenerator
   ): Promise<{ forest: Forest; result: VegetationGenerationResult }> {
@@ -102,7 +102,7 @@ export class VegetationGenerationService implements IVegetationGenerationService
   }
 
   async generateGrassland(
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: GrasslandGenerationSettings,
     biome: BiomeType,
     randomGenerator: IRandomGenerator
@@ -177,12 +177,12 @@ export class VegetationGenerationService implements IVegetationGenerationService
 
   async generateUnderstoryVegetation(
     forest: Forest,
-    settings: Partial<EnhancedForestGenerationSettings>,
+    settings: Partial<ForestGenerationOptions>,
     randomGenerator: IRandomGenerator
   ): Promise<Plant[]> {
     const understoryPlants: Plant[] = [];
     const area = forest.area;
-    const trees = forest.getTreePlants();
+    const trees = forest.getTrees();
 
     // Calculate light levels under canopy
     const lightMap = this.calculateLightLevels(area, trees);
@@ -211,7 +211,7 @@ export class VegetationGenerationService implements IVegetationGenerationService
   }
 
   async generateTransitionZone(
-    area: FeatureArea,
+    area: SpatialBounds,
     fromBiome: BiomeType,
     toBiome: BiomeType,
     transitionWidth: number,
@@ -281,7 +281,7 @@ export class VegetationGenerationService implements IVegetationGenerationService
   }
 
   // Implementation of other interface methods...
-  getDefaultForestSettings(biome: BiomeType): EnhancedForestGenerationSettings {
+  getDefaultForestSettings(biome: BiomeType): ForestGenerationOptions {
     // Return appropriate defaults based on biome
     return {
       treeDensity: 0.6,
@@ -343,7 +343,7 @@ export class VegetationGenerationService implements IVegetationGenerationService
     };
   }
 
-  validateForestSettings(settings: EnhancedForestGenerationSettings): string[] {
+  validateForestSettings(settings: ForestGenerationOptions): string[] {
     const errors: string[] = [];
     
     if (settings.treeDensity < 0 || settings.treeDensity > 1) {
@@ -425,7 +425,7 @@ export class VegetationGenerationService implements IVegetationGenerationService
   }
 
   calculateOptimalPlantDensity(
-    area: FeatureArea,
+    area: SpatialBounds,
     vegetationType: 'forest' | 'grassland',
     biome: BiomeType
   ): number {
@@ -440,8 +440,8 @@ export class VegetationGenerationService implements IVegetationGenerationService
 
   // Private helper methods
   private async generateCanopyTrees(
-    area: FeatureArea,
-    settings: EnhancedForestGenerationSettings,
+    area: SpatialBounds,
+    settings: ForestGenerationOptions,
     biome: BiomeType,
     randomGenerator: IRandomGenerator
   ): Promise<TreePlant[]> {
@@ -477,9 +477,9 @@ export class VegetationGenerationService implements IVegetationGenerationService
   }
 
   private async generateUnderstoryForArea(
-    area: FeatureArea,
+    area: SpatialBounds,
     trees: TreePlant[],
-    settings: EnhancedForestGenerationSettings,
+    settings: ForestGenerationOptions,
     biome: BiomeType,
     randomGenerator: IRandomGenerator
   ): Promise<Plant[]> {
@@ -494,7 +494,7 @@ export class VegetationGenerationService implements IVegetationGenerationService
   // Add more helper methods for specific plant generation...
   
   private generateGrassPlants(
-    area: FeatureArea,
+    area: SpatialBounds,
     count: number,
     settings: GrasslandGenerationSettings,
     biome: BiomeType,
@@ -505,7 +505,7 @@ export class VegetationGenerationService implements IVegetationGenerationService
   }
 
   private generateWildflowers(
-    area: FeatureArea,
+    area: SpatialBounds,
     count: number,
     settings: GrasslandGenerationSettings,
     biome: BiomeType,
@@ -533,7 +533,7 @@ export class VegetationGenerationService implements IVegetationGenerationService
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  private calculateCoverage(plants: Plant[], area: FeatureArea): number {
+  private calculateCoverage(plants: Plant[], area: SpatialBounds): number {
     let totalCoverage = 0;
     plants.forEach(plant => {
       totalCoverage += Math.PI * Math.pow(plant.getCoverageRadius(), 2);
@@ -565,13 +565,13 @@ export class VegetationGenerationService implements IVegetationGenerationService
     return [PlantSpecies.OAK]; // Simplified
   }
 
-  private calculateLightLevels(area: FeatureArea, trees: TreePlant[]): Map<string, number> {
+  private calculateLightLevels(area: SpatialBounds, trees: TreePlant[]): Map<string, number> {
     const lightMap = new Map<string, number>();
     // Calculate light penetration through canopy
     return lightMap;
   }
 
-  private generateRandomPosition(area: FeatureArea, rng: IRandomGenerator): SubTilePosition {
+  private generateRandomPosition(area: SpatialBounds, rng: IRandomGenerator): SubTilePosition {
     return new SubTilePosition(
       area.x + Math.floor(rng.next() * area.dimensions.width),
       area.y + Math.floor(rng.next() * area.dimensions.height),
@@ -580,7 +580,7 @@ export class VegetationGenerationService implements IVegetationGenerationService
     );
   }
 
-  private selectTreeSize(settings: EnhancedForestGenerationSettings, rng: IRandomGenerator): PlantSize {
+  private selectTreeSize(settings: ForestGenerationOptions, rng: IRandomGenerator): PlantSize {
     const roll = rng.next();
     if (roll < settings.saplingChance) return PlantSize.SMALL;
     if (roll < settings.saplingChance + settings.youngChance) return PlantSize.MEDIUM;
@@ -626,19 +626,19 @@ export class VegetationGenerationService implements IVegetationGenerationService
     return null;
   }
 
-  private generateFerns(area: FeatureArea, count: number, settings: GrasslandGenerationSettings, biome: BiomeType, rng: IRandomGenerator): HerbaceousPlant[] {
+  private generateFerns(area: SpatialBounds, count: number, settings: GrasslandGenerationSettings, biome: BiomeType, rng: IRandomGenerator): HerbaceousPlant[] {
     return [];
   }
 
-  private generateGrasslandShrubs(area: FeatureArea, count: number, settings: GrasslandGenerationSettings, biome: BiomeType, rng: IRandomGenerator): ShrubPlant[] {
+  private generateGrasslandShrubs(area: SpatialBounds, count: number, settings: GrasslandGenerationSettings, biome: BiomeType, rng: IRandomGenerator): ShrubPlant[] {
     return [];
   }
 
-  private generateMossPatches(area: FeatureArea, count: number, settings: GrasslandGenerationSettings, biome: BiomeType, rng: IRandomGenerator): GroundCoverPlant[] {
+  private generateMossPatches(area: SpatialBounds, count: number, settings: GrasslandGenerationSettings, biome: BiomeType, rng: IRandomGenerator): GroundCoverPlant[] {
     return [];
   }
 
-  private applyDistributionPatterns(plants: Plant[], area: FeatureArea, settings: GrasslandGenerationSettings, rng: IRandomGenerator): void {
+  private applyDistributionPatterns(plants: Plant[], area: SpatialBounds, settings: GrasslandGenerationSettings, rng: IRandomGenerator): void {
     // Apply clumping and patching patterns
   }
 }

@@ -1,12 +1,12 @@
 import {
   CardinalDirection,
   Dimensions,
-  FeatureArea,
+  SpatialBounds,
   FeatureId,
   FlowDirection,
   HydrographicGenerationResult,
   HydrographicGenerationSettings,
-  IHydrographicGenerationService,
+  IHydrographyService,
   IRandomGenerator,
   Lake,
   LakeFormation,
@@ -33,10 +33,10 @@ import {
 /**
  * Infrastructure implementation of hydrographic generation service
  */
-export class HydrographicGenerationService implements IHydrographicGenerationService {
+export class HydrographicGenerationService implements IHydrographyService {
   
   async generateWaterSystem(
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: HydrographicGenerationSettings,
     randomGenerator: IRandomGenerator
   ): Promise<HydrographicGenerationResult> {
@@ -129,7 +129,7 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
   }
 
   async generateRiver(
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: RiverGenerationSettings,
     source?: Position,
     mouth?: Position,
@@ -203,7 +203,7 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
   }
 
   async generateLake(
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: LakeGenerationSettings,
     randomGenerator?: IRandomGenerator
   ): Promise<Lake> {
@@ -274,7 +274,7 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
     const rng = randomGenerator || this.createDefaultRandomGenerator();
     
     // Create small area around spring
-    const springArea = new FeatureArea(
+    const springArea = new SpatialBounds(
       new Position(position.x - 5, position.y - 5),
       new Dimensions(10, 10)
     );
@@ -315,7 +315,7 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
   }
 
   async generatePond(
-    area: FeatureArea,
+    area: SpatialBounds,
     seasonal: boolean,
     randomGenerator?: IRandomGenerator
   ): Promise<Pond> {
@@ -346,7 +346,7 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
   }
 
   async generateWetland(
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: WetlandGenerationSettings,
     randomGenerator?: IRandomGenerator
   ): Promise<Wetland> {
@@ -404,7 +404,7 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
   async generateRiverPath(
     source: Position,
     mouth: Position,
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: RiverGenerationSettings,
     randomGenerator: IRandomGenerator
   ): Promise<Position[]> {
@@ -518,21 +518,21 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
   }
 
   async calculateOptimalPlacements(
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: HydrographicGenerationSettings,
     existingFeatures: any[],
     randomGenerator: IRandomGenerator
   ): Promise<{
-    riverPlacements: { source: Position; mouth: Position; area: FeatureArea }[];
-    lakePlacements: FeatureArea[];
+    riverPlacements: { source: Position; mouth: Position; area: SpatialBounds }[];
+    lakePlacements: SpatialBounds[];
     springPlacements: Position[];
-    wetlandPlacements: FeatureArea[];
+    wetlandPlacements: SpatialBounds[];
   }> {
     const result = {
-      riverPlacements: [] as { source: Position; mouth: Position; area: FeatureArea }[],
-      lakePlacements: [] as FeatureArea[],
+      riverPlacements: [] as { source: Position; mouth: Position; area: SpatialBounds }[],
+      lakePlacements: [] as SpatialBounds[],
       springPlacements: [] as Position[],
-      wetlandPlacements: [] as FeatureArea[]
+      wetlandPlacements: [] as SpatialBounds[]
     };
 
     // Calculate counts based on density and area
@@ -646,7 +646,7 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
   async generateTributaries(
     mainRiver: River,
     settings: RiverGenerationSettings,
-    area: FeatureArea,
+    area: SpatialBounds,
     randomGenerator: IRandomGenerator
   ): Promise<River[]> {
     const tributaries: River[] = [];
@@ -781,7 +781,7 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
     return result;
   }
 
-  private generateSourcePosition(area: FeatureArea, rng: IRandomGenerator): Position {
+  private generateSourcePosition(area: SpatialBounds, rng: IRandomGenerator): Position {
     const x = area.x + rng.next() * area.width;
     const y = area.y + rng.next() * area.height * 0.3; // Prefer upper part of area for sources
     
@@ -794,7 +794,7 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
     return new Position(x, y);
   }
 
-  private generateMouthPosition(area: FeatureArea, source: Position, rng: IRandomGenerator): Position {
+  private generateMouthPosition(area: SpatialBounds, source: Position, rng: IRandomGenerator): Position {
     const x = area.x + rng.next() * area.width;
     const y = area.y + area.height * 0.7 + rng.next() * area.height * 0.3; // Prefer lower part
     
@@ -807,7 +807,7 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
     return new Position(x, y);
   }
 
-  private generateShorelinePosition(area: FeatureArea, rng: IRandomGenerator): Position {
+  private generateShorelinePosition(area: SpatialBounds, rng: IRandomGenerator): Position {
     // Generate position on the perimeter
     const side = Math.floor(rng.next() * 4);
     switch (side) {
@@ -819,11 +819,11 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
   }
 
   private generateRandomArea(
-    parentArea: FeatureArea,
+    parentArea: SpatialBounds,
     rng: IRandomGenerator,
     minSize: number,
     maxSize: number
-  ): FeatureArea {
+  ): SpatialBounds {
     const size = minSize + rng.next() * (maxSize - minSize);
     const rawWidth = Math.max(1, Math.sqrt(size) * (0.8 + rng.next() * 0.4));
     const rawHeight = Math.max(1, size / rawWidth);
@@ -835,19 +835,19 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
     const x = parentArea.x + rng.next() * Math.max(0, parentArea.width - width);
     const y = parentArea.y + rng.next() * Math.max(0, parentArea.height - height);
     
-    return new FeatureArea(
+    return new SpatialBounds(
       new Position(x, y),
       new Dimensions(width, height)
     );
   }
 
-  private calculateRiverArea(source: Position, mouth: Position, width: number): FeatureArea {
+  private calculateRiverArea(source: Position, mouth: Position, width: number): SpatialBounds {
     const minX = Math.min(source.x, mouth.x) - width / 2;
     const maxX = Math.max(source.x, mouth.x) + width / 2;
     const minY = Math.min(source.y, mouth.y) - width / 2;
     const maxY = Math.max(source.y, mouth.y) + width / 2;
     
-    return new FeatureArea(
+    return new SpatialBounds(
       new Position(minX, minY),
       new Dimensions(maxX - minX, maxY - minY)
     );
@@ -864,7 +864,7 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
 
   private generateTributarySource(
     connectionPoint: Position,
-    area: FeatureArea,
+    area: SpatialBounds,
     rng: IRandomGenerator
   ): Position | null {
     // Generate source position away from connection point
@@ -878,13 +878,13 @@ export class HydrographicGenerationService implements IHydrographicGenerationSer
     return area.contains(source) ? source : null;
   }
 
-  private getDistance(area1: FeatureArea, area2: FeatureArea): number {
+  private getDistance(area1: SpatialBounds, area2: SpatialBounds): number {
     const center1 = new Position(area1.x + area1.width / 2, area1.y + area1.height / 2);
     const center2 = new Position(area2.x + area2.width / 2, area2.y + area2.height / 2);
     return center1.distanceTo(center2);
   }
 
-  private calculateWaterCoverage(result: HydrographicGenerationResult, totalArea: FeatureArea): number {
+  private calculateWaterCoverage(result: HydrographicGenerationResult, totalArea: SpatialBounds): number {
     let waterArea = 0;
     
     result.lakes.forEach((lake: Lake) => waterArea += lake.area.dimensions.area);

@@ -1,7 +1,6 @@
-import { FeatureArea } from '../../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 import { MapFeature, FeatureId, FeatureCategory } from '../../../common/entities/MapFeature';
-import { Tree, TreeType, EnhancedTree as TreePlant } from './Tree';
-import { PlantSpecies } from './Plant';
+import { TreePlant, PlantSpecies } from './Plant';
 
 /**
  * Forest-specific feature type
@@ -19,19 +18,18 @@ export enum ForestDensity {
 }
 
 /**
- * Simplified Forest entity that works with the new vegetation system
- * Maintains backward compatibility while supporting enhanced features
+ * Forest entity containing TreePlant instances
+ * Represents a collection of trees within a spatial boundary
  */
 export class Forest extends MapFeature {
-  private _trees: Map<string, Tree> = new Map();
-  private _treePlants: Map<string, TreePlant> = new Map();
+  private _trees: Map<string, TreePlant> = new Map();
 
   constructor(
     id: FeatureId,
     name: string,
-    area: FeatureArea,
-    trees: (Tree | TreePlant)[] = [],
-    public readonly dominantSpecies: (TreeType | PlantSpecies)[] = [],
+    area: SpatialBounds,
+    trees: TreePlant[] = [],
+    public readonly dominantSpecies: PlantSpecies[] = [],
     public readonly underbrushDensity: number = 0.5,
     priority: number = 2
   ) {
@@ -61,53 +59,34 @@ export class Forest extends MapFeature {
     return false;
   }
 
-  // Tree management - supports both legacy and new tree types
-  addTree(tree: Tree | TreePlant): void {
-    if (tree instanceof TreePlant) {
-      if (!this.area.contains(tree.position.toPosition())) {
-        throw new Error('Tree position must be within forest area');
-      }
-      this._treePlants.set(tree.id, tree);
-    } else {
-      // Legacy Tree interface
-      if (!this.area.contains((tree.position as any).toPosition())) {
-        throw new Error('Tree position must be within forest area');
-      }
-      this._trees.set(tree.id, tree);
+  // Tree management
+  addTree(tree: TreePlant): void {
+    if (!this.area.contains(tree.position.toPosition())) {
+      throw new Error('Tree position must be within forest area');
     }
+    this._trees.set(tree.id, tree);
   }
 
-  addTrees(trees: (Tree | TreePlant)[]): void {
+  addTrees(trees: TreePlant[]): void {
     trees.forEach(tree => this.addTree(tree));
   }
 
-  // Get all trees (combined legacy and new)
-  getTrees(): (Tree | TreePlant)[] {
-    return [...this._trees.values(), ...this._treePlants.values()];
-  }
-
-  // Get only TreePlant entities
-  getTreePlants(): TreePlant[] {
-    return Array.from(this._treePlants.values());
-  }
-
-  // Get only legacy Tree entities
-  getLegacyTrees(): Tree[] {
+  // Get all trees
+  getTrees(): TreePlant[] {
     return Array.from(this._trees.values());
   }
 
   removeTree(treeId: string): void {
     this._trees.delete(treeId);
-    this._treePlants.delete(treeId);
   }
 
-  getTree(treeId: string): Tree | TreePlant | undefined {
-    return this._trees.get(treeId) || this._treePlants.get(treeId);
+  getTree(treeId: string): TreePlant | undefined {
+    return this._trees.get(treeId);
   }
 
   // Forest properties
   get treeCount(): number {
-    return this._trees.size + this._treePlants.size;
+    return this._trees.size;
   }
 
   get forestDensity(): ForestDensity {
@@ -120,15 +99,9 @@ export class Forest extends MapFeature {
 
   getSpeciesDistribution(): Map<string, number> {
     const distribution = new Map<string, number>();
-    
-    // Count legacy trees
-    this._trees.forEach(tree => {
-      const species = tree.type.toString();
-      distribution.set(species, (distribution.get(species) || 0) + 1);
-    });
 
-    // Count tree plants
-    this._treePlants.forEach(tree => {
+    // Count trees by species
+    this._trees.forEach(tree => {
       const species = tree.species.toString();
       distribution.set(species, (distribution.get(species) || 0) + 1);
     });
@@ -147,14 +120,8 @@ export class Forest extends MapFeature {
   getAverageCanopyDensity(): number {
     const allTrees = this.getTrees();
     if (allTrees.length === 0) return 0;
-    
-    const totalDensity = allTrees.reduce((sum, tree) => {
-      if (tree instanceof TreePlant) {
-        return sum + tree.canopyDensity;
-      } else {
-        return sum + (tree as any).canopyDensity;
-      }
-    }, 0);
+
+    const totalDensity = allTrees.reduce((sum, tree) => sum + tree.canopyDensity, 0);
     return totalDensity / allTrees.length;
   }
 
@@ -164,11 +131,11 @@ export class Forest extends MapFeature {
     const treesToRemove: string[] = [];
     
     this.getTrees().forEach(tree => {
-      const treePos = tree instanceof TreePlant ? tree.position : (tree as any).position;
+      const treePos = tree.position;
       const distance = Math.sqrt(
         Math.pow(treePos.tileX - centerX, 2) + Math.pow(treePos.tileY - centerY, 2)
       );
-      
+
       if (distance <= radius) {
         treesToRemove.push(tree.id);
       }

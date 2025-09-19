@@ -1,5 +1,5 @@
 import { MapFeature, FeatureId, FeatureCategory } from '../entities/MapFeature';
-import { FeatureArea } from '../value-objects/FeatureArea';
+import { SpatialBounds } from '../value-objects/SpatialBounds';
 
 /**
  * Query parameters for feature searches
@@ -8,7 +8,7 @@ export interface FeatureQuery {
   categoryFilter?: FeatureCategory[];
   typeFilter?: string[];
   nameFilter?: string;
-  areaFilter?: FeatureArea;
+  areaFilter?: SpatialBounds;
   priorityFilter?: {
     min?: number;
     max?: number;
@@ -53,7 +53,7 @@ export interface IFeatureRepository {
   /**
    * Finds features that intersect with a given area
    */
-  findByArea(area: FeatureArea): Promise<MapFeature[]>;
+  findByArea(area: SpatialBounds): Promise<MapFeature[]>;
 
   /**
    * Finds features within a map

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Position, Dimensions, FeatureArea } from '../common/value-objects';
+import { Position, Dimensions, SpatialBounds } from '../common/value-objects';
 import { Terrain, TerrainType } from '../contexts/relief/value-objects/TerrainType';
 
 describe('Domain Value Objects', () => {
@@ -56,11 +56,11 @@ describe('Domain Value Objects', () => {
     });
   });
 
-  describe('FeatureArea', () => {
-    it('should create a valid feature area', () => {
+  describe('SpatialBounds', () => {
+    it('should create a valid spatial bounds area', () => {
       const pos = new Position(2, 3);
       const dim = new Dimensions(5, 7);
-      const area = new FeatureArea(pos, dim);
+      const area = new SpatialBounds(pos, dim);
       
       expect(area.x).toBe(2);
       expect(area.y).toBe(3);
@@ -73,15 +73,15 @@ describe('Domain Value Objects', () => {
     });
 
     it('should check if position is contained', () => {
-      const area = new FeatureArea(new Position(2, 3), new Dimensions(5, 7));
+      const area = new SpatialBounds(new Position(2, 3), new Dimensions(5, 7));
       expect(area.contains(new Position(4, 6))).toBe(true);
       expect(area.contains(new Position(1, 6))).toBe(false);
       expect(area.contains(new Position(4, 2))).toBe(false);
     });
 
     it('should calculate intersection correctly', () => {
-      const area1 = new FeatureArea(new Position(0, 0), new Dimensions(5, 5));
-      const area2 = new FeatureArea(new Position(2, 2), new Dimensions(5, 5));
+      const area1 = new SpatialBounds(new Position(0, 0), new Dimensions(5, 5));
+      const area2 = new SpatialBounds(new Position(2, 2), new Dimensions(5, 5));
       const intersection = area1.intersection(area2);
       
       expect(intersection).not.toBeNull();

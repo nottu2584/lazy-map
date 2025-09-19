@@ -1,5 +1,5 @@
 import { MapFeature, FeatureId, FeatureCategory } from '../../../common/entities/MapFeature';
-import { FeatureArea } from '../../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 
 /**
  * Settlement-specific feature type
@@ -43,7 +43,7 @@ export class Settlement extends MapFeature {
   constructor(
     id: FeatureId,
     name: string,
-    area: FeatureArea,
+    area: SpatialBounds,
     public readonly settlementType: SettlementType,
     public readonly population: number,
     public readonly economy: SettlementEconomy,

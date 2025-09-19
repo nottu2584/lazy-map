@@ -1,5 +1,5 @@
 import { MapFeature, FeatureId, FeatureCategory } from '../../../common/entities/MapFeature';
-import { FeatureArea } from '../../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 import { Position } from '../../../common/value-objects/Position';
 
 /**
@@ -54,7 +54,7 @@ export class Building extends MapFeature {
   constructor(
     id: FeatureId,
     name: string,
-    area: FeatureArea,
+    area: SpatialBounds,
     public readonly buildingType: BuildingType,
     public readonly material: BuildingMaterial,
     public readonly size: BuildingSize,

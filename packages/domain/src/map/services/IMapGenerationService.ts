@@ -1,5 +1,5 @@
 import { Dimensions } from '../../common/value-objects/Dimensions';
-import { HydrographicGenerationSettings } from '../../contexts/natural/services/IHydrographicGenerationService';
+import { HydrographicGenerationSettings } from '../../contexts/natural/services/IHydrographyService';
 import { MapGrid } from '../entities';
 
 /**

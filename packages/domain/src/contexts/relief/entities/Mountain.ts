@@ -1,5 +1,5 @@
 import { MapFeature, FeatureId, FeatureCategory } from '../../../common/entities/MapFeature';
-import { FeatureArea } from '../../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 
 /**
  * Mountain-specific feature type
@@ -33,7 +33,7 @@ export class Mountain extends MapFeature {
   constructor(
     id: FeatureId,
     name: string,
-    area: FeatureArea,
+    area: SpatialBounds,
     public readonly mountainType: MountainType,
     public readonly heightClassification: MountainHeight,
     public readonly peakElevation: number,

@@ -1,4 +1,4 @@
-import { Dimensions, Position, FeatureArea } from '../../common/value-objects';
+import { Dimensions, Position, SpatialBounds } from '../../common/value-objects';
 import { MapTile } from './MapTile';
 import { UserId } from '../../contexts/user/value-objects/UserId';
 
@@ -131,7 +131,7 @@ export class MapGrid {
     return allTiles;
   }
 
-  getTilesInArea(area: FeatureArea): MapTile[] {
+  getTilesInArea(area: SpatialBounds): MapTile[] {
     const tiles: MapTile[] = [];
     const startX = Math.max(0, Math.floor(area.left));
     const endX = Math.min(this.dimensions.width, Math.ceil(area.right));
@@ -220,8 +220,8 @@ export class MapGrid {
   }
 
   // Utility methods
-  getWorldBounds(): FeatureArea {
-    return new FeatureArea(
+  getWorldBounds(): SpatialBounds {
+    return new SpatialBounds(
       new Position(0, 0),
       this.dimensions
     );

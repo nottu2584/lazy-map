@@ -1,5 +1,5 @@
 import { MapFeature, FeatureId, FeatureCategory } from '../../../common/entities/MapFeature';
-import { FeatureArea } from '../../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 
 /**
  * Region-specific feature type
@@ -28,7 +28,7 @@ export class Region extends MapFeature {
   constructor(
     id: FeatureId,
     name: string,
-    area: FeatureArea,
+    area: SpatialBounds,
     public readonly regionType: RegionType,
     public readonly description: string,
     public readonly significance: number = 0.5,

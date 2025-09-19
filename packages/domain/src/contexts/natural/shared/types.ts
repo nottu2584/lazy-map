@@ -57,13 +57,9 @@ export enum CulturalFeatureType {
   BORDER_CROSSING = 'border_crossing',
 }
 
-// Feature area definition
-export interface FeatureArea {
-  x: number; // Starting x coordinate (can be negative for out-of-bounds)
-  y: number; // Starting y coordinate (can be negative for out-of-bounds)
-  width: number; // Width in tiles
-  height: number; // Height in tiles
-}
+// Import and re-export SpatialBounds from common value objects
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
+export { SpatialBounds };
 
 // Base feature interface
 export interface MapFeature {
@@ -71,7 +67,7 @@ export interface MapFeature {
   name: string;
   category: FeatureCategory;
   type: ReliefFeatureType | NaturalFeatureType | ArtificialFeatureType | CulturalFeatureType;
-  area: FeatureArea;
+  area: SpatialBounds;
   priority: number; // Higher priority features override lower priority ones
   properties: Record<string, any>;
 }

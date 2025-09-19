@@ -1,5 +1,5 @@
 import { FeatureCategory, FeatureId, MapFeature } from '../../../common/entities/MapFeature';
-import { FeatureArea } from '../../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 
 /**
  * Hill-specific feature type
@@ -34,7 +34,7 @@ export class Hill extends MapFeature {
   constructor(
     id: FeatureId,
     name: string,
-    area: FeatureArea,
+    area: SpatialBounds,
     public readonly formation: HillFormation,
     public readonly composition: HillComposition,
     public readonly maxElevation: number,

@@ -5,7 +5,7 @@ import {
   MapMetadata
 } from '../map/entities/MapGrid';
 import { MapTile } from '../map/entities/MapTile';
-import { Position, Dimensions, FeatureArea, SubTilePosition } from '../common/value-objects';
+import { Position, Dimensions, SpatialBounds, SubTilePosition } from '../common/value-objects';
 
 describe('Basic Domain Entities', () => {
   describe('MapId', () => {

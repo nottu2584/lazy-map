@@ -1,5 +1,5 @@
 import { IRandomGenerator } from '../../../common/interfaces/IRandomGenerator';
-import { FeatureArea } from '../../../common/value-objects/FeatureArea';
+import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 import { Position } from '../../../common/value-objects/Position';
 import {
   Lake,
@@ -174,12 +174,12 @@ export interface HydrographicGenerationResult {
 /**
  * Service interface for generating hydrographic features
  */
-export interface IHydrographicGenerationService {
+export interface IHydrographyService {
   /**
    * Generate a complete water system for a map area
    */
   generateWaterSystem(
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: HydrographicGenerationSettings,
     randomGenerator: IRandomGenerator,
   ): Promise<HydrographicGenerationResult>;
@@ -188,7 +188,7 @@ export interface IHydrographicGenerationService {
    * Generate a river with natural flow patterns
    */
   generateRiver(
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: RiverGenerationSettings,
     source?: Position,
     mouth?: Position,
@@ -199,7 +199,7 @@ export interface IHydrographicGenerationService {
    * Generate a lake with natural shoreline
    */
   generateLake(
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: LakeGenerationSettings,
     randomGenerator?: IRandomGenerator,
   ): Promise<Lake>;
@@ -217,7 +217,7 @@ export interface IHydrographicGenerationService {
    * Generate a pond
    */
   generatePond(
-    area: FeatureArea,
+    area: SpatialBounds,
     seasonal: boolean,
     randomGenerator?: IRandomGenerator,
   ): Promise<Pond>;
@@ -226,7 +226,7 @@ export interface IHydrographicGenerationService {
    * Generate a wetland area
    */
   generateWetland(
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: WetlandGenerationSettings,
     randomGenerator?: IRandomGenerator,
   ): Promise<Wetland>;
@@ -247,7 +247,7 @@ export interface IHydrographicGenerationService {
   generateRiverPath(
     source: Position,
     mouth: Position,
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: RiverGenerationSettings,
     randomGenerator: IRandomGenerator,
   ): Promise<Position[]>;
@@ -272,15 +272,15 @@ export interface IHydrographicGenerationService {
    * Calculate optimal water feature placement
    */
   calculateOptimalPlacements(
-    area: FeatureArea,
+    area: SpatialBounds,
     settings: HydrographicGenerationSettings,
     existingFeatures: any[], // Other map features that might influence placement
     randomGenerator: IRandomGenerator,
   ): Promise<{
-    riverPlacements: { source: Position; mouth: Position; area: FeatureArea }[];
-    lakePlacements: FeatureArea[];
+    riverPlacements: { source: Position; mouth: Position; area: SpatialBounds }[];
+    lakePlacements: SpatialBounds[];
     springPlacements: Position[];
-    wetlandPlacements: FeatureArea[];
+    wetlandPlacements: SpatialBounds[];
   }>;
 
   /**
@@ -321,7 +321,7 @@ export interface IHydrographicGenerationService {
   generateTributaries(
     mainRiver: River,
     settings: RiverGenerationSettings,
-    area: FeatureArea,
+    area: SpatialBounds,
     randomGenerator: IRandomGenerator,
   ): Promise<River[]>;
 }

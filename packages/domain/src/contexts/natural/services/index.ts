@@ -1,2 +1,2 @@
-export * from './IHydrographicGenerationService';
-export * from './IVegetationGenerationService';
+export * from './IHydrographyService';
+export * from './IVegetationService';

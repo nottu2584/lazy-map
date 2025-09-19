@@ -235,7 +235,7 @@ export const apiService = {
       const response = await apiClient.get<ApiResponse<string>>('/maps/health');
       return response.data.data || 'OK';
     } catch (error) {
-      throw new Error('Health check failed');
+      throw new Error(`Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   },
 };

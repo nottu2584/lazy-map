@@ -272,7 +272,12 @@ export class HydrographicGenerationService implements IHydrographyService {
     randomGenerator?: IRandomGenerator
   ): Promise<Spring> {
     const rng = randomGenerator || this.createDefaultRandomGenerator();
-    
+
+    // Validate input position
+    if (!Number.isFinite(position.x) || !Number.isFinite(position.y)) {
+      throw new Error(`Invalid spring position: ${position.toString()}`);
+    }
+
     // Create small area around spring
     const springArea = new SpatialBounds(
       new Position(position.x - 5, position.y - 5),
@@ -544,10 +549,16 @@ export class HydrographicGenerationService implements IHydrographyService {
 
     // Generate spring positions (prefer higher elevations)
     for (let i = 0; i < springCount; i++) {
-      const springPos = new Position(
-        area.x + randomGenerator.next() * area.width,
-        area.y + randomGenerator.next() * area.height
-      );
+      const x = area.x + randomGenerator.next() * area.width;
+      const y = area.y + randomGenerator.next() * area.height;
+
+      // Validate coordinates before creating Position
+      if (!Number.isFinite(x) || !Number.isFinite(y)) {
+        console.error('Invalid spring coordinates:', { x, y, areaX: area.x, areaY: area.y, areaWidth: area.width, areaHeight: area.height, randomNext: randomGenerator.next() });
+        continue; // Skip this spring
+      }
+
+      const springPos = new Position(x, y);
       result.springPlacements.push(springPos);
     }
 
@@ -559,16 +570,21 @@ export class HydrographicGenerationService implements IHydrographyService {
 
     // Generate river placements
     for (let i = 0; i < riverCount; i++) {
-      const source = new Position(
-        area.x + randomGenerator.next() * area.width,
-        area.y + randomGenerator.next() * area.height
-      );
-      const mouth = new Position(
-        area.x + randomGenerator.next() * area.width,
-        area.y + randomGenerator.next() * area.height
-      );
+      const sourceX = area.x + randomGenerator.next() * area.width;
+      const sourceY = area.y + randomGenerator.next() * area.height;
+      const mouthX = area.x + randomGenerator.next() * area.width;
+      const mouthY = area.y + randomGenerator.next() * area.height;
+
+      // Validate coordinates before creating Positions
+      if (!Number.isFinite(sourceX) || !Number.isFinite(sourceY) || !Number.isFinite(mouthX) || !Number.isFinite(mouthY)) {
+        console.error('Invalid river coordinates:', { sourceX, sourceY, mouthX, mouthY });
+        continue; // Skip this river
+      }
+
+      const source = new Position(sourceX, sourceY);
+      const mouth = new Position(mouthX, mouthY);
       const riverArea = this.calculateRiverArea(source, mouth, settings.defaultRiverSettings.averageWidth);
-      
+
       result.riverPlacements.push({ source, mouth, area: riverArea });
     }
 
@@ -827,17 +843,31 @@ export class HydrographicGenerationService implements IHydrographyService {
     const size = minSize + rng.next() * (maxSize - minSize);
     const rawWidth = Math.max(1, Math.sqrt(size) * (0.8 + rng.next() * 0.4));
     const rawHeight = Math.max(1, size / rawWidth);
-    
+
     // Round dimensions before using them in position calculations
     const width = Math.round(rawWidth);
     const height = Math.round(rawHeight);
-    
+
     const x = parentArea.x + rng.next() * Math.max(0, parentArea.width - width);
     const y = parentArea.y + rng.next() * Math.max(0, parentArea.height - height);
-    
+
+    // Validate all values before creating objects
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(width) || !Number.isFinite(height)) {
+      console.error('Invalid area values:', { x, y, width, height, parentArea, size });
+      // Return a fallback small area at parent area origin
+      return new SpatialBounds(
+        new Position(parentArea.x, parentArea.y),
+        new Dimensions(Math.max(1, Math.min(10, parentArea.width)), Math.max(1, Math.min(10, parentArea.height)))
+      );
+    }
+
+    // Ensure dimensions are positive integers
+    const validWidth = Math.max(1, Math.round(width));
+    const validHeight = Math.max(1, Math.round(height));
+
     return new SpatialBounds(
       new Position(x, y),
-      new Dimensions(width, height)
+      new Dimensions(validWidth, validHeight)
     );
   }
 

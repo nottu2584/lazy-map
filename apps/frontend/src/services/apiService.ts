@@ -238,4 +238,47 @@ export const apiService = {
       throw new Error(`Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   },
+
+  async validateSeed(seed: string | number): Promise<{
+    valid: boolean;
+    normalizedSeed?: number;
+    error?: string;
+    warnings?: string[];
+    metadata: {
+      originalValue: string | number;
+      inputType: 'string' | 'number';
+      wasNormalized: boolean;
+      algorithmVersion: string;
+      timestamp: string;
+    };
+  }> {
+    try {
+      const response = await apiClient.post<ApiResponse<{
+        valid: boolean;
+        normalizedSeed?: number;
+        error?: string;
+        warnings?: string[];
+        metadata: {
+          originalValue: string | number;
+          inputType: 'string' | 'number';
+          wasNormalized: boolean;
+          algorithmVersion: string;
+          timestamp: string;
+        };
+      }>>('/maps/seeds/validate', { seed });
+
+      if (!response.data.success || !response.data.data) {
+        throw new Error(response.data.error || 'Failed to validate seed');
+      }
+
+      return response.data.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.data?.error) {
+          throw new Error(error.response.data.error);
+        }
+      }
+      throw new Error(error instanceof Error ? error.message : 'Failed to validate seed');
+    }
+  },
 };

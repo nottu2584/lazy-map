@@ -1,5 +1,6 @@
 import * as bcrypt from 'bcrypt';
-import { IPasswordService, Password } from '@lazy-map/domain';
+import { Password, IPasswordService } from '@lazy-map/domain';
+import { ILogger } from '@lazy-map/domain';
 
 /**
  * Bcrypt implementation of password service
@@ -7,6 +8,8 @@ import { IPasswordService, Password } from '@lazy-map/domain';
 export class BcryptPasswordService implements IPasswordService {
   private readonly saltRounds = 12;
   private readonly currentVersion = '2b'; // bcrypt version
+
+  constructor(private readonly logger?: ILogger) {}
 
   async hash(password: Password): Promise<Password> {
     if (password.isHashed) {
@@ -30,7 +33,18 @@ export class BcryptPasswordService implements IPasswordService {
       return await bcrypt.compare(plainPassword.value, hashedPassword.value);
     } catch (error) {
       // Log error in production
-      console.warn('Password verification failed:', error);
+      if (this.logger) {
+        this.logger.warn('Password verification failed', {
+          component: 'BcryptPasswordService',
+          operation: 'verify'
+        });
+        this.logger.logError(error, {
+          component: 'BcryptPasswordService',
+          operation: 'verify'
+        });
+      } else {
+        console.warn('Password verification failed:', error);
+      }
       return false;
     }
   }

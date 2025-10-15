@@ -1,0 +1,101 @@
+import { describe, it, expect } from 'vitest';
+import { SeedService } from '../common/value-objects/Seed';
+
+describe('Seed Determinism Verification', () => {
+  const seedService = new SeedService();
+  
+  describe('validateSeedInput deterministic behavior', () => {
+    it('should return consistent results for null inputs', () => {
+      const result1 = seedService.validateSeedInput(null as any);
+      const result2 = seedService.validateSeedInput(null as any);
+      const result3 = seedService.validateSeedInput(null as any);
+
+      expect(result1.isValid).toBe(true);
+      expect(result2.isValid).toBe(true);
+      expect(result3.isValid).toBe(true);
+
+      expect(result1.normalizedSeed).toBe(result2.normalizedSeed);
+      expect(result2.normalizedSeed).toBe(result3.normalizedSeed);
+      expect(result1.normalizedSeed).toBe(42); // Deterministic default
+    });
+
+    it('should return consistent results for undefined inputs', () => {
+      const result1 = seedService.validateSeedInput(undefined);
+      const result2 = seedService.validateSeedInput(undefined);
+      const result3 = seedService.validateSeedInput(undefined);
+
+      expect(result1.isValid).toBe(true);
+      expect(result2.isValid).toBe(true);
+      expect(result3.isValid).toBe(true);
+
+      expect(result1.normalizedSeed).toBe(result2.normalizedSeed);
+      expect(result2.normalizedSeed).toBe(result3.normalizedSeed);
+      expect(result1.normalizedSeed).toBe(42); // Deterministic default
+    });
+
+    it('should return consistent results for empty string inputs', () => {
+      const result1 = seedService.validateSeedInput('');
+      const result2 = seedService.validateSeedInput('   '); // Whitespace only
+      const result3 = seedService.validateSeedInput('');
+
+      expect(result1.isValid).toBe(true);
+      expect(result2.isValid).toBe(true);
+      expect(result3.isValid).toBe(true);
+
+      expect(result1.normalizedSeed).toBe(result3.normalizedSeed);
+      expect(result2.normalizedSeed).toBe(result3.normalizedSeed);
+      expect(result1.normalizedSeed).toBe(42); // Deterministic default
+    });
+  });
+
+  describe('hashStringToSeed strict validation', () => {
+    it('should throw error for empty strings', () => {
+      expect(() => Seed.fromString('')).toThrow();
+      expect(() => Seed.fromString('   ')).toThrow();
+    });
+
+    it('should be deterministic for valid strings', () => {
+      const input = 'test-map-123';
+      const result1 = Seed.fromString(input);
+      const result2 = Seed.fromString(input);
+      const result3 = Seed.fromString(input);
+
+      expect(result1).toBe(result2);
+      expect(result2).toBe(result3);
+      expect(typeof result1).toBe('number');
+      expect(result1).toBeGreaterThan(0);
+    });
+
+    it('should produce different seeds for different inputs', () => {
+      const seed1 = Seed.fromString('map-a');
+      const seed2 = Seed.fromString('map-b');
+      const seed3 = Seed.fromString('different-input');
+
+      expect(seed1).not.toBe(seed2);
+      expect(seed2).not.toBe(seed3);
+      expect(seed1).not.toBe(seed3);
+    });
+  });
+
+  describe('generateDefaultSeed behavior', () => {
+    it('should produce random seeds (not deterministic)', () => {
+      // This is the only method that's intentionally non-deterministic
+      const seed1 = Seed.createDefault();
+      const seed2 = Seed.createDefault();
+      const seed3 = Seed.createDefault();
+
+      // These should be different (with high probability)
+      const allSeeds = [seed1, seed2, seed3];
+      const uniqueSeeds = new Set(allSeeds);
+      
+      // At least 2 should be different (allowing for small chance of collision)
+      expect(uniqueSeeds.size).toBeGreaterThanOrEqual(2);
+      
+      // All should be valid seeds
+      allSeeds.forEach(seed => {
+        expect(seed).toBeGreaterThan(0);
+        expect(seed).toBeLessThanOrEqual(SeedUtils.MAX_SEED);
+      });
+    });
+  });
+});

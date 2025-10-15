@@ -1,0 +1,100 @@
+import { describe, it, expect } from 'vitest';
+import { Seed } from '../common/value-objects';
+import { SeedErrors, isLazyMapError } from '../common/errors';
+
+describe('Error System Examples', () => {
+  describe('SeedUtils with structured errors', () => {
+    it('should throw structured error for empty string in hashStringToSeed', () => {
+      try {
+        Seed.fromString('');
+        expect.fail('Should have thrown an error');
+      } catch (error) {
+        expect(isLazyMapError(error)).toBe(true);
+        
+        if (isLazyMapError(error)) {
+          expect(error.code).toBe('SEED_EMPTY_STRING');
+          expect(error.details.category).toBe('DETERMINISTIC');
+          expect(error.details.severity).toBe('CRITICAL');
+          expect(error.userMessage).toContain('Seed text cannot be empty');
+          expect(error.details.suggestions).toHaveLength(3);
+          
+          // Test API response format
+          const apiResponse = error.toApiResponse();
+          expect(apiResponse.code).toBe('SEED_EMPTY_STRING');
+          expect(apiResponse.suggestions).toBeDefined();
+          
+          // Test logging data format (no actual logging)
+          const logData = error.toLogData();
+          expect(logData.context?.component).toBe('SeedUtils');
+          expect(logData.context?.operation).toBe('hashStringToSeed');
+        }
+      }
+    });
+
+    it('should provide user-friendly error messages in validation', () => {
+      try {
+        Seed.fromNumber(NaN);
+        expect.fail('Should have thrown an error');
+      } catch (error) {
+        expect(isLazyMapError(error)).toBe(true);
+        expect(error.message).toContain('NaN');
+      }
+    });
+
+    it('should provide structured error for invalid types', () => {
+      try {
+        Seed.fromNumber({} as any);
+        expect.fail('Should have thrown an error');
+      } catch (error) {
+        expect(isLazyMapError(error)).toBe(true);
+      }
+    });
+    });
+  });
+
+  describe('Error factory examples', () => {
+    it('should create validation errors with helpful suggestions', () => {
+      const error = SeedErrors.invalidType('boolean', {
+        component: 'TestComponent',
+        operation: 'testOperation'
+      });
+
+      expect(error.code).toBe('SEED_INVALID_TYPE');
+      expect(error.userMessage).toBe('Seed must be a number or text string.');
+      expect(error.details.suggestions).toContain('Provide a numeric seed (e.g., 12345)');
+      expect(error.details.context?.component).toBe('TestComponent');
+    });
+
+    it('should create deterministic errors for non-deterministic operations', () => {
+      const error = SeedErrors.nonDeterministic('Math.random()', {
+        component: 'RandomGenerator',
+        userId: 'test-user-123'
+      });
+
+      expect(error.code).toBe('SEED_NON_DETERMINISTIC');
+      expect(error.details.severity).toBe('CRITICAL');
+      expect(error.details.context?.userId).toBe('test-user-123');
+      expect(error.userMessage).toContain('random seeds that cannot be shared reliably');
+    });
+  });
+
+  describe('Error utility functions', () => {
+    it('should identify LazyMapError instances', () => {
+      const lazyMapError = SeedErrors.emptyStringInput();
+      const standardError = new Error('Standard error');
+      
+      expect(isLazyMapError(lazyMapError)).toBe(true);
+      expect(isLazyMapError(standardError)).toBe(false);
+    });
+
+    it('should handle error chaining', () => {
+      const wrappedError = SeedErrors.generationFailed('Processing failed', {
+        component: 'Generator'
+      });
+      
+      // In real usage, you could pass the original error as cause
+      expect(wrappedError.code).toBe('SEED_GENERATION_FAILED');
+      expect(wrappedError.details.category).toBe('VALIDATION');
+    });
+  });
+});

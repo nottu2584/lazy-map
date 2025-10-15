@@ -1,15 +1,16 @@
 import {
-  CoordinatedRandomGenerator,
-  DeterministicIdGenerator,
   MapGrid,
   IMapGenerationService,
   MapGenerationSettings,
   MapMetadata,
   MapTile,
   Position,
-  SeedUtils,
+  SeedService,
+  RandomGenerationService,
+  EntityIdGenerationService,
   Terrain,
-  TerrainType
+  TerrainType,
+  Seed
 } from '@lazy-map/domain';
 
 import { SpatialBounds, IHydrographyService } from '@lazy-map/domain';
@@ -22,6 +23,7 @@ import { HydrographicGenerationService } from '../../contexts/natural/services/H
  */
 export class MapGenerationService implements IMapGenerationService {
   private hydrographicService: IHydrographyService;
+  private seedService = new SeedService();
 
   constructor(hydrographicService?: IHydrographyService) {
     this.hydrographicService = hydrographicService || new HydrographicGenerationService();
@@ -93,9 +95,9 @@ export class MapGenerationService implements IMapGenerationService {
     const warnings: string[] = [];
     
     // Validate and normalize the seed
-    const seedValidation = SeedUtils.validateSeed(settings.seed);
+    const seedValidation = this.seedService.validateSeedInput(settings.seed);
     if (!seedValidation.isValid) {
-      warnings.push(`Seed validation failed: ${seedValidation.error}`);
+      warnings.push(`Seed validation failed: ${seedValidation.errors.join(', ')}`);
       return {
         map: {} as MapGrid,
         featuresGenerated: 0,
@@ -104,19 +106,19 @@ export class MapGenerationService implements IMapGenerationService {
       };
     }
 
-    if (seedValidation.warnings) {
+    if (seedValidation.warnings.length > 0) {
       warnings.push(...seedValidation.warnings);
     }
 
-    const normalizedSeed = seedValidation.normalizedSeed!;
+    const seed = seedValidation.seed!;
     
-    // Create coordinated random generator and ID generator
-    const coordinatedRandom = new CoordinatedRandomGenerator(normalizedSeed);
-    const idGenerator = new DeterministicIdGenerator(coordinatedRandom.getSubSeed('ids'));
+    // Create domain services for generation
+    const randomService = new RandomGenerationService(seed);
+    const idService = new EntityIdGenerationService(seed);
     
     // Generate deterministic IDs
-    const mapId = idGenerator.generateMapId();
-    const timestamp = Math.floor(normalizedSeed / 1000); // Deterministic timestamp based on seed
+    const mapId = idService.generateMapId();
+    const timestamp = Math.floor(seed.getValue() / 1000); // Deterministic timestamp based on seed
     const metadata = new MapMetadata(
       new Date(timestamp * 1000),
       new Date(timestamp * 1000),
@@ -125,11 +127,11 @@ export class MapGenerationService implements IMapGenerationService {
       []
     );
 
-    // Generate terrain using coordinated randomization
-    const tiles = await this.generateTerrain(settings, coordinatedRandom, warnings);
+    // Generate terrain using domain services
+    const tiles = await this.generateTerrain(settings, randomService, warnings);
     
     // Create the map with deterministic name
-    const mapName = `Generated Map ${normalizedSeed}`;
+    const mapName = `Generated Map ${seed.getValue()}`;
     const map = new MapGrid(
       mapId,
       mapName,
@@ -147,7 +149,7 @@ export class MapGenerationService implements IMapGenerationService {
         settings.dimensions
       );
 
-      const hydrographicRandom = coordinatedRandom.getSubGenerator(CoordinatedRandomGenerator.CONTEXTS.FEATURES);
+      const hydrographicRandom = randomService.getGeneratorForContext('features');
       const hydrographicResult = await this.hydrographicService.generateWaterSystem(
         mapArea,
         settings.hydrographicSettings,
@@ -189,14 +191,14 @@ export class MapGenerationService implements IMapGenerationService {
 
   private async generateTerrain(
     settings: MapGenerationSettings,
-    coordinatedRandom: CoordinatedRandomGenerator,
-    warnings: string[]
+    randomService: RandomGenerationService,
+    _warnings: string[]
   ): Promise<MapTile[][]> {
     const { dimensions } = settings;
     const tiles: MapTile[][] = [];
 
     // Get terrain-specific random generator
-    const terrainRandom = coordinatedRandom.getSubGenerator(CoordinatedRandomGenerator.CONTEXTS.TERRAIN);
+    const terrainRandom = randomService.getGeneratorForContext('terrain');
     
     // Create deterministic noise generator
     const noiseGen = this.createDeterministicNoiseGenerator(terrainRandom);
@@ -217,8 +219,8 @@ export class MapGenerationService implements IMapGenerationService {
       tiles.push(row);
     }
 
-    // Apply post-processing with coordinated randomization
-    const elevationRandom = coordinatedRandom.getSubGenerator(CoordinatedRandomGenerator.CONTEXTS.ELEVATION);
+    // Apply post-processing with domain services
+    const elevationRandom = randomService.getGeneratorForContext('elevation');
     this.applyElevationVariance(tiles, settings, noiseGen, elevationRandom);
     this.applyInclinationEffects(tiles, settings, elevationRandom);
 

@@ -3,4 +3,5 @@ export * from './value-objects';
 export * from './repositories';
 export * from './services';
 export * from './interfaces';
-export * from './utils';
+export * from './errors';
+export * from './ports';

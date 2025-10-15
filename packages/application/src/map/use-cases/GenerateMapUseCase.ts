@@ -7,9 +7,9 @@ import {
   MapGenerationSettings as DomainMapSettings,
   BiomeType,
   ForestGenerationOptions,
-  CoordinatedRandomGenerator,
-  SeedUtils,
-  UserId
+  SeedService,
+  UserId,
+  ILogger
 } from '@lazy-map/domain';
 import { GenerateMapCommand, MapGenerationResult } from '../ports/IMapGenerationPort';
 import { IMapPersistencePort } from '../ports';
@@ -20,22 +20,48 @@ import { RandomGeneratorAdapter } from '../../common/adapters';
  * Use case for generating new maps
  */
 export class GenerateMapUseCase {
+  private readonly seedService = new SeedService();
+  
   constructor(
     private readonly mapGenerationService: IMapGenerationService,
     private readonly vegetationGenerationService: IVegetationService,
     private readonly featureMixingService: IFeatureMixingService,
     private readonly mapPersistence: IMapPersistencePort,
     private readonly randomGenerator: IRandomGeneratorPort,
-    private readonly notificationPort: INotificationPort
+    private readonly notificationPort: INotificationPort,
+    private readonly logger: ILogger
   ) {}
 
   async execute(command: GenerateMapCommand): Promise<MapGenerationResult> {
+    const operationLogger = this.logger.child({
+      component: 'GenerateMapUseCase',
+      operation: 'execute',
+      userId: command.userId
+    });
+
     const startTime = Date.now();
     
     try {
+      operationLogger.logUseCase('GenerateMapUseCase', 'execute', 'started', {
+        metadata: {
+          mapName: command.name,
+          dimensions: { width: command.width, height: command.height },
+          seed: command.seed,
+          author: command.author
+        }
+      });
+
       // Validate command
       const validationResult = await this.validateCommand(command);
       if (!validationResult.isValid) {
+        operationLogger.logUseCase('GenerateMapUseCase', 'execute', 'failed', {
+          metadata: {
+            reason: 'validation-failed',
+            errors: validationResult.errors,
+            warnings: validationResult.warnings
+          }
+        });
+
         return {
           success: false,
           error: `Validation failed: ${validationResult.errors.join(', ')}`,
@@ -66,6 +92,10 @@ export class GenerateMapUseCase {
       // Convert command to domain settings
       const settings = this.commandToDomainSettings(command);
       
+      // Ensure we have a deterministic seed
+      const deterministicSeed = this.ensureSeed(command);
+      settings.seed = deterministicSeed;
+      
       // Generate base map with terrain
       const generationResult = await this.mapGenerationService.generateMap(settings);
       
@@ -82,7 +112,7 @@ export class GenerateMapUseCase {
         const forestCount = await this.generateForests(
           generationResult.map,
           command.forestSettings,
-          command.seed
+          deterministicSeed
         );
         featuresGenerated += forestCount;
         
@@ -116,16 +146,83 @@ export class GenerateMapUseCase {
         featuresGenerated
       );
 
+      const processingTime = Date.now() - startTime;
+
+      operationLogger.logUseCase('GenerateMapUseCase', 'execute', 'completed', {
+        metadata: {
+          mapId: generationResult.map?.id || 'unknown',
+          processingTimeMs: processingTime,
+          featuresGenerated,
+          seed: deterministicSeed
+        }
+      });
+
+      operationLogger.info('Map generation completed successfully', {
+        metadata: {
+          mapName: command.name,
+          processingTimeMs: processingTime,
+          featuresGenerated,
+          warnings: generationResult.warnings?.length || 0
+        }
+      });
+
       return {
         success: true,
         map: generationResult.map,
         generationTime,
         featuresGenerated,
-        warnings: generationResult.warnings
+        warnings: generationResult.warnings,
+        metadata: {
+          seed: deterministicSeed,
+          algorithmVersion: '1.0.0',
+          generatedAt: new Date().toISOString(),
+          parameters: {
+            dimensions: { width: command.width, height: command.height },
+            cellSize: command.cellSize || 32,
+            terrainDistribution: command.terrainDistribution || {
+              grassland: 0.4,
+              forest: 0.3,
+              mountain: 0.2,
+              water: 0.1
+            },
+            elevationSettings: {
+              variance: command.elevationVariance ?? 0.3,
+              multiplier: command.elevationMultiplier ?? 1.0,
+              addHeightNoise: command.addHeightNoise ?? false,
+              heightVariance: command.heightVariance ?? 0.2
+            },
+            featureFlags: {
+              generateRivers: command.generateRivers ?? false,
+              generateRoads: command.generateRoads ?? false,
+              generateBuildings: command.generateBuildings ?? false,
+              generateForests: command.generateForests ?? true
+            },
+            biomeType: command.biomeType || 'temperate'
+          }
+        }
       };
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const processingTime = Date.now() - startTime;
+
+      operationLogger.logUseCase('GenerateMapUseCase', 'execute', 'failed', {
+        metadata: {
+          processingTimeMs: processingTime,
+          errorMessage,
+          mapName: command.name
+        }
+      });
+
+      operationLogger.logError(error, {
+        metadata: {
+          command: {
+            name: command.name,
+            dimensions: { width: command.width, height: command.height },
+            seed: command.seed
+          }
+        }
+      });
       
       await this.notificationPort.notifyError(
         'Map Generation Failed',
@@ -139,6 +236,57 @@ export class GenerateMapUseCase {
         generationTime: Date.now() - startTime
       };
     }
+  }
+
+  /**
+   * Ensures we always have a deterministic seed based on map parameters
+   * This prevents non-reproducible map generation
+   */
+  private ensureSeed(command: GenerateMapCommand): number {
+    // If explicit seed is provided, validate and use it
+    if (command.seed !== undefined && command.seed !== null) {
+      const validation = this.seedService.validateSeedInput(command.seed);
+      if (validation.isValid && validation.seed) {
+        return validation.seed.getValue();
+      }
+    }
+
+    // Generate deterministic seed from map parameters
+    // This ensures identical parameters always produce identical maps
+    const seedInput = this.createSeedInputFromParameters(command);
+    const deterministicSeed = this.seedService.generateSeed(seedInput);
+    
+    // Log the deterministic seed generation for audit trail
+    this.logger.debug('Deterministic seed generated for map', {
+      component: 'GenerateMapUseCase',
+      operation: 'ensureDeterministicSeed',
+      metadata: {
+        mapName: command.name,
+        generatedSeed: deterministicSeed.getValue(),
+        seedInput: seedInput.substring(0, 100) + '...' // Truncate for logging
+      }
+    });
+    
+    return deterministicSeed.getValue();
+  }
+
+  /**
+   * Creates a deterministic string from map parameters for seed generation
+   */
+  private createSeedInputFromParameters(command: GenerateMapCommand): string {
+    const params = {
+      name: command.name?.trim() || 'unnamed',
+      dimensions: `${command.width}x${command.height}`,
+      cellSize: command.cellSize || 32,
+      terrain: JSON.stringify(command.terrainDistribution || {}),
+      elevation: `${command.elevationVariance}_${command.elevationMultiplier}_${command.addHeightNoise}_${command.heightVariance}`,
+      features: `${command.generateForests}_${command.generateRivers}_${command.generateRoads}_${command.generateBuildings}`,
+      biome: command.biomeType || 'temperate',
+      forest: command.forestSettings ? JSON.stringify(command.forestSettings) : 'none'
+    };
+
+    // Create deterministic string that changes when parameters change
+    return `map:${params.name}:${params.dimensions}:${params.cellSize}:${params.terrain}:${params.elevation}:${params.features}:${params.biome}:${params.forest}`;
   }
 
   private async validateCommand(command: GenerateMapCommand): Promise<{
@@ -298,7 +446,18 @@ export class GenerateMapUseCase {
         }
       } catch (error) {
         // Log error but continue generating other forests
-        console.warn(`Failed to generate forest ${i}:`, error);
+        this.logger.warn('Failed to generate forest', {
+          component: 'GenerateMapUseCase',
+          operation: 'generateForests',
+          metadata: {
+            forestIndex: i,
+            errorMessage: error instanceof Error ? error.message : String(error)
+          }
+        });
+        this.logger.logError(error, {
+          component: 'GenerateMapUseCase',
+          operation: 'generateForests'
+        });
       }
     }
     

@@ -27,13 +27,16 @@ import {
   WaterTemperature,
   Wetland,
   WetlandGenerationSettings,
-  WetlandType
+  WetlandType,
+  ILogger
 } from '@lazy-map/domain';
 
 /**
  * Infrastructure implementation of hydrographic generation service
  */
 export class HydrographicGenerationService implements IHydrographyService {
+  
+  constructor(private readonly logger?: ILogger) {}
   
   async generateWaterSystem(
     area: SpatialBounds,
@@ -554,7 +557,22 @@ export class HydrographicGenerationService implements IHydrographyService {
 
       // Validate coordinates before creating Position
       if (!Number.isFinite(x) || !Number.isFinite(y)) {
-        console.error('Invalid spring coordinates:', { x, y, areaX: area.x, areaY: area.y, areaWidth: area.width, areaHeight: area.height, randomNext: randomGenerator.next() });
+        if (this.logger) {
+          this.logger.error('Invalid spring coordinates detected', {
+            component: 'HydrographicGenerationService',
+            operation: 'generateSprings',
+            metadata: {
+              x, y,
+              areaX: area.x,
+              areaY: area.y, 
+              areaWidth: area.width,
+              areaHeight: area.height,
+              randomNext: randomGenerator.next()
+            }
+          });
+        } else {
+          console.error('Invalid spring coordinates:', { x, y, areaX: area.x, areaY: area.y, areaWidth: area.width, areaHeight: area.height, randomNext: randomGenerator.next() });
+        }
         continue; // Skip this spring
       }
 
@@ -577,7 +595,19 @@ export class HydrographicGenerationService implements IHydrographyService {
 
       // Validate coordinates before creating Positions
       if (!Number.isFinite(sourceX) || !Number.isFinite(sourceY) || !Number.isFinite(mouthX) || !Number.isFinite(mouthY)) {
-        console.error('Invalid river coordinates:', { sourceX, sourceY, mouthX, mouthY });
+        if (this.logger) {
+          this.logger.error('Invalid river coordinates detected', {
+            component: 'HydrographicGenerationService',
+            operation: 'generateRivers',
+            metadata: {
+              sourceX, sourceY, mouthX, mouthY,
+              riverIndex: i,
+              totalRivers: riverCount
+            }
+          });
+        } else {
+          console.error('Invalid river coordinates:', { sourceX, sourceY, mouthX, mouthY });
+        }
         continue; // Skip this river
       }
 

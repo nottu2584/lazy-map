@@ -1,8 +1,7 @@
-import { generateId } from '../../../shared';
 import { Position } from '../../../common/value-objects';
-import { TerrainType, TERRAIN_CONFIG } from './index';
 import { MapTile } from '../../../map/entities';
 import { Terrain } from '../value-objects';
+import { TERRAIN_CONFIG, TerrainType } from './index';
 
 // Tile creation utilities
 export function createEmptyTile(x: number, y: number): MapTile {

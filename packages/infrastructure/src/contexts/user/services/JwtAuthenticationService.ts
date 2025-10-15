@@ -1,5 +1,6 @@
 import * as jwt from 'jsonwebtoken';
 import { IAuthenticationPort } from '@lazy-map/application';
+import { ILogger } from '@lazy-map/domain';
 
 interface JwtPayload {
   sub: string; // user ID
@@ -16,11 +17,21 @@ export class JwtAuthenticationService implements IAuthenticationPort {
   private readonly expiresIn: string = '7d'; // 7 days
   private readonly algorithm = 'HS256';
 
-  constructor(secret?: string) {
+  constructor(secret?: string, private readonly logger?: ILogger) {
     this.secret = secret || process.env.JWT_SECRET || 'your-secret-key';
     
     if (this.secret === 'your-secret-key') {
-      console.warn('Using default JWT secret. This should only be used in development!');
+      if (this.logger) {
+        this.logger.warn('Using default JWT secret', {
+          component: 'JwtAuthenticationService',
+          operation: 'constructor',
+          metadata: {
+            message: 'This should only be used in development!'
+          }
+        });
+      } else {
+        console.warn('Using default JWT secret. This should only be used in development!');
+      }
     }
   }
 

@@ -25,6 +25,7 @@ import {
         mapPersistence,
         randomGen,
         notificationPort,
+        logger,
       ) => {
         return new GenerateMapUseCase(
           mapGenService,
@@ -33,6 +34,7 @@ import {
           mapPersistence,
           randomGen,
           notificationPort,
+          logger,
         );
       },
       inject: [
@@ -42,6 +44,7 @@ import {
         'IMapPersistencePort',
         'IRandomGeneratorService',
         'INotificationPort',
+        'ILogger',
       ],
     },
     {

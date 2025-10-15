@@ -1,8 +1,14 @@
 import { Dimensions } from './types';
+import { EntityIdGenerationService } from '../common/services';
+import { Seed } from '../common/value-objects';
+
+// Deterministic ID generator instance (uses a fixed seed for consistent IDs)
+const idService = new EntityIdGenerationService(Seed.fromNumber(12345)); // Fixed seed for utilities
 
 // Core utility functions
 export function generateId(): string {
-  return Math.random().toString(36).substr(2, 9);
+  // Use deterministic ID generator instead of Math.random()
+  return idService.generateEntityId('util').value;
 }
 
 export function validateMapDimensions(dimensions: Dimensions): boolean {

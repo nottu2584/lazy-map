@@ -1,4 +1,5 @@
-import { Dimensions, Position, SpatialBounds } from '../../../common/value-objects';
+import { Dimensions, Position, SpatialBounds, Seed } from '../../../common/value-objects';
+import { EntityIdGenerationService } from '../../../common/services';
 import {
   MapFeature,
   FeatureCategory,
@@ -7,6 +8,9 @@ import {
   ArtificialFeatureType,
   CulturalFeatureType,
 } from './types';
+
+// Deterministic ID generator for natural features
+const featureIdService = new EntityIdGenerationService(Seed.fromNumber(54321)); // Fixed seed for natural features
 
 // Feature creation utility
 export function createFeature(
@@ -28,9 +32,9 @@ export function createFeature(
   };
 }
 
-// Generate unique feature ID
+// Generate unique feature ID deterministically
 export function generateFeatureId(): string {
-  return `feat_${Math.random().toString(36).substr(2, 9)}`;
+  return featureIdService.generateEntityId('feat').value;
 }
 
 // Check if feature area intersects with map bounds

@@ -1,4 +1,4 @@
-import { MapGrid, MapId } from '@lazy-map/domain';
+import { MapGrid } from '@lazy-map/domain';
 
 /**
  * Command for generating a new map
@@ -51,6 +51,29 @@ export interface MapGenerationResult {
   warnings?: string[];
   generationTime?: number;
   featuresGenerated?: number;
+  metadata?: {
+    seed: number;
+    algorithmVersion: string;
+    generatedAt: string;
+    parameters: {
+      dimensions: { width: number; height: number };
+      cellSize: number;
+      terrainDistribution: Record<string, number>;
+      elevationSettings: {
+        variance: number;
+        multiplier: number;
+        addHeightNoise: boolean;
+        heightVariance: number;
+      };
+      featureFlags: {
+        generateRivers: boolean;
+        generateRoads: boolean;
+        generateBuildings: boolean;
+        generateForests: boolean;
+      };
+      biomeType: string;
+    };
+  };
 }
 
 /**

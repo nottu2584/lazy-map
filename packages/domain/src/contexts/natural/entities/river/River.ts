@@ -1,74 +1,18 @@
-import { FeatureCategory, FeatureId, MapFeature } from '../../../common/entities/MapFeature';
-import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
-import { Position } from '../../../common/value-objects/Position';
-import { FlowDirection } from '../value-objects/FlowDirection';
-import { WaterLevel } from '../value-objects/WaterLevel';
-import { WaterQuality } from '../value-objects/WaterQuality';
-
-/**
- * River-specific feature type
- */
-export const RIVER_FEATURE_TYPE = 'river';
-
-/**
- * River width categories
- */
-export enum RiverWidth {
-  STREAM = 'stream', // < 10 feet, crossable
-  CREEK = 'creek', // 10-25 feet
-  RIVER = 'river', // 25-100 feet
-  WIDE_RIVER = 'wide_river', // 100-500 feet
-  MAJOR_RIVER = 'major_river', // > 500 feet
-}
-
-/**
- * River segment types for pathfinding and generation
- */
-export enum RiverSegmentType {
-  SOURCE = 'source', // Beginning of river (spring, lake outlet)
-  STRAIGHT = 'straight', // Straight flowing section
-  CURVE = 'curve', // Curved section
-  MEANDER = 'meander', // S-shaped meandering section
-  RAPIDS = 'rapids', // Fast-flowing, rocky section
-  CONFLUENCE = 'confluence', // Where two rivers meet
-  DELTA = 'delta', // River mouth spreading into multiple channels
-  MOUTH = 'mouth', // River ending (lake, ocean)
-}
-
-/**
- * Represents a point along a river's path
- */
-export class RiverPoint {
-  constructor(
-    public readonly position: Position,
-    public readonly width: number,
-    public readonly depth: number,
-    public readonly flowDirection: FlowDirection,
-    public readonly segmentType: RiverSegmentType = RiverSegmentType.STRAIGHT,
-  ) {
-    this.validateWidth(width);
-    this.validateDepth(depth);
-  }
-
-  private validateWidth(width: number): void {
-    if (!Number.isFinite(width) || width <= 0) {
-      throw new Error('River width must be a positive number');
-    }
-  }
-
-  private validateDepth(depth: number): void {
-    if (!Number.isFinite(depth) || depth < 0) {
-      throw new Error('River depth must be a non-negative number');
-    }
-  }
-
-  toString(): string {
-    return `RiverPoint(${this.position}, width: ${this.width}, depth: ${this.depth})`;
-  }
-}
+import { FeatureCategory, FeatureId, MapFeature } from '../../../../common/entities/MapFeature';
+import { SpatialBounds } from '../../../../common/value-objects/SpatialBounds';
+import { Position } from '../../../../common/value-objects/Position';
+import { FlowDirection } from '../../value-objects/FlowDirection';
+import { WaterLevel } from '../../value-objects/WaterLevel';
+import { WaterQuality } from '../../value-objects/WaterQuality';
+import { RIVER_FEATURE_TYPE } from './constants';
+import { RiverWidth, getWidthCategory } from './enums/RiverWidth';
+import { RiverSegmentType } from './enums/RiverSegmentType';
+import { RiverPoint } from './value-objects/RiverPoint';
+import { ValidationError, DomainRuleError } from '../../../../common/errors/DomainError';
 
 /**
  * River entity representing flowing water features
+ * Core domain entity for hydrographic systems
  */
 export class River extends MapFeature {
   private _path: RiverPoint[] = [];
@@ -123,7 +67,19 @@ export class River extends MapFeature {
   // Path management
   addPathPoint(point: RiverPoint): void {
     if (!this.area.contains(point.position)) {
-      throw new Error('River point must be within river area');
+      throw new DomainRuleError(
+        'RIVER_POINT_OUT_OF_BOUNDS',
+        'River point must be within river area',
+        'Cannot add point outside river boundaries',
+        {
+          component: 'River',
+          operation: 'addPathPoint',
+          metadata: {
+            pointPosition: point.position.toString(),
+            riverArea: this.area.toString()
+          }
+        }
+      );
     }
     this._path.push(point);
   }
@@ -160,11 +116,7 @@ export class River extends MapFeature {
   }
 
   get widthCategory(): RiverWidth {
-    if (this.averageWidth < 10) return RiverWidth.STREAM;
-    if (this.averageWidth < 25) return RiverWidth.CREEK;
-    if (this.averageWidth < 100) return RiverWidth.RIVER;
-    if (this.averageWidth < 500) return RiverWidth.WIDE_RIVER;
-    return RiverWidth.MAJOR_RIVER;
+    return getWidthCategory(this.averageWidth);
   }
 
   get averageDepth(): number {
@@ -200,7 +152,19 @@ export class River extends MapFeature {
     // Find confluence point where tributary joins this river
     const confluencePoint = this.findConfluencePoint(tributary);
     if (!confluencePoint) {
-      throw new Error('Tributary must connect to main river within its area');
+      throw new DomainRuleError(
+        'RIVER_TRIBUTARY_NO_CONFLUENCE',
+        'Tributary must connect to main river within its area',
+        'Rivers must connect at a valid confluence point',
+        {
+          component: 'River',
+          operation: 'addTributary',
+          metadata: {
+            mainRiverId: this.id.value,
+            tributaryId: tributary.id.value
+          }
+        }
+      );
     }
 
     this._tributaries.set(tributary.id.value, tributary);
@@ -387,7 +351,15 @@ export class River extends MapFeature {
 
   private validateAverageWidth(width: number): void {
     if (!Number.isFinite(width) || width <= 0) {
-      throw new Error('River average width must be a positive number');
+      throw new ValidationError(
+        'RIVER_INVALID_WIDTH',
+        'River average width must be a positive number',
+        'River width must be greater than zero',
+        {
+          component: 'River',
+          metadata: { providedWidth: width }
+        }
+      );
     }
   }
 }

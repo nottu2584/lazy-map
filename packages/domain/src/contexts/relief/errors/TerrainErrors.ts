@@ -1,9 +1,7 @@
 import {
   ValidationError,
   DomainRuleError,
-  ErrorContext,
-  ErrorCategory,
-  ErrorRecovery
+  ErrorContext
 } from '../../../common/errors/DomainError';
 
 /**

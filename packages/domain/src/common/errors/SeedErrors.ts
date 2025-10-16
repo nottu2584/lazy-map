@@ -1,4 +1,4 @@
-import { ValidationError, DeterministicError, ErrorContext } from './LazyMapError';
+import { ValidationError, DeterministicError, ErrorContext } from './DomainError';
 
 /**
  * Seed-specific error codes

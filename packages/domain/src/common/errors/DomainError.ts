@@ -2,15 +2,23 @@
  * Error categories for standardized error handling
  */
 export enum ErrorCategory {
+  // Core categories
   VALIDATION = 'VALIDATION',
-  DOMAIN_RULE = 'DOMAIN_RULE', 
+  DOMAIN_RULE = 'DOMAIN_RULE',
   DETERMINISTIC = 'DETERMINISTIC',
   INFRASTRUCTURE = 'INFRASTRUCTURE',
   AUTHENTICATION = 'AUTHENTICATION',
   AUTHORIZATION = 'AUTHORIZATION',
   NOT_FOUND = 'NOT_FOUND',
   CONFIGURATION = 'CONFIGURATION',
-  EXTERNAL_SERVICE = 'EXTERNAL_SERVICE'
+  EXTERNAL_SERVICE = 'EXTERNAL_SERVICE',
+
+  // Domain context categories
+  RELIEF_GENERATION = 'RELIEF_GENERATION',
+  NATURAL_FEATURES = 'NATURAL_FEATURES',
+  ARTIFICIAL_STRUCTURES = 'ARTIFICIAL_STRUCTURES',
+  CULTURAL_ELEMENTS = 'CULTURAL_ELEMENTS',
+  MAP_AGGREGATION = 'MAP_AGGREGATION'
 }
 
 /**
@@ -21,6 +29,17 @@ export enum ErrorSeverity {
   MEDIUM = 'MEDIUM', // Recoverable errors
   HIGH = 'HIGH',     // Critical errors that block operations
   CRITICAL = 'CRITICAL' // System-level failures
+}
+
+/**
+ * Error recovery strategy
+ */
+export interface ErrorRecovery {
+  canRetry: boolean;
+  retryAfterMs?: number;
+  maxRetries?: number;
+  fallbackValue?: any;
+  compensationAction?: () => Promise<void>;
 }
 
 /**
@@ -48,12 +67,14 @@ export interface ErrorDetails {
   userMessage?: string;   // User-friendly message (different from technical message)
   suggestions?: string[]; // How to fix the error
   relatedErrors?: string[]; // Related error codes
+  recovery?: ErrorRecovery; // Recovery strategy
 }
 
 /**
- * Base error class for the lazy-map domain
+ * Base domain error class for Clean Architecture
+ * This is the foundation for all domain-level errors
  */
-export abstract class LazyMapError extends Error {
+export abstract class DomainError extends Error {
   public readonly details: ErrorDetails;
   public readonly timestamp: Date;
 
@@ -95,6 +116,13 @@ export abstract class LazyMapError extends Error {
   }
 
   /**
+   * Check if error is retryable
+   */
+  get isRetryable(): boolean {
+    return this.details.recovery?.canRetry || false;
+  }
+
+  /**
    * Get error for API responses
    */
   toApiResponse(): {
@@ -102,12 +130,14 @@ export abstract class LazyMapError extends Error {
     code: string;
     category: string;
     suggestions?: string[];
+    canRetry?: boolean;
   } {
     return {
       error: this.userMessage,
       code: this.details.code,
       category: this.details.category,
-      suggestions: this.details.suggestions
+      suggestions: this.details.suggestions,
+      canRetry: this.details.recovery?.canRetry
     };
   }
 
@@ -121,6 +151,7 @@ export abstract class LazyMapError extends Error {
     severity: string;
     context?: ErrorContext;
     stack?: string;
+    recovery?: ErrorRecovery;
   } {
     return {
       code: this.details.code,
@@ -128,7 +159,8 @@ export abstract class LazyMapError extends Error {
       category: this.details.category,
       severity: this.details.severity,
       context: this.details.context,
-      stack: this.stack
+      stack: this.stack,
+      recovery: this.details.recovery
     };
   }
 }
@@ -136,13 +168,14 @@ export abstract class LazyMapError extends Error {
 /**
  * Validation-related errors
  */
-export class ValidationError extends LazyMapError {
+export class ValidationError extends DomainError {
   constructor(
     code: string,
     message: string,
     userMessage?: string,
     context?: ErrorContext,
-    suggestions?: string[]
+    suggestions?: string[],
+    recovery?: ErrorRecovery
   ) {
     super({
       code,
@@ -151,7 +184,8 @@ export class ValidationError extends LazyMapError {
       category: ErrorCategory.VALIDATION,
       severity: ErrorSeverity.MEDIUM,
       context,
-      suggestions
+      suggestions,
+      recovery
     });
   }
 }
@@ -159,13 +193,14 @@ export class ValidationError extends LazyMapError {
 /**
  * Domain rule violation errors
  */
-export class DomainRuleError extends LazyMapError {
+export class DomainRuleError extends DomainError {
   constructor(
     code: string,
     message: string,
     userMessage?: string,
     context?: ErrorContext,
-    suggestions?: string[]
+    suggestions?: string[],
+    recovery?: ErrorRecovery
   ) {
     super({
       code,
@@ -174,7 +209,8 @@ export class DomainRuleError extends LazyMapError {
       category: ErrorCategory.DOMAIN_RULE,
       severity: ErrorSeverity.HIGH,
       context,
-      suggestions
+      suggestions,
+      recovery
     });
   }
 }
@@ -182,7 +218,7 @@ export class DomainRuleError extends LazyMapError {
 /**
  * Deterministic generation errors
  */
-export class DeterministicError extends LazyMapError {
+export class DeterministicError extends DomainError {
   constructor(
     code: string,
     message: string,
@@ -197,7 +233,8 @@ export class DeterministicError extends LazyMapError {
       category: ErrorCategory.DETERMINISTIC,
       severity: ErrorSeverity.CRITICAL,
       context,
-      suggestions
+      suggestions,
+      recovery: { canRetry: false } // Deterministic errors should not be retried
     });
   }
 }
@@ -205,13 +242,14 @@ export class DeterministicError extends LazyMapError {
 /**
  * Infrastructure-related errors
  */
-export class InfrastructureError extends LazyMapError {
+export class InfrastructureError extends DomainError {
   constructor(
     code: string,
     message: string,
     userMessage?: string,
     context?: ErrorContext,
-    suggestions?: string[]
+    suggestions?: string[],
+    recovery?: ErrorRecovery
   ) {
     super({
       code,
@@ -220,7 +258,8 @@ export class InfrastructureError extends LazyMapError {
       category: ErrorCategory.INFRASTRUCTURE,
       severity: ErrorSeverity.HIGH,
       context,
-      suggestions
+      suggestions,
+      recovery: recovery || { canRetry: true, maxRetries: 3, retryAfterMs: 1000 }
     });
   }
 }
@@ -228,7 +267,7 @@ export class InfrastructureError extends LazyMapError {
 /**
  * Not found errors
  */
-export class NotFoundError extends LazyMapError {
+export class NotFoundError extends DomainError {
   constructor(
     resource: string,
     identifier: string,
@@ -249,7 +288,63 @@ export class NotFoundError extends LazyMapError {
         `Verify the ${resource} identifier is correct`,
         `Check if the ${resource} has been deleted`,
         'Refresh and try again'
-      ]
+      ],
+      recovery: { canRetry: false }
     });
+  }
+}
+
+/**
+ * Composite error for multiple error aggregation
+ */
+export class CompositeError extends DomainError {
+  public readonly errors: DomainError[];
+
+  constructor(
+    errors: DomainError[],
+    message?: string,
+    context?: ErrorContext
+  ) {
+    const highestSeverity = errors.reduce((max, err) => {
+      const severityOrder = [ErrorSeverity.LOW, ErrorSeverity.MEDIUM, ErrorSeverity.HIGH, ErrorSeverity.CRITICAL];
+      const currentIndex = severityOrder.indexOf(err.details.severity);
+      const maxIndex = severityOrder.indexOf(max);
+      return currentIndex > maxIndex ? err.details.severity : max;
+    }, ErrorSeverity.LOW);
+
+    super({
+      code: 'COMPOSITE_ERROR',
+      message: message || `Multiple errors occurred (${errors.length} errors)`,
+      userMessage: 'Multiple issues occurred. Please review all errors.',
+      category: ErrorCategory.DOMAIN_RULE,
+      severity: highestSeverity,
+      context: {
+        ...context,
+        metadata: {
+          errorCount: errors.length,
+          errorCodes: errors.map(e => e.code)
+        }
+      },
+      suggestions: Array.from(new Set(errors.flatMap(e => e.details.suggestions || []))),
+      recovery: {
+        canRetry: errors.some(e => e.isRetryable)
+      }
+    });
+
+    this.errors = errors;
+  }
+
+  /**
+   * Get all error messages
+   */
+  getAllMessages(): string[] {
+    return this.errors.map(e => e.message);
+  }
+
+  /**
+   * Get errors by category
+   */
+  getErrorsByCategory(category: ErrorCategory): DomainError[] {
+    return this.errors.filter(e => e.details.category === category);
   }
 }

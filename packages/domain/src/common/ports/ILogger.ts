@@ -1,4 +1,4 @@
-import { ErrorContext, ErrorCategory, ErrorSeverity } from '../errors/LazyMapError';
+import { ErrorContext, ErrorCategory, ErrorSeverity } from '../errors/DomainError';
 
 /**
  * Log levels for structured logging

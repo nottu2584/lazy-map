@@ -1,10 +1,18 @@
-import { LazyMapError } from './LazyMapError';
+import { DomainError } from './DomainError';
 
 /**
- * Type guard to check if an error is a LazyMapError
+ * Type guard to check if an error is a DomainError
  */
-export function isLazyMapError(error: any): error is LazyMapError {
-  return error instanceof LazyMapError;
+export function isDomainError(error: any): error is DomainError {
+  return error instanceof DomainError;
+}
+
+/**
+ * Legacy type guard for backward compatibility
+ * @deprecated Use isDomainError instead
+ */
+export function isLazyMapError(error: any): error is DomainError {
+  return isDomainError(error);
 }
 
 /**
@@ -17,7 +25,7 @@ export function extractErrorInfo(error: any): {
   severity?: string;
   context?: any;
 } {
-  if (isLazyMapError(error)) {
+  if (isDomainError(error)) {
     return error.toLogData();
   }
 

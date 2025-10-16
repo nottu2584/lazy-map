@@ -1,4 +1,4 @@
-import { ValidationError } from '../errors/LazyMapError';
+import { ValidationError } from '../errors/DomainError';
 
 /**
  * Coordinates value object representing a position on the map

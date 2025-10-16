@@ -1,5 +1,29 @@
-import { Dimensions } from '../../common/value-objects';
-import { MapFeature, getFeatureMapIntersection } from '../../contexts/natural/shared';
+import { Dimensions, SpatialBounds, Position } from '../../common/value-objects';
+import { MapFeature } from '../../common/entities';
+
+// Get the portion of a feature that intersects with map bounds
+function getFeatureMapIntersection(
+  feature: MapFeature,
+  mapDimensions: Dimensions
+): SpatialBounds | null {
+  const { x, y, width, height } = feature.area;
+
+  // Calculate intersection bounds
+  const left = Math.max(0, x);
+  const top = Math.max(0, y);
+  const right = Math.min(mapDimensions.width, x + width);
+  const bottom = Math.min(mapDimensions.height, y + height);
+
+  // Check if there's any intersection
+  if (left >= right || top >= bottom) {
+    return null;
+  }
+
+  return new SpatialBounds(
+    new Position(left, top),
+    new Dimensions(right - left, bottom - top)
+  );
+}
 
 // Test utility to verify feature visibility requirements
 export function validateFeatureVisibility(

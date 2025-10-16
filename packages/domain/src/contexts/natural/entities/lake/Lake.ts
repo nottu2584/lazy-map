@@ -1,90 +1,17 @@
-import { FeatureCategory, FeatureId, MapFeature } from '../../../common/entities/MapFeature';
-import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
-import { Position } from '../../../common/value-objects/Position';
-import { WaterLevel } from '../value-objects/WaterLevel';
-import { WaterQuality } from '../value-objects/WaterQuality';
-
-/**
- * Lake-specific feature type
- */
-export const LAKE_FEATURE_TYPE = 'lake';
-
-/**
- * Lake size categories
- */
-export enum LakeSize {
-  POND = 'pond', // < 0.5 acres
-  SMALL_LAKE = 'small_lake', // 0.5-5 acres
-  MEDIUM_LAKE = 'medium_lake', // 5-50 acres
-  LARGE_LAKE = 'large_lake', // 50-500 acres
-  GREAT_LAKE = 'great_lake', // > 500 acres
-}
-
-/**
- * Lake formation types
- */
-export enum LakeFormation {
-  NATURAL = 'natural', // Natural depression, glacial
-  VOLCANIC = 'volcanic', // Crater lake
-  ARTIFICIAL = 'artificial', // Reservoir, dam
-  OXBOW = 'oxbow', // Former river meander
-  GLACIAL = 'glacial', // Formed by glacial activity
-  KARST = 'karst', // Formed by groundwater erosion
-}
-
-/**
- * Shoreline characteristics
- */
-export enum ShorelineType {
-  SANDY = 'sandy', // Sandy beach
-  ROCKY = 'rocky', // Rocky shore
-  MARSHY = 'marshy', // Wetland/marsh transition
-  WOODED = 'wooded', // Forest to water edge
-  GRASSY = 'grassy', // Grassy meadow shore
-  MUDDY = 'muddy', // Muddy/clay shore
-}
-
-/**
- * Represents a point along a lake's shoreline
- */
-export class ShorelinePoint {
-  constructor(
-    public readonly position: Position,
-    public readonly shoreType: ShorelineType,
-    public readonly depth: number, // Depth at this point from shore
-    public readonly accessibility: number = 0.5, // 0-1, how easy to access (0=cliff, 1=gentle slope)
-  ) {
-    this.validateDepth(depth);
-    this.validateAccessibility(accessibility);
-  }
-
-  get isAccessible(): boolean {
-    return this.accessibility >= 0.3;
-  }
-
-  get isSuitableForBoating(): boolean {
-    return this.depth >= 3 && this.accessibility >= 0.5;
-  }
-
-  private validateDepth(depth: number): void {
-    if (!Number.isFinite(depth) || depth < 0) {
-      throw new Error('Shoreline depth must be a non-negative number');
-    }
-  }
-
-  private validateAccessibility(accessibility: number): void {
-    if (!Number.isFinite(accessibility) || accessibility < 0 || accessibility > 1) {
-      throw new Error('Accessibility must be between 0 and 1');
-    }
-  }
-
-  toString(): string {
-    return `ShorelinePoint(${this.position}, ${this.shoreType}, depth: ${this.depth})`;
-  }
-}
+import { FeatureCategory, FeatureId, MapFeature } from '../../../../common/entities/MapFeature';
+import { SpatialBounds } from '../../../../common/value-objects/SpatialBounds';
+import { Position } from '../../../../common/value-objects/Position';
+import { WaterLevel } from '../../value-objects/WaterLevel';
+import { WaterQuality } from '../../value-objects/WaterQuality';
+import { LakeFormation } from './enums/LakeFormation';
+import { LakeSize } from './enums/LakeSize';
+import { ShorelineType } from './enums/ShorelineType';
+import { ShorelinePoint } from './value-objects/ShorelinePoint';
+import { LAKE_FEATURE_TYPE } from './constants';
 
 /**
  * Lake entity representing standing water features
+ * Manages water properties, shoreline, islands, and water flow connections
  */
 export class Lake extends MapFeature {
   private _shoreline: ShorelinePoint[] = [];
@@ -103,7 +30,7 @@ export class Lake extends MapFeature {
     public readonly maxDepth: number = waterLevel.depth,
     public readonly averageDepth: number = waterLevel.depth * 0.6,
     public readonly thermalStability: boolean = false, // True for deep lakes that don't freeze
-    priority: number = 2,
+    priority: number = 2
   ) {
     super(id, name, FeatureCategory.NATURAL, area, priority);
     this.validateDepths(maxDepth, averageDepth);
@@ -153,7 +80,7 @@ export class Lake extends MapFeature {
   }
 
   addShorelinePoints(points: ShorelinePoint[]): void {
-    points.forEach((point) => this.addShorelinePoint(point));
+    points.forEach(point => this.addShorelinePoint(point));
   }
 
   get shoreline(): ShorelinePoint[] {
@@ -208,7 +135,7 @@ export class Lake extends MapFeature {
     if (this._shoreline.length === 0) return ShorelineType.GRASSY;
 
     const typeCounts = new Map<ShorelineType, number>();
-    this._shoreline.forEach((point) => {
+    this._shoreline.forEach(point => {
       const count = typeCounts.get(point.shoreType) || 0;
       typeCounts.set(point.shoreType, count + 1);
     });
@@ -226,11 +153,11 @@ export class Lake extends MapFeature {
   }
 
   getAccessibleShorelinePoints(): ShorelinePoint[] {
-    return this._shoreline.filter((point) => point.isAccessible);
+    return this._shoreline.filter(point => point.isAccessible);
   }
 
   getBoatingAccessPoints(): ShorelinePoint[] {
-    return this._shoreline.filter((point) => point.isSuitableForBoating);
+    return this._shoreline.filter(point => point.isSuitableForBoating);
   }
 
   // Islands and features
@@ -246,7 +173,7 @@ export class Lake extends MapFeature {
   }
 
   removeIsland(position: Position): boolean {
-    const index = this._islands.findIndex((island) => island.equals(position));
+    const index = this._islands.findIndex(island => island.equals(position));
     if (index >= 0) {
       this._islands.splice(index, 1);
       return true;
@@ -290,7 +217,7 @@ export class Lake extends MapFeature {
     const maxDistanceFromCenter =
       Math.sqrt(
         this.area.dimensions.width * this.area.dimensions.width +
-          this.area.dimensions.height * this.area.dimensions.height,
+          this.area.dimensions.height * this.area.dimensions.height
       ) / 2;
 
     // Deeper toward center, shallower toward edges
@@ -312,10 +239,10 @@ export class Lake extends MapFeature {
     // Areas with moderate depth and good water quality
     if (this.waterQuality.supportsFish && this.averageDepth >= 5) {
       // Add spots around islands
-      this._islands.forEach((island) => spots.push(island));
+      this._islands.forEach(island => spots.push(island));
 
       // Add spots near inlets (nutrients flow in)
-      this._inlets.forEach((inlet) => spots.push(inlet));
+      this._inlets.forEach(inlet => spots.push(inlet));
 
       // Add deep spots near center
       spots.push(center);
@@ -326,22 +253,14 @@ export class Lake extends MapFeature {
 
   getBestSwimmingAreas(): ShorelinePoint[] {
     return this._shoreline.filter(
-      (point) =>
-        point.isAccessible &&
-        point.depth >= 3 && // Deep enough to swim
-        point.depth <= 8 && // Not too deep to be scary
-        (point.shoreType === ShorelineType.SANDY || point.shoreType === ShorelineType.GRASSY) &&
-        this.waterQuality.isSafeForSwimming,
+      point =>
+        point.isSuitableForSwimming &&
+        this.waterQuality.isSafeForSwimming
     );
   }
 
   getCampingSpots(): ShorelinePoint[] {
-    return this._shoreline.filter(
-      (point) =>
-        point.isAccessible &&
-        point.shoreType === ShorelineType.GRASSY &&
-        point.accessibility >= 0.7,
-    );
+    return this._shoreline.filter(point => point.isSuitableForCamping);
   }
 
   // Generate natural shoreline variation
@@ -371,7 +290,10 @@ export class Lake extends MapFeature {
   }
 
   private getCenterPosition(): Position {
-    return new Position(this.area.x + this.area.width / 2, this.area.y + this.area.height / 2);
+    return new Position(
+      this.area.position.x + this.area.dimensions.width / 2,
+      this.area.position.y + this.area.dimensions.height / 2
+    );
   }
 
   private determineShoreTypeByFormation(): ShorelineType {

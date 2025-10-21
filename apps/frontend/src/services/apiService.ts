@@ -2,12 +2,13 @@ import axios from 'axios';
 import type { ApiResponse } from '@lazy-map/application';
 import type { MapSettings, GeneratedMap } from '../components/MapGenerator';
 
-// API configuration
-const API_BASE_URL = 'http://localhost:3000';
+// API configuration from environment variables
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '30000', 10);
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30 second timeout for map generation
+  timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },

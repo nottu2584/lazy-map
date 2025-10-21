@@ -11,6 +11,8 @@ import {
   RegisterUserUseCase,
   LoginUserUseCase,
   GetUserProfileUseCase,
+  GoogleSignInUseCase,
+  LinkGoogleAccountUseCase,
 } from '@lazy-map/application';
 
 @Module({
@@ -134,12 +136,28 @@ import {
       },
       inject: ['IUserRepository'],
     },
+    {
+      provide: GoogleSignInUseCase,
+      useFactory: (userRepository, oauthService, logger) => {
+        return new GoogleSignInUseCase(userRepository, oauthService, logger);
+      },
+      inject: ['IUserRepository', 'IOAuthService', 'ILogger'],
+    },
+    {
+      provide: LinkGoogleAccountUseCase,
+      useFactory: (userRepository, oauthService, logger) => {
+        return new LinkGoogleAccountUseCase(userRepository, oauthService, logger);
+      },
+      inject: ['IUserRepository', 'IOAuthService', 'ILogger'],
+    },
   ],
   exports: [
     MapService,
     RegisterUserUseCase,
     LoginUserUseCase,
     GetUserProfileUseCase,
+    GoogleSignInUseCase,
+    LinkGoogleAccountUseCase,
   ],
 })
 export class ApplicationModule {}

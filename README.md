@@ -39,6 +39,10 @@ git clone <repository-url>
 cd lazy-map
 pnpm install
 
+# Set up database and environment
+docker-compose up -d      # Start PostgreSQL and Redis
+cp .env.example .env      # Configure environment
+
 # Start development servers
 pnpm run dev
 
@@ -309,11 +313,31 @@ export class RiverController {
 }
 ```
 
+## 🗄️ Database Setup
+
+The project uses **PostgreSQL** for data persistence and **Redis** for caching. The quickest way to get started is with Docker:
+
+```bash
+# Start database services
+docker-compose up -d
+
+# Configure environment
+cp .env.example .env
+
+# Run migrations (if any)
+pnpm run migration:run
+```
+
+**📖 For detailed database setup, configuration, and production deployment, see [DATABASE_SETUP.md](./docs/DATABASE_SETUP.md)**
+
 ## 📚 Documentation
 
 | Document | Description |
 |----------|-------------|
 | [CLAUDE.md](./CLAUDE.md) | **Complete architecture guide** |
+| [DATABASE_SETUP.md](./docs/DATABASE_SETUP.md) | **Database configuration and deployment** |
+| [NAMING_CONVENTIONS.md](./docs/NAMING_CONVENTIONS.md) | **File naming standards and patterns** |
+| [GOOGLE_OAUTH_INTEGRATION_PLAN.md](./docs/GOOGLE_OAUTH_INTEGRATION_PLAN.md) | **Google Sign-In integration blueprint** |
 | [Backend README](./apps/backend/README.md) | NestJS API documentation |
 | [Frontend README](./apps/frontend/README.md) | React app documentation |
 
@@ -379,6 +403,7 @@ VITE_ENABLE_ANALYTICS=true
 3. **Test Coverage** - Maintain comprehensive testing
 4. **Type Safety** - Leverage TypeScript fully
 5. **Documentation** - Update docs with changes
+6. **Naming Conventions** - Follow patterns in [NAMING_CONVENTIONS.md](./docs/NAMING_CONVENTIONS.md)
 
 ### Code Style
 - **ESLint + Prettier** - Automated formatting

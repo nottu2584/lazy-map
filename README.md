@@ -402,6 +402,10 @@ Environment files are separated by application for better security and deploymen
 # Application
 NODE_ENV=development
 PORT=3000
+API_PREFIX=api
+
+# CORS (optional - defaults to * in development)
+# CORS_ORIGIN=https://your-frontend.com
 
 # JWT Authentication
 JWT_SECRET=your-secret-key-here-change-in-production
@@ -412,9 +416,11 @@ GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 
 **Frontend** (`apps/frontend/.env`):
 ```env
-# Currently no environment variables in use
-# The frontend will use configuration when OAuth is integrated:
-# VITE_API_URL=http://localhost:3000/api
+# API Configuration
+VITE_API_URL=http://localhost:3000
+VITE_API_TIMEOUT=30000
+
+# Google OAuth (to be implemented)
 # VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 ```
 

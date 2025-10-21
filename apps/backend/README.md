@@ -21,14 +21,14 @@ This backend application serves as the **Infrastructure and Interface layers** i
          ▼
 ┌─────────────────┐
 │   Backend       │ ◄── YOU ARE HERE
-│   (NestJS)      │ 
+│   (NestJS)      │
 └─────────────────┘
          │
          ▼
 ┌─────────────────┐
 │   Packages      │
 │   - Domain      │ (Business Logic)
-│   - Application │ (Use Cases) 
+│   - Application │ (Use Cases)
 │   - Infra       │ (Implementations)
 └─────────────────┘
 ```

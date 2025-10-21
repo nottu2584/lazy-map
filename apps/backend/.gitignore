@@ -1,0 +1,22 @@
+# Backend-specific ignores
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist
+build
+
+# Logs
+*.log
+
+# Uploads directory
+uploads
+
+# IDE
+.idea
+.vscode
+
+# Testing
+coverage
+.nyc_output

@@ -18,14 +18,27 @@ export class UserEntity {
   @Index()
   username!: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  passwordHash!: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  passwordHash?: string | null;
 
   @Column({ type: 'varchar', length: 50, default: 'user' })
   role!: string;
 
   @Column({ type: 'varchar', length: 50, default: 'active' })
   status!: string;
+
+  @Column({ type: 'varchar', length: 50, default: 'local' })
+  authProvider!: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, unique: true })
+  @Index()
+  googleId?: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  profilePicture?: string | null;
+
+  @Column({ type: 'boolean', default: false })
+  emailVerified!: boolean;
 
   @Column({ type: 'jsonb', nullable: true })
   preferences?: Record<string, any> | null;
@@ -41,6 +54,18 @@ export class UserEntity {
 
   @Column({ type: 'timestamp', nullable: true })
   lastMapGeneratedAt?: Date | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastLoginAt?: Date | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  suspendedAt?: Date | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  suspendedBy?: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  suspensionReason?: string | null;
 
   @CreateDateColumn()
   createdAt!: Date;

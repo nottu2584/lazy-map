@@ -16,15 +16,21 @@ import {
   RegisterUserUseCase,
   LoginUserUseCase,
   GetUserProfileUseCase,
+  GoogleSignInUseCase,
+  LinkGoogleAccountUseCase,
   RegisterUserCommand,
   LoginUserCommand,
   GetUserProfileQuery,
+  GoogleSignInCommand,
+  LinkGoogleAccountCommand,
 } from '@lazy-map/application';
-import { 
-  RegisterUserDto, 
-  LoginUserDto, 
-  AuthResponseDto, 
-  UserProfileDto 
+import {
+  RegisterUserDto,
+  LoginUserDto,
+  AuthResponseDto,
+  UserProfileDto,
+  GoogleSignInDto,
+  LinkGoogleAccountDto
 } from './dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ILogger } from '@lazy-map/domain';
@@ -37,6 +43,8 @@ export class AuthController {
     private readonly registerUserUseCase: RegisterUserUseCase,
     private readonly loginUserUseCase: LoginUserUseCase,
     private readonly getUserProfileUseCase: GetUserProfileUseCase,
+    private readonly googleSignInUseCase: GoogleSignInUseCase,
+    private readonly linkGoogleAccountUseCase: LinkGoogleAccountUseCase,
     @Inject(LOGGER_TOKEN) private readonly logger: ILogger,
   ) {}
 
@@ -246,6 +254,125 @@ export class AuthController {
         throw error;
       }
       throw new UnauthorizedException('Failed to get profile: ' + error.message);
+    }
+  }
+
+  @Post('google')
+  @ApiOperation({ summary: 'Sign in with Google' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Successfully authenticated with Google',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid Google token',
+  })
+  async googleSignIn(@Body() googleSignInDto: GoogleSignInDto): Promise<AuthResponseDto> {
+    const operationLogger = this.logger.child({
+      component: 'AuthController',
+      operation: 'googleSignIn'
+    });
+
+    try {
+      operationLogger.info('Google sign-in attempt');
+
+      const command = new GoogleSignInCommand(
+        googleSignInDto.idToken,
+        googleSignInDto.clientId
+      );
+
+      const result = await this.googleSignInUseCase.execute(command);
+
+      if (!result.success) {
+        operationLogger.warn('Google sign-in failed', {
+          metadata: { errors: result.errors }
+        });
+        throw new BadRequestException(result.errors.join(', '));
+      }
+
+      operationLogger.info('Google sign-in successful', {
+        metadata: {
+          userId: result.user!.id.value,
+          email: result.user!.email.value,
+          username: result.user!.username.value
+        }
+      });
+
+      return {
+        accessToken: result.token!,
+        user: {
+          id: result.user!.id.value,
+          email: result.user!.email.value,
+          username: result.user!.username.value,
+        },
+      };
+    } catch (error) {
+      operationLogger.logError(error);
+
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Google sign-in failed: ' + error.message);
+    }
+  }
+
+  @Post('link-google')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Link Google account to existing user' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Google account linked successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Failed to link Google account',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
+  })
+  async linkGoogleAccount(
+    @Request() req: any,
+    @Body() linkGoogleDto: LinkGoogleAccountDto
+  ): Promise<{ success: boolean; message: string }> {
+    const operationLogger = this.logger.child({
+      component: 'AuthController',
+      operation: 'linkGoogleAccount',
+      userId: req.user.userId
+    });
+
+    try {
+      operationLogger.info('Attempting to link Google account');
+
+      const command = new LinkGoogleAccountCommand(
+        req.user.userId,
+        linkGoogleDto.idToken
+      );
+
+      const result = await this.linkGoogleAccountUseCase.execute(command);
+
+      if (!result.success) {
+        operationLogger.warn('Failed to link Google account', {
+          metadata: { errors: result.errors }
+        });
+        throw new BadRequestException(result.errors.join(', '));
+      }
+
+      operationLogger.info('Google account linked successfully');
+
+      return {
+        success: true,
+        message: 'Google account linked successfully'
+      };
+    } catch (error) {
+      operationLogger.logError(error);
+
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to link Google account: ' + error.message);
     }
   }
 }

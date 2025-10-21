@@ -4,6 +4,11 @@
 dist
 node_modules
 
+# Environment files
+.env
+.env.local
+.env.production
+
 # Prevent npm/yarn artifacts
 package-lock.json
 yarn.lock

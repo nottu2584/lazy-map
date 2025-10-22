@@ -68,8 +68,17 @@ export class TopographicFeatureRepository {
     const forest = await this.naturalRepo.getForest(id);
     if (forest) return forest;
 
-    const tree = await this.naturalRepo.getTree(id);
-    if (tree) return tree;
+    const grassland = await this.naturalRepo.getGrassland(id);
+    if (grassland) return grassland;
+
+    const spring = await this.naturalRepo.getSpring(id);
+    if (spring) return spring;
+
+    const pond = await this.naturalRepo.getPond(id);
+    if (pond) return pond;
+
+    const wetland = await this.naturalRepo.getWetland(id);
+    if (wetland) return wetland;
 
     // Try artificial features
     const building = await this.artificialRepo.getBuilding(id);

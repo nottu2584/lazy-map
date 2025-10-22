@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { LoggingService } from '../adapters/logging/LoggingService';
-import { SeedErrors, isLazyMapError } from '@lazy-map/domain';
+import { SeedErrors, isDomainError } from '@lazy-map/domain';
 
 describe('Logging System Integration', () => {
   let logger: LoggingService;
@@ -56,7 +56,7 @@ describe('Logging System Integration', () => {
       // Log the structured error
       logger.logError(error, { correlationId: 'req-456' });
       
-      expect(isLazyMapError(error)).toBe(true);
+      expect(isDomainError(error)).toBe(true);
     });
 
     it('should log standard errors gracefully', () => {

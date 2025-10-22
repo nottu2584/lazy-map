@@ -18,9 +18,8 @@ export const LOGGER_TOKEN = 'ILogger';
       useFactory: () => {
         return new LoggingService('LazyMapApp');
       }
-    },
-    LoggingService
+    }
   ],
-  exports: [LOGGER_TOKEN, LoggingService]
+  exports: [LOGGER_TOKEN]
 })
 export class LoggingModule {}

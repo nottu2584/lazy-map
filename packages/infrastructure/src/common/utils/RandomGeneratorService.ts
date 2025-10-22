@@ -106,16 +106,6 @@ class SeededRandom implements ISeededRandomGenerator {
   getSeed(): number {
     return this.seed;
   }
-
-  // Keep the old method for backwards compatibility
-  nextBool(probability: number = 0.5): boolean {
-    return this.nextBooleanWithProbability(probability);
-  }
-
-  // Keep the old gaussian method for backwards compatibility  
-  gaussian(mean: number = 0, stdDev: number = 1): number {
-    return this.nextGaussian(mean, stdDev);
-  }
 }
 
 /**
@@ -201,7 +191,11 @@ class DefaultRandom implements ISeededRandomGenerator {
   }
 
   nextGaussian(mean: number = 0, standardDeviation: number = 1): number {
-    return this.gaussian(mean, standardDeviation);
+    const u1 = this.next();
+    const u2 = this.next();
+
+    const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    return mean + standardDeviation * z0;
   }
 
   nextExponential(lambda: number = 1): number {
@@ -210,20 +204,6 @@ class DefaultRandom implements ISeededRandomGenerator {
 
   getSeed(): number | undefined {
     return undefined; // DefaultRandom has no seed
-  }
-
-  // Keep existing methods
-  gaussian(mean: number = 0, stdDev: number = 1): number {
-    const u1 = this.next();
-    const u2 = this.next();
-    
-    const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-    return mean + stdDev * z0;
-  }
-
-  // Keep the old method for backwards compatibility
-  nextBool(probability: number = 0.5): boolean {
-    return this.nextBooleanWithProbability(probability);
   }
 }
 

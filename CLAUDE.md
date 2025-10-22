@@ -41,63 +41,100 @@ lazy-map/
 ## 🏗️ Architecture Rules (MUST FOLLOW)
 
 ### 1. **Single Responsibility Principle**
-**Rule**: One file = One responsibility
+**Rule**: One file = One entity/use case/service
 
 ❌ **Bad Example**:
 ```typescript
-// MathematicalConcepts.ts (3 different responsibilities)
-export class Range { /*...*/ }          // Math operations
-export class NoiseGenerator { /*...*/ }  // Noise algorithms  
-export class MathOperations { /*...*/ }  // Utility functions
+// WaterFeature.ts - Multiple entities (WRONG)
+export class Spring { /*...*/ }
+export class Pond { /*...*/ }
+export class Wetland { /*...*/ }
 ```
 
 ✅ **Good Example**:
 ```typescript
-// Range.ts - Only range operations
-export class Range { /*...*/ }
+// Spring.ts
+export class Spring extends MapFeature { /*...*/ }
 
-// NoiseGenerator.ts - Only noise generation
-export class NoiseGenerator { /*...*/ }
+// Pond.ts
+export class Pond extends MapFeature { /*...*/ }
 
-// MathematicalDomainService.ts - Only domain math utilities
-export class MathematicalDomainService { /*...*/ }
+// Wetland.ts
+export class Wetland extends MapFeature { /*...*/ }
 ```
 
-### 2. **Clean Architecture Layers**
-**Rule**: Respect dependency direction
+### 2. **Clean Architecture Flow**
+**Rule**: Controllers → Use Cases → Repositories
 
+❌ **Wrong**:
+```typescript
+// Controller directly using services
+export class MapsController {
+  private readonly seedService = new SeedService(); // WRONG!
+}
 ```
-Domain ← Application ← Infrastructure
-  ↑         ↑            ↑
-  Pure    Use Cases   External
+
+✅ **Right**:
+```typescript
+// Controller using Use Case
+export class MapsController {
+  constructor(
+    @Inject('ValidateSeedUseCase')
+    private readonly validateSeedUseCase: ValidateSeedUseCase
+  ) {}
+}
 ```
 
-✅ **Correct Placement**:
-- **Value Objects** (`/value-objects/`) = Single domain concepts (Position, Range, Seed)
-- **Domain Services** (`/services/`) = Complex business logic (SeedService, RandomGeneration)
-- **Application Services** = Use cases and orchestration
+### 3. **No Backwards Compatibility**
+**Rule**: Remove legacy code immediately
 
-❌ **Wrong**: Value object with orchestration logic
-✅ **Right**: Simple value object + separate domain service
+❌ **Never keep**:
+- `@deprecated` code
+- "backward compatibility" comments
+- Legacy wrapper services (like MapService)
+- Empty/orphaned files
 
-### 3. **File Organization**
+✅ **Do instead**:
+- Clean breaks when refactoring
+- Remove old code completely
+- Update all references
+
+### 4. **Domain Purity**
+**Rule**: Domain entities must be deterministic
+
+❌ **Wrong**:
+```typescript
+get seasonalActivity() {
+  return Math.random() > 0.5 ? 'wet' : 'dry'; // NO RANDOMNESS!
+}
+```
+
+✅ **Right**:
+```typescript
+constructor(
+  // ...
+  public readonly seasonalPattern: 'wet' | 'dry' // Deterministic
+) {}
+```
+
+### 5. **File Organization**
 **Rules**:
-- File name = What it contains
-- Split when >100 lines OR multiple concepts
-- Specific imports (not `import *`)
+- **Clean imports** - No `/dist` paths
+- **Consistent structure** - Follow Lake/River pattern for new entities
 
 **Domain Contexts**:
 - `relief/` = Terrain, elevation, topography
-- `natural/` = Forests, rivers, vegetation  
+- `natural/` = Forests, rivers, **water features (Spring, Pond, Wetland)**
 - `artificial/` = Buildings, roads, structures
 - `cultural/` = Settlements, territories
 
-### 4. **Dependencies**
-**Strict Rules** (enforced by build):
+### 6. **Dependencies**
+**Strict Rules**:
 - ✅ Domain → Nothing
-- ✅ Application → Domain only  
+- ✅ Application → Domain only
 - ✅ Infrastructure → Domain + Application
 - ❌ **NEVER** reverse these
+- ❌ **NO** services in application layer (use Use Cases)
 
 ## 🎯 Domain Structure
 
@@ -135,12 +172,12 @@ packages/domain/src/
 ```typescript
 export class Position {
   private constructor(private readonly x: number, private readonly y: number) {}
-  
+
   static create(x: number, y: number): Position {
     if (x < 0 || y < 0) throw new Error('Coordinates must be positive');
     return new Position(x, y);
   }
-  
+
   getX(): number { return this.x; }
   getY(): number { return this.y; }
 }
@@ -170,10 +207,12 @@ export class SeedService {
 3. **Dependency Violations**: Domain must never import from application/infrastructure
 4. **Large Files**: Split when >100 lines or multiple classes
 5. **Generic Utils**: Use domain services instead of static utility classes
+6. **Direct Service Usage**: Controllers must use Use Cases, not services
+7. **Legacy Code**: Remove immediately, no backwards compatibility
 
 ## 🎮 Key Features
 
-**Deterministic Generation**: 
+**Deterministic Generation**:
 - Same seed = identical map every time
 - Perfect for testing and reproducible sessions
 - String seeds work: "my-awesome-dungeon" → unique map
@@ -182,6 +221,30 @@ export class SeedService {
 - Business logic isolated in domain layer
 - Easy to test, modify, and extend
 - Clear boundaries between concerns
+
+## 📝 Recent Clean Architecture Refactoring
+
+**Water Features Reorganization**:
+- Split `WaterFeature.ts` (345 lines, 3 entities) into:
+  - `Spring.ts` - Water source features
+  - `Pond.ts` - Small standing water
+  - `Wetland.ts` - Marshes and swamps
+- Fixed non-deterministic code (removed Math.random())
+- Aligned with Lake/River entity patterns
+
+**Legacy Code Removal**:
+- Deleted `MapService` (anti-pattern wrapper)
+- Removed `Tree.ts` (deprecated compatibility)
+- Cleaned `application/map/services/` directory
+- Eliminated all `@deprecated` code
+- Replaced `isLazyMapError` with `isDomainError` throughout codebase
+- Removed backwards compatibility methods from `RandomGeneratorService`
+
+**Architecture Enforcement**:
+- Controllers now only use Use Cases
+- No direct service instantiation
+- Clean import paths (no `/dist`)
+- Strict single responsibility per file
 
 ---
 

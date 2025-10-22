@@ -3,14 +3,20 @@ import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 import {
   GenerateMapUseCase,
   ValidateMapSettingsUseCase,
+  ValidateSeedUseCase,
   GetMapUseCase,
   GetMapTileUseCase,
   ListMapsUseCase,
   GetUserMapsUseCase,
-  MapService,
   RegisterUserUseCase,
   LoginUserUseCase,
   GetUserProfileUseCase,
+  GoogleSignInUseCase,
+  LinkGoogleAccountUseCase,
+  GetAllFeaturesUseCase,
+  GetFeatureByIdUseCase,
+  GetFeatureStatisticsUseCase,
+  ClearAllFeaturesUseCase,
 } from '@lazy-map/application';
 
 @Module({
@@ -54,6 +60,12 @@ import {
       },
     },
     {
+      provide: ValidateSeedUseCase,
+      useFactory: () => {
+        return new ValidateSeedUseCase();
+      },
+    },
+    {
       provide: GetMapUseCase,
       useFactory: (mapPersistence) => {
         return new GetMapUseCase(mapPersistence);
@@ -82,34 +94,22 @@ import {
       inject: ['IMapPersistencePort'],
     },
 
-    // Application services
+    // Provide Use Cases with string tokens for injection
     {
-      provide: MapService,
-      useFactory: (
-        generateMapUseCase,
-        validateMapSettingsUseCase,
-        getMapUseCase,
-        getMapTileUseCase,
-        listMapsUseCase,
-        getUserMapsUseCase,
-      ) => {
-        return new MapService(
-          generateMapUseCase,
-          validateMapSettingsUseCase,
-          getMapUseCase,
-          getMapTileUseCase,
-          listMapsUseCase,
-          getUserMapsUseCase,
-        );
-      },
-      inject: [
-        GenerateMapUseCase,
-        ValidateMapSettingsUseCase,
-        GetMapUseCase,
-        GetMapTileUseCase,
-        ListMapsUseCase,
-        GetUserMapsUseCase,
-      ],
+      provide: 'GenerateMapUseCase',
+      useExisting: GenerateMapUseCase,
+    },
+    {
+      provide: 'GetMapUseCase',
+      useExisting: GetMapUseCase,
+    },
+    {
+      provide: 'GetUserMapsUseCase',
+      useExisting: GetUserMapsUseCase,
+    },
+    {
+      provide: 'ValidateSeedUseCase',
+      useExisting: ValidateSeedUseCase,
     },
 
     // User use cases
@@ -134,12 +134,92 @@ import {
       },
       inject: ['IUserRepository'],
     },
+    {
+      provide: GoogleSignInUseCase,
+      useFactory: (userRepository, oauthService, logger) => {
+        return new GoogleSignInUseCase(userRepository, oauthService, logger);
+      },
+      inject: ['IUserRepository', 'IOAuthService', 'ILogger'],
+    },
+    {
+      provide: LinkGoogleAccountUseCase,
+      useFactory: (userRepository, oauthService, logger) => {
+        return new LinkGoogleAccountUseCase(userRepository, oauthService, logger);
+      },
+      inject: ['IUserRepository', 'IOAuthService', 'ILogger'],
+    },
+
+    // Feature use cases
+    {
+      provide: GetAllFeaturesUseCase,
+      useFactory: (reliefRepo, naturalRepo, artificialRepo, culturalRepo) => {
+        return new GetAllFeaturesUseCase(reliefRepo, naturalRepo, artificialRepo, culturalRepo);
+      },
+      inject: ['IReliefFeatureRepository', 'INaturalFeatureRepository', 'IArtificialFeatureRepository', 'ICulturalFeatureRepository'],
+    },
+    {
+      provide: GetFeatureByIdUseCase,
+      useFactory: (reliefRepo, naturalRepo, artificialRepo, culturalRepo) => {
+        return new GetFeatureByIdUseCase(reliefRepo, naturalRepo, artificialRepo, culturalRepo);
+      },
+      inject: ['IReliefFeatureRepository', 'INaturalFeatureRepository', 'IArtificialFeatureRepository', 'ICulturalFeatureRepository'],
+    },
+    {
+      provide: GetFeatureStatisticsUseCase,
+      useFactory: (reliefRepo, naturalRepo, artificialRepo, culturalRepo) => {
+        return new GetFeatureStatisticsUseCase(reliefRepo, naturalRepo, artificialRepo, culturalRepo);
+      },
+      inject: ['IReliefFeatureRepository', 'INaturalFeatureRepository', 'IArtificialFeatureRepository', 'ICulturalFeatureRepository'],
+    },
+    {
+      provide: ClearAllFeaturesUseCase,
+      useFactory: (reliefRepo, naturalRepo, artificialRepo, culturalRepo) => {
+        return new ClearAllFeaturesUseCase(reliefRepo, naturalRepo, artificialRepo, culturalRepo);
+      },
+      inject: ['IReliefFeatureRepository', 'INaturalFeatureRepository', 'IArtificialFeatureRepository', 'ICulturalFeatureRepository'],
+    },
+    {
+      provide: 'GetAllFeaturesUseCase',
+      useExisting: GetAllFeaturesUseCase,
+    },
+    {
+      provide: 'GetFeatureByIdUseCase',
+      useExisting: GetFeatureByIdUseCase,
+    },
+    {
+      provide: 'GetFeatureStatisticsUseCase',
+      useExisting: GetFeatureStatisticsUseCase,
+    },
+    {
+      provide: 'ClearAllFeaturesUseCase',
+      useExisting: ClearAllFeaturesUseCase,
+    },
   ],
   exports: [
-    MapService,
+    // Export Map Use Cases
+    GenerateMapUseCase,
+    GetMapUseCase,
+    GetUserMapsUseCase,
+    ValidateSeedUseCase,
+    'GenerateMapUseCase',
+    'GetMapUseCase',
+    'GetUserMapsUseCase',
+    'ValidateSeedUseCase',
+    // Export User Use Cases
     RegisterUserUseCase,
     LoginUserUseCase,
     GetUserProfileUseCase,
+    GoogleSignInUseCase,
+    LinkGoogleAccountUseCase,
+    // Export Feature Use Cases
+    GetAllFeaturesUseCase,
+    GetFeatureByIdUseCase,
+    GetFeatureStatisticsUseCase,
+    ClearAllFeaturesUseCase,
+    'GetAllFeaturesUseCase',
+    'GetFeatureByIdUseCase',
+    'GetFeatureStatisticsUseCase',
+    'ClearAllFeaturesUseCase',
   ],
 })
 export class ApplicationModule {}

@@ -1,198 +1,75 @@
 # Lazy Map
 
-> **A Clean Architecture battlemap generation system for tabletop RPGs**
+> **Deterministic tabletop RPG map generator built with Clean Architecture**
 
-Generate beautiful, customizable battlemaps with deterministic seeded generation, perfect for D&D, Pathfinder, and other tabletop RPGs.
+Generate beautiful, reproducible grid-based maps for D&D, Pathfinder, and other tabletop RPGs. Same seed always generates the same map - perfect for consistent gameplay and testing.
 
 ## ✨ Features
 
-### 🎲 **Seeded Map Generation**
-- **Reproducible Maps** - Same seed always generates the same map
-- **String Seeds** - Use memorable names like "forest-encounter-01"  
-- **Coordinated Randomization** - Consistent results across terrain, forests, rivers
-- **Perfect for Testing** - Reliable map generation for development and debugging
-
-### 🗺️ **Rich Map Content**
-- **Dynamic Terrain** - Plains, forests, mountains, water with realistic transitions
-- **Natural Features** - Dense forests, winding rivers, elevation changes
-- **Grid-Based Design** - Optimized for virtual tabletops (Roll20, FoundryVTT)
-- **Multiple Export Formats** - PNG, PDF, SVG, and JSON data
-
-### 🏗️ **Clean Architecture**
-- **Domain-Driven Design** - Organized around business concepts
-- **Testable Business Logic** - Pure domain layer with zero dependencies
-- **Flexible Infrastructure** - Easy to extend and maintain
-- **Type-Safe Development** - Full TypeScript coverage
+- **🎲 Deterministic Generation** - Same seed = same map, every time
+- **🗺️ Rich Terrain System** - Forests, rivers, mountains, settlements with realistic transitions
+- **📐 Grid-Based Design** - Optimized for virtual tabletops (Roll20, FoundryVTT)
+- **🏗️ Clean Architecture** - Domain-driven, testable, maintainable
+- **🌱 Seeded Randomization** - String or numeric seeds for memorable maps
 
 ## 🚀 Quick Start
 
-> ⚠️ **This project requires [pnpm](https://pnpm.io/) as the package manager. Using npm or yarn will fail.**
+### Prerequisites
+
+- **Node.js 18+**
+- **pnpm** (required - npm/yarn will not work)
+- **Docker** (optional, for PostgreSQL)
+
+### Installation
 
 ```bash
 # Install pnpm globally if you haven't already
 npm install -g pnpm
-# or
-curl -fsSL https://get.pnpm.io/install.sh | sh
 
-# Clone and install
+# Clone the repository
 git clone <repository-url>
 cd lazy-map
+
+# Install dependencies
 pnpm install
 
-# Set up database and environment
-docker-compose up -d      # Start PostgreSQL and Redis
-cp .env.example .env      # Configure environment
+# Set up environment files
+cp apps/backend/.env.example apps/backend/.env
+cp apps/frontend/.env.example apps/frontend/.env
 
 # Start development servers
-pnpm run dev
-
-# Frontend: http://localhost:5173
-# Backend API: http://localhost:3000
-# API Docs: http://localhost:3000/api/docs
+pnpm dev
 ```
 
-### 📦 Why pnpm?
-- **Faster installs** - Efficient dependency sharing
-- **Workspace support** - Perfect for monorepos
-- **Strict mode** - Better dependency management
-- **Smaller disk usage** - Hard-linked dependencies
+**Access Points:**
+- 🎨 **Frontend**: http://localhost:5173
+- 🔧 **Backend API**: http://localhost:3000
+- 📚 **API Docs**: http://localhost:3000/api/docs
 
-## 🏛️ Architecture
+## 📖 Usage
 
-This project follows **Clean Architecture** principles with **Domain-Driven Design**:
+### Basic Map Generation
 
-```
-┌───────────────────────────────────────────┐
-│                Interface Layer            │
-│  ┌─────────────────┐ ┌─────────────────┐  │
-│  │   Frontend      │ │   Backend       │  │
-│  │   (React)       │ │   (NestJS)      │  │
-│  └─────────────────┘ └─────────────────┘  │
-└───────────────────────────────────────────┘
-              │ HTTP/REST │
-              ▼           ▼
-┌───────────────────────────────────────────────┐
-│             Application Layer                 │
-│  ┌─────────────────────────────────────────┐  │
-│  │        @lazy-map/application            │  │
-│  │   Use Cases, Commands, Queries          │  │
-│  │                                         │  │
-│  │ contexts/                               │  │
-│  │ ├── natural/   (forest use cases)       │  │
-│  │ └── [others]/  (future contexts)        │  │
-│  │                                         │  │
-│  │ map/                                    │  │
-│  │ └── use-cases/ (core map generation)    │  │
-│  └─────────────────────────────────────────┘  │
-└───────────────────────────────────────────────┘
-              │
-              ▼
-┌───────────────────────────────────────────────┐
-│              Domain Layer                     │
-│  ┌─────────────────────────────────────────┐  │
-│  │         @lazy-map/domain                │  │
-│  │  Entities, Value Objects, Services      │  │
-│  │                                         │  │
-│  │ common/     (shared kernel)             │  │
-│  │ contexts/   (bounded contexts)          │  │
-│  │ ├── relief/     (terrain, topo)         │  │
-│  │ ├── natural/    (forests, rivers)       │  │
-│  │ ├── artificial/ (roads, buildings)      │  │
-│  │ └── cultural/   (settlements)           │  │
-│  │ map/        (map aggregate)             │  │
-│  │ shared/     (constants, types)          │  │
-│  └─────────────────────────────────────────┘  │
-└───────────────────────────────────────────────┘
-              │
-              ▼
-┌───────────────────────────────────────────────┐
-│           Infrastructure Layer                │
-│  ┌─────────────────────────────────────────┐  │
-│  │      @lazy-map/infrastructure           │  │
-│  │   Adapters, External Services           │  │
-│  │                                         │  │
-│  │ adapters/   (port implementations)      │  │
-│  │ contexts/   (context-specific impls)    │  │
-│  │ map/        (map persistence)           │  │
-│  │ common/     (shared infrastructure)     │  │
-│  └─────────────────────────────────────────┘  │
-└───────────────────────────────────────────────┘
-```
-
-### 📦 Package Structure
-
-| Package | Purpose | Dependencies |
-|---------|---------|--------------|
-| **@lazy-map/domain** | Business logic, entities, rules | None (pure) |
-| **@lazy-map/application** | Use cases, orchestration | Domain only |
-| **@lazy-map/infrastructure** | Adapters, external APIs | Domain + Application |
-
-### 🗂️ Project Structure
-
-```
-lazy-map/
-├── apps/                          # Applications (interface layer)
-│   ├── backend/                   # NestJS API server
-│   │   ├── src/
-│   │   │   ├── main.ts           # Application entry point
-│   │   │   ├── app.module.ts     # Root module
-│   │   │   ├── maps.controller.ts # Map generation endpoints
-│   │   │   └── dto/              # API data transfer objects
-│   │   └── test/                 # Integration tests
-│   └── frontend/                 # React application
-│       ├── src/
-│       │   ├── App.tsx           # Main React component
-│       │   ├── main.tsx          # Application entry
-│       │   └── assets/           # Static assets
-│       └── public/               # Public files
-├── packages/                     # Clean Architecture layers
-│   ├── domain/                   # @lazy-map/domain
-│   │   └── src/
-│   │       ├── common/           # Shared kernel
-│   │       │   ├── entities/     # Cross-context entities
-│   │       │   ├── value-objects/# Common values
-│   │       │   ├── services/     # Domain services
-│   │       │   └── repositories/ # Repository interfaces
-│   │       ├── contexts/         # Bounded contexts
-│   │       │   ├── relief/       # Terrain & elevation
-│   │       │   ├── natural/      # Forests, rivers, lakes
-│   │       │   ├── artificial/   # Buildings, roads
-│   │       │   └── cultural/     # Settlements, regions
-│   │       ├── map/              # Map aggregate root
-│   │       │   ├── entities/     # GridMap, MapTile
-│   │       │   ├── services/     # Map generation
-│   │       │   └── repositories/ # Map persistence
-│   │       └── shared/           # Constants, utilities
-│   ├── application/              # @lazy-map/application
-│   │   └── src/
-│   │       ├── common/           # Shared application logic
-│   │       │   ├── ports/        # Output port interfaces
-│   │       │   ├── adapters/     # Input port adapters
-│   │       │   └── use-cases/    # Common use cases
-│   │       ├── contexts/         # Context-specific use cases
-│   │       │   └── natural/      # Forest/water use cases
-│   │       └── map/              # Map-related use cases
-│   │           ├── commands/     # Map generation commands
-│   │           ├── queries/      # Map query operations
-│   │           └── use-cases/    # Core map use cases
-│   └── infrastructure/           # @lazy-map/infrastructure
-│       └── src/
-│           ├── adapters/         # Port implementations
-│           ├── common/           # Shared infrastructure
-│           ├── contexts/         # Context implementations
-│           └── map/              # Map persistence
-└── Configuration files (package.json, turbo.json, etc.)
-```
-
-## 🎮 Usage Examples
-
-### Generate a Forest Battle Map
 ```typescript
+// Simple map with string seed
 const map = await mapApi.generateMap({
   name: "Goblin Ambush",
-  seed: "forest-battle-01",
+  seed: "forest-encounter-01",  // Memorable string seed
   width: 25,
-  height: 20,
+  height: 20
+});
+
+// Customized terrain distribution
+const map = await mapApi.generateMap({
+  seed: "mountain-pass",
+  width: 30,
+  height: 30,
+  terrainDistribution: {
+    grassland: 0.3,
+    forest: 0.2,
+    mountain: 0.4,
+    water: 0.1
+  },
   generateForests: true,
   forestSettings: {
     forestDensity: 0.4,
@@ -202,21 +79,26 @@ const map = await mapApi.generateMap({
 });
 ```
 
-### Create Deterministic Content
+### Deterministic Seeds
+
 ```typescript
-// These will ALWAYS generate identical maps
+// String seeds for memorable, shareable maps
 const map1 = await generateMap({ seed: "dragon-lair" });
 const map2 = await generateMap({ seed: "dragon-lair" });
-// map1 === map2 (content-wise)
+// map1 and map2 are identical
+
+// Numeric seeds for testing
+const testMap = await generateMap({ seed: 12345 });
 ```
 
-### Export for Virtual Tabletops
+### Export Formats
+
 ```typescript
-// PNG for Roll20/FoundryVTT
+// PNG for virtual tabletops
 await mapApi.export(mapId, {
   format: 'png',
-  includeGrid: true,
-  scale: 2.0
+  scale: 2.0,
+  includeGrid: true
 });
 
 // PDF for printing
@@ -224,191 +106,241 @@ await mapApi.export(mapId, {
   format: 'pdf',
   includeCoordinates: true
 });
+
+// JSON for data analysis
+const mapData = await mapApi.export(mapId, { format: 'json' });
 ```
+
+## 🏗️ Architecture
+
+This project follows **Clean Architecture** principles with **Domain-Driven Design** for maximum maintainability and testability.
+
+### Layer Structure
+
+```
+┌─────────────────────────────────────────┐
+│         Interface Layer                  │
+│   (Controllers, React Components)        │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│         Application Layer                │
+│   (Use Cases, Commands, Queries)         │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│           Domain Layer                   │
+│   (Entities, Value Objects, Rules)       │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│        Infrastructure Layer              │
+│   (Database, External APIs, Adapters)    │
+└─────────────────────────────────────────┘
+```
+
+### Core Principles
+
+1. **Controllers → Use Cases → Repositories**
+   - Controllers only call Use Cases
+   - Never direct service instantiation
+   - Clean dependency injection
+
+2. **Single Responsibility**
+   - One file = one entity/use case
+   - Split files exceeding ~100 lines
+   - No multi-entity files
+
+3. **Domain Purity**
+   - No randomness in domain entities
+   - All entities are deterministic
+   - Side effects only in infrastructure
+
+4. **No Backwards Compatibility**
+   - Clean refactoring when needed
+   - Remove legacy code immediately
+   - No `@deprecated` annotations
+
+### Project Structure
+
+```
+lazy-map/
+├── apps/                    # Applications
+│   ├── backend/            # NestJS API server
+│   │   ├── src/
+│   │   │   ├── *.controller.ts    # HTTP endpoints
+│   │   │   ├── application/       # Use case providers
+│   │   │   └── infrastructure/    # External services
+│   │   └── .env.example
+│   └── frontend/           # React application
+│       ├── src/
+│       └── .env.example
+│
+├── packages/               # Clean Architecture layers
+│   ├── domain/            # Business logic (pure)
+│   │   └── src/
+│   │       ├── common/           # Shared kernel
+│   │       ├── contexts/         # Bounded contexts
+│   │       │   ├── relief/       # Terrain, elevation
+│   │       │   ├── natural/      # Forests, water
+│   │       │   ├── artificial/   # Buildings, roads
+│   │       │   └── cultural/     # Settlements
+│   │       └── map/              # Map aggregate root
+│   │
+│   ├── application/       # Use cases & orchestration
+│   │   └── src/
+│   │       ├── map/              # Map generation use cases
+│   │       ├── features/         # Feature management
+│   │       └── contexts/         # Context-specific use cases
+│   │
+│   └── infrastructure/    # External integrations
+│       └── src/
+│           ├── adapters/         # Port implementations
+│           ├── persistence/      # Database
+│           └── services/         # External services
+│
+└── docker-compose.yml     # Development services
+```
+
+### Domain Contexts
+
+| Context | Responsibility | Key Entities |
+|---------|---------------|--------------|
+| **Relief** | Terrain & topography | Mountain, Hill, Valley, Plateau |
+| **Natural** | Natural features | Forest, River, Lake, Spring, Pond, Wetland |
+| **Artificial** | Man-made structures | Building, Road, Bridge |
+| **Cultural** | Settlements & regions | Settlement, Territory, Region |
 
 ## 🛠️ Development
 
-### Prerequisites
-- **Node.js 18+**
-- **pnpm** (package manager)
-- **TypeScript** knowledge
-- Basic understanding of **Clean Architecture** concepts
+### Commands
 
-### 🏗️ Recent Architecture Refactoring
-
-This project has been refactored to follow **Clean Architecture** and **Domain-Driven Design** principles:
-
-**✅ What was done:**
-- **Context-based organization** - Domain logic organized by bounded contexts (relief, natural, artificial, cultural)
-- **Clean dependency boundaries** - Each layer only depends on inner layers
-- **Monorepo structure** - Separate packages for each architectural layer
-- **Seeded generation** - Deterministic map generation with coordinated randomization
-- **Removed obsolete folders** - Cleaned up old structure artifacts
-
-**🎯 Current Architecture Benefits:**
-- **Domain-First** - Business rules are independent and testable
-- **Context Boundaries** - Clear separation of concerns by domain area  
-- **Type Safety** - Full TypeScript coverage with strict configuration
-- **Testability** - Each layer can be tested in isolation
-- **Maintainability** - Clear structure makes changes predictable
-
-### Project Commands
 ```bash
 # Development
-pnpm run dev          # Start both frontend and backend
-pnpm run dev:frontend # React app only
-pnpm run dev:backend  # NestJS API only
-
-# Building
-pnpm run build        # Build all packages
-pnpm run build:domain # Build domain layer only
+pnpm dev              # Start frontend + backend
+pnpm dev:backend      # Backend only (port 3000)
+pnpm dev:frontend     # Frontend only (port 5173)
 
 # Testing
-pnpm run test         # Run all tests
-pnpm run test:domain  # Domain unit tests
-pnpm run test:e2e     # End-to-end tests
+pnpm test            # Run all tests
+pnpm test:domain     # Domain unit tests (pure)
+pnpm test:e2e        # End-to-end tests
+
+# Building
+pnpm build           # Build all packages
+pnpm build:domain    # Build domain layer only
 
 # Code Quality
-pnpm run lint         # Lint all packages
-pnpm run format       # Format code
-pnpm run typecheck    # TypeScript validation
+pnpm lint            # ESLint + Prettier
+pnpm typecheck       # TypeScript validation
+pnpm format          # Auto-format code
 ```
 
-### Adding New Features
+### Database Options
 
-1. **Start with Domain** - Define entities and business rules
-2. **Add Use Cases** - Implement application logic  
-3. **Create Infrastructure** - Add persistence and external services
-4. **Build Interface** - Add UI components and API endpoints
-
-Example:
-```typescript
-// 1. Domain Entity
-export class River extends MapFeature {
-  constructor(
-    id: FeatureId,
-    private path: Position[],
-    private width: number
-  ) {}
-}
-
-// 2. Use Case  
-export class GenerateRiverUseCase {
-  async execute(command: GenerateRiverCommand) {
-    // Orchestrate domain services
-  }
-}
-
-// 3. Infrastructure
-export class RiverRepository implements IRiverRepository {
-  // Database access
-}
-
-// 4. Interface
-export class RiverController {
-  @Post('/rivers')
-  async generateRiver(@Body() request: GenerateRiverRequest) {
-    // HTTP endpoint
-  }
-}
-```
-
-## 🗄️ Database Setup
-
-The project uses **PostgreSQL** for data persistence and **Redis** for caching. The quickest way to get started is with Docker:
-
+#### Option 1: In-Memory (Default)
 ```bash
-# Start database services
+# No setup needed - just run the app
+pnpm dev
+```
+
+#### Option 2: PostgreSQL
+```bash
+# Start PostgreSQL with Docker
 docker-compose up -d
 
-# Configure environment
-cp .env.example .env
+# Update backend/.env
+USE_DATABASE=true
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+DB_NAME=lazy_map
 
-# Run migrations (if any)
-pnpm run migration:run
+# Run the app
+pnpm dev
 ```
 
-**📖 For detailed database setup, configuration, and production deployment, see [DATABASE_SETUP.md](./docs/DATABASE_SETUP.md)**
+### Environment Variables
 
-## 📚 Documentation
+**Backend** (`apps/backend/.env`):
+```env
+# Application
+NODE_ENV=development
+PORT=3000
 
-| Document | Description |
-|----------|-------------|
-| [CLAUDE.md](./CLAUDE.md) | **Complete architecture guide** |
-| [DATABASE_SETUP.md](./docs/DATABASE_SETUP.md) | **Database configuration and deployment** |
-| [NAMING_CONVENTIONS.md](./docs/NAMING_CONVENTIONS.md) | **File naming standards and patterns** |
-| [GOOGLE_OAUTH_INTEGRATION_PLAN.md](./docs/GOOGLE_OAUTH_INTEGRATION_PLAN.md) | **Google Sign-In integration blueprint** |
-| [Backend README](./apps/backend/README.md) | NestJS API documentation |
-| [Frontend README](./apps/frontend/README.md) | React app documentation |
+# Database (optional)
+USE_DATABASE=false  # Set true for PostgreSQL
 
-## 🧪 Testing
+# Authentication
+JWT_SECRET=your-secret-key-here
 
-### Domain Tests (Pure Unit Tests)
+# Google OAuth (optional)
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+```
+
+**Frontend** (`apps/frontend/.env`):
+```env
+# API Configuration
+VITE_API_URL=http://localhost:3000
+VITE_API_TIMEOUT=30000
+```
+
+## 🧪 Testing Strategy
+
+### Domain Tests (Pure)
 ```bash
 pnpm --filter @lazy-map/domain test
 ```
-- No mocks needed (zero dependencies)
+- No mocks needed
 - Test business logic in isolation
-- Fast execution, comprehensive coverage
+- Fast execution
 
-### Application Tests (Use Case Tests)  
+### Application Tests
 ```bash
 pnpm --filter @lazy-map/application test
 ```
-- Mock external dependencies (ports)
-- Test orchestration logic
-- Verify use case workflows
+- Mock repositories
+- Test use case orchestration
+- Verify workflows
 
 ### Integration Tests
 ```bash
 pnpm test:e2e
 ```
 - Full system testing
-- Real database and external services
-- End-to-end user scenarios
+- Real database connections
+- API endpoint validation
 
-## 🚀 Deployment
+## 📚 Documentation
 
-### Production Build
-```bash
-pnpm run build
-pnpm run start:prod
-```
-
-### Docker Support
-```dockerfile
-FROM node:18-alpine
-COPY . /app
-WORKDIR /app
-RUN pnpm install && pnpm build
-CMD ["pnpm", "start:prod"]
-```
-
-### Environment Configuration
-```env
-# Backend
-PORT=3000
-DATABASE_URL=postgresql://...
-REDIS_URL=redis://...
-
-# Frontend  
-VITE_API_URL=https://api.lazymap.com
-VITE_ENABLE_ANALYTICS=true
-```
+| Document | Description |
+|----------|-------------|
+| [CLAUDE.md](./CLAUDE.md) | AI agent guide & architecture details |
+| [docs/DATABASE_SETUP.md](./docs/DATABASE_SETUP.md) | Database configuration guide |
+| [docs/ENVIRONMENT_STRATEGY.md](./docs/ENVIRONMENT_STRATEGY.md) | Environment separation strategy |
+| [docs/GOOGLE_OAUTH_INTEGRATION_PLAN.md](./docs/GOOGLE_OAUTH_INTEGRATION_PLAN.md) | OAuth implementation plan |
 
 ## 🤝 Contributing
 
-1. **Follow Clean Architecture** - Respect dependency boundaries
-2. **Domain-First Development** - Start with business concepts
-3. **Test Coverage** - Maintain comprehensive testing
-4. **Type Safety** - Leverage TypeScript fully
-5. **Documentation** - Update docs with changes
-6. **Naming Conventions** - Follow patterns in [NAMING_CONVENTIONS.md](./docs/NAMING_CONVENTIONS.md)
+### Development Flow
 
-### Code Style
-- **ESLint + Prettier** - Automated formatting
-- **Conventional Commits** - Structured commit messages
-- **TypeScript Strict** - No `any` types allowed
+1. **Start with Domain** - Define entities and business rules
+2. **Create Use Cases** - Implement application logic
+3. **Add Infrastructure** - Connect external services
+4. **Build Interface** - Add controllers/UI
+
+### Code Standards
+
+- ✅ Follow Clean Architecture principles
+- ✅ One entity/use case per file
+- ✅ Write tests for new features
+- ✅ Update documentation
+- ❌ No backwards compatibility code
+- ❌ No `Math.random()` in domain layer
+- ❌ No direct service usage in controllers
+
+See [CLAUDE.md](./CLAUDE.md) for detailed architecture rules and patterns.
 
 ## 📄 License
 
@@ -416,4 +348,4 @@ MIT License - see [LICENSE](./LICENSE) for details.
 
 ---
 
-**Built with Clean Architecture principles for maintainable, testable, and scalable battlemap generation** ⚔️
+**Built with Clean Architecture for maintainable, testable map generation** ⚔️

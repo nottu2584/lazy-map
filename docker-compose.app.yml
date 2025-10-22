@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # Backend application
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: lazy-map-backend
+    env_file:
+      - ./apps/backend/.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./apps/backend:/app
+      - /app/node_modules
+    command: npm run start:dev
+    networks:
+      - lazy-map-network
+
+  # Frontend application
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    container_name: lazy-map-frontend
+    env_file:
+      - ./apps/frontend/.env
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./apps/frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host
+    networks:
+      - lazy-map-network
+
+  # Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: lazy-map-postgres
+    env_file:
+      - ./apps/backend/.env
+    environment:
+      POSTGRES_DB: ${DB_NAME:-lazy_map}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./packages/infrastructure/src/adapters/persistence/postgres/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lazy-map-network
+
+  # Redis cache
+  redis:
+    image: redis:7-alpine
+    container_name: lazy-map-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lazy-map-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  lazy-map-network:
+    driver: bridge

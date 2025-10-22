@@ -1,9 +1,19 @@
 import { Controller, Post, Body, Get, Param, UseGuards, Request, Inject } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiResponse as ApiResponseType } from '@lazy-map/application';
-import { MapGrid, ILogger, SeedService } from '@lazy-map/domain';
-import { GenerateMapCommand, MapGenerationResult, GetMapQuery } from '@lazy-map/application';
-import { MapService } from '@lazy-map/application';
+import { MapGrid, ILogger } from '@lazy-map/domain';
+import {
+  GenerateMapCommand,
+  MapGenerationResult,
+  GetMapQuery,
+  GenerateMapUseCase,
+  GetMapUseCase,
+  GetUserMapsUseCase,
+  GetUserMapsQuery,
+  ValidateSeedUseCase,
+  ValidateSeedCommand,
+  ValidateSeedResult
+} from '@lazy-map/application';
 import { GenerateMapDto, ValidateSeedDto } from './dto';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
@@ -11,10 +21,16 @@ import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
 @ApiTags('maps')
 @Controller('maps')
 export class MapsController {
-  private readonly seedService = new SeedService();
-  
+
   constructor(
-    private readonly mapService: MapService,
+    @Inject('GenerateMapUseCase')
+    private readonly generateMapUseCase: GenerateMapUseCase,
+    @Inject('GetMapUseCase')
+    private readonly getMapUseCase: GetMapUseCase,
+    @Inject('GetUserMapsUseCase')
+    private readonly getUserMapsUseCase: GetUserMapsUseCase,
+    @Inject('ValidateSeedUseCase')
+    private readonly validateSeedUseCase: ValidateSeedUseCase,
     @Inject(LOGGER_TOKEN) private readonly logger: ILogger,
   ) {}
 
@@ -82,8 +98,8 @@ export class MapsController {
         biomeType: (dto.biomeType as any) || 'temperate'
       };
       
-      // Execute use case via application service
-      const result: MapGenerationResult = await this.mapService.generateMap(command);
+      // Execute use case directly
+      const result: MapGenerationResult = await this.generateMapUseCase.execute(command);
       
       operationLogger.info('Map generation completed successfully', {
         metadata: {
@@ -130,7 +146,7 @@ export class MapsController {
       });
 
       const query: GetMapQuery = { mapId: id };
-      const result = await this.mapService.getMap(query);
+      const result = await this.getMapUseCase.execute(query);
       
       if (!result.success || !result.data) {
         operationLogger.warn('Map not found', {
@@ -174,7 +190,8 @@ export class MapsController {
   @ApiResponse({ status: 401, description: 'Authentication required' })
   async getMyMaps(@Request() req: any): Promise<ApiResponseType<MapGrid[]>> {
     try {
-      const result = await this.mapService.getUserMaps(req.user.userId);
+      const query = new GetUserMapsQuery(req.user.userId);
+      const result = await this.getUserMapsUseCase.execute(query);
       
       return {
         success: result.success,
@@ -193,41 +210,14 @@ export class MapsController {
   @Post('seeds/validate')
   @ApiOperation({ summary: 'Validate a seed value for map generation' })
   @ApiResponse({ status: 200, description: 'Seed validation result' })
-  async validateSeed(@Body() dto: ValidateSeedDto): Promise<ApiResponseType<{
-    valid: boolean;
-    normalizedSeed?: number;
-    error?: string;
-    warnings?: string[];
-    metadata: {
-      originalValue: string | number;
-      inputType: 'string' | 'number';
-      wasNormalized: boolean;
-      algorithmVersion: string;
-      timestamp: string;
-    };
-  }>> {
+  async validateSeed(@Body() dto: ValidateSeedDto): Promise<ApiResponseType<ValidateSeedResult>> {
     try {
-      const validation = this.seedService.validateSeedInput(dto.seed);
-      const inputType = typeof dto.seed === 'string' ? 'string' : 'number';
-      
+      const result = this.validateSeedUseCase.execute(dto.seed);
+
       return {
         success: true,
-        data: {
-          valid: validation.isValid,
-          normalizedSeed: validation.seed?.getValue(),
-          error: validation.errors?.[0],
-          warnings: validation.warnings,
-          metadata: {
-            originalValue: dto.seed,
-            inputType: inputType,
-            wasNormalized: validation.seed !== undefined && 
-                          ((typeof dto.seed === 'number' && validation.seed.getValue() !== dto.seed) ||
-                           (typeof dto.seed === 'string')),
-            algorithmVersion: '1.0.0',
-            timestamp: new Date().toISOString()
-          }
-        },
-        message: validation.isValid ? 'Seed is valid' : 'Seed validation failed'
+        data: result,
+        message: result.valid ? 'Seed is valid' : 'Seed validation failed'
       };
     } catch (error) {
       return {

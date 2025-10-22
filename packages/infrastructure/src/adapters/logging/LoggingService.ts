@@ -1,11 +1,11 @@
 import { Injectable, Logger as NestLogger } from '@nestjs/common';
-import { 
-  ILogger, 
-  LogLevel, 
-  LogEntry, 
-  ErrorContext, 
-  isLazyMapError, 
-  extractErrorInfo 
+import {
+  ILogger,
+  LogLevel,
+  LogEntry,
+  ErrorContext,
+  isDomainError,
+  extractErrorInfo
 } from '@lazy-map/domain';
 
 /**
@@ -161,7 +161,7 @@ export class LoggingService implements ILogger {
       errorCode: errorInfo.code,
       errorCategory: errorInfo.category,
       errorSeverity: errorInfo.severity,
-      isStructuredError: isLazyMapError(error)
+      isStructuredError: isDomainError(error)
     });
   }
 

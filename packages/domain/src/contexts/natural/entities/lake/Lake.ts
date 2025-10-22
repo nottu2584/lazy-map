@@ -1,4 +1,5 @@
-import { FeatureCategory, FeatureId, MapFeature } from '../../../../common/entities/MapFeature';
+import { FeatureCategory, MapFeature } from '../../../../common/entities/MapFeature';
+import { FeatureId } from '../../../../common/value-objects';
 import { SpatialBounds } from '../../../../common/value-objects/SpatialBounds';
 import { Position } from '../../../../common/value-objects/Position';
 import { WaterLevel } from '../../value-objects/WaterLevel';

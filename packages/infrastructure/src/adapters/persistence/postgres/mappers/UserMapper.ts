@@ -20,13 +20,20 @@ export class UserMapper {
     return User.fromPersistence(
       new UserId(entity.id),
       Email.fromString(entity.email),
-      Password.fromHash(entity.passwordHash),
+      entity.passwordHash ? Password.fromHash(entity.passwordHash) : null,
       Username.fromString(entity.username),
       UserRole.fromString(entity.role),
       UserStatus.fromString(entity.status),
       entity.createdAt,
       entity.updatedAt,
-      entity.lastMapGeneratedAt || null
+      entity.lastLoginAt || null,
+      entity.suspendedAt || null,
+      entity.suspendedBy ? new UserId(entity.suspendedBy) : null,
+      entity.suspensionReason || null,
+      entity.authProvider || 'local',
+      entity.googleId || undefined,
+      entity.profilePicture || undefined,
+      entity.emailVerified || false
     );
   }
 
@@ -37,18 +44,26 @@ export class UserMapper {
     return new UserEntity({
       id: user.id.value,
       email: user.email.value,
-      passwordHash: user.password.value,
+      passwordHash: user.password ? user.password.value : null,
       username: user.username.value,
       role: user.role.value,
       status: user.status.value,
+      authProvider: user.authProvider,
+      googleId: user.googleId || null,
+      profilePicture: user.profilePicture || null,
+      emailVerified: user.emailVerified,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-      lastMapGeneratedAt: user.lastLoginAt,
+      lastLoginAt: user.lastLoginAt,
+      suspendedAt: user.suspendedAt,
+      suspendedBy: user.suspendedBy ? user.suspendedBy.value : null,
+      suspensionReason: user.suspensionReason,
       // Default values for fields not in domain model
       preferences: {},
       subscriptionTier: 'free',
       mapGenerationLimit: 10,
-      mapsGeneratedThisMonth: 0
+      mapsGeneratedThisMonth: 0,
+      lastMapGeneratedAt: null
     });
   }
 

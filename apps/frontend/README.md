@@ -16,13 +16,13 @@ This frontend application serves as the **Interface layer** in our Clean Archite
 ```
 ┌─────────────────┐
 │   Frontend      │ ◄── YOU ARE HERE
-│   (React)       │ 
+│   (React)       │
 └─────────────────┘
          │ HTTP/REST API
          ▼
 ┌─────────────────┐
 │   Backend       │ (NestJS API)
-│   (Port 3000)   │ 
+│   (Port 3000)   │
 └─────────────────┘
          │
          ▼

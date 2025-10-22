@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import {
   MapGenerationService,
   VegetationGenerationService,
@@ -11,9 +12,14 @@ import {
   JwtAuthenticationService,
   InMemoryUserRepository,
   InMemoryMapHistoryRepository,
+  GoogleOAuthService,
+  createGoogleOAuthService,
+  LoggingModule,
+  LOGGER_TOKEN,
 } from '@lazy-map/infrastructure';
 
 @Module({
+  imports: [ConfigModule, LoggingModule],
   providers: [
     // Domain service implementations
     { provide: 'IMapGenerationService', useClass: MapGenerationService },
@@ -31,6 +37,23 @@ import {
     { provide: 'IUserRepository', useClass: InMemoryUserRepository },
     { provide: 'IMapHistoryRepository', useClass: InMemoryMapHistoryRepository },
 
+    // OAuth service
+    {
+      provide: 'IOAuthService',
+      useFactory: (configService: ConfigService, logger) => {
+        const clientId = configService.get<string>('GOOGLE_CLIENT_ID', '');
+        const jwtSecret = configService.get<string>('JWT_SECRET', 'your-secret-key');
+        return createGoogleOAuthService(clientId, jwtSecret, logger);
+      },
+      inject: [ConfigService, LOGGER_TOKEN],
+    },
+
+    // Logger
+    {
+      provide: 'ILogger',
+      useExisting: LOGGER_TOKEN,
+    },
+
     // Topographic feature repository
     TopographicFeatureRepository,
   ],
@@ -45,6 +68,8 @@ import {
     'IAuthenticationPort',
     'IUserRepository',
     'IMapHistoryRepository',
+    'IOAuthService',
+    'ILogger',
     TopographicFeatureRepository,
   ],
 })

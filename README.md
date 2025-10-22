@@ -39,9 +39,13 @@ git clone <repository-url>
 cd lazy-map
 pnpm install
 
-# Set up database and environment
+# Set up environment files (separate for each app)
+cp apps/backend/.env.example apps/backend/.env
+cp apps/frontend/.env.example apps/frontend/.env
+# Edit each .env file with your specific values
+
+# Set up database services
 docker-compose up -d      # Start PostgreSQL and Redis
-cp .env.example .env      # Configure environment
 
 # Start development servers
 pnpm run dev
@@ -318,15 +322,19 @@ export class RiverController {
 The project uses **PostgreSQL** for data persistence and **Redis** for caching. The quickest way to get started is with Docker:
 
 ```bash
-# Start database services
+# Start database services only
 docker-compose up -d
 
-# Configure environment
-cp .env.example .env
+# Or start full application stack (with apps)
+docker-compose -f docker-compose.app.yml up -d
 
 # Run migrations (if any)
 pnpm run migration:run
 ```
+
+**Note:** There are two Docker configurations:
+- `docker-compose.yml` - Database services only (PostgreSQL, Redis)
+- `docker-compose.app.yml` - Full stack including backend and frontend applications
 
 **📖 For detailed database setup, configuration, and production deployment, see [DATABASE_SETUP.md](./docs/DATABASE_SETUP.md)**
 
@@ -338,6 +346,7 @@ pnpm run migration:run
 | [DATABASE_SETUP.md](./docs/DATABASE_SETUP.md) | **Database configuration and deployment** |
 | [NAMING_CONVENTIONS.md](./docs/NAMING_CONVENTIONS.md) | **File naming standards and patterns** |
 | [GOOGLE_OAUTH_INTEGRATION_PLAN.md](./docs/GOOGLE_OAUTH_INTEGRATION_PLAN.md) | **Google Sign-In integration blueprint** |
+| [ENVIRONMENT_STRATEGY.md](./docs/ENVIRONMENT_STRATEGY.md) | **Environment file separation strategy** |
 | [Backend README](./apps/backend/README.md) | NestJS API documentation |
 | [Frontend README](./apps/frontend/README.md) | React app documentation |
 
@@ -385,16 +394,37 @@ CMD ["pnpm", "start:prod"]
 ```
 
 ### Environment Configuration
-```env
-# Backend
-PORT=3000
-DATABASE_URL=postgresql://...
-REDIS_URL=redis://...
 
-# Frontend  
-VITE_API_URL=https://api.lazymap.com
-VITE_ENABLE_ANALYTICS=true
+Environment files are separated by application for better security and deployment flexibility:
+
+**Backend** (`apps/backend/.env`):
+```env
+# Application
+NODE_ENV=development
+PORT=3000
+API_PREFIX=api
+
+# CORS (optional - defaults to * in development)
+# CORS_ORIGIN=https://your-frontend.com
+
+# JWT Authentication
+JWT_SECRET=your-secret-key-here-change-in-production
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 ```
+
+**Frontend** (`apps/frontend/.env`):
+```env
+# API Configuration
+VITE_API_URL=http://localhost:3000
+VITE_API_TIMEOUT=30000
+
+# Google OAuth (to be implemented)
+# VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+```
+
+**Note**: The application currently uses in-memory persistence. Database configuration (PostgreSQL) will be added when persistence is implemented.
 
 ## 🤝 Contributing
 

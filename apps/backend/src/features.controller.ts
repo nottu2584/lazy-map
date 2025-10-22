@@ -1,13 +1,28 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, Inject } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
-import { ApiResponse as ApiResponseType } from '@lazy-map/application';
+import {
+  ApiResponse as ApiResponseType,
+  GetAllFeaturesUseCase,
+  GetFeatureByIdUseCase,
+  GetFeatureStatisticsUseCase,
+  ClearAllFeaturesUseCase,
+  FeatureContext,
+} from '@lazy-map/application';
 import { MapFeature, FeatureId } from '@lazy-map/domain';
-import { TopographicFeatureRepository } from '@lazy-map/infrastructure';
 
 @ApiTags('features')
 @Controller('features')
 export class FeaturesController {
-  constructor(private readonly featureRepository: TopographicFeatureRepository) {}
+  constructor(
+    @Inject('GetAllFeaturesUseCase')
+    private readonly getAllFeaturesUseCase: GetAllFeaturesUseCase,
+    @Inject('GetFeatureByIdUseCase')
+    private readonly getFeatureByIdUseCase: GetFeatureByIdUseCase,
+    @Inject('GetFeatureStatisticsUseCase')
+    private readonly getFeatureStatisticsUseCase: GetFeatureStatisticsUseCase,
+    @Inject('ClearAllFeaturesUseCase')
+    private readonly clearAllFeaturesUseCase: ClearAllFeaturesUseCase,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all map features' })
@@ -15,32 +30,14 @@ export class FeaturesController {
   @ApiQuery({ name: 'context', required: false, enum: ['relief', 'natural', 'artificial', 'cultural'] })
   async getAllFeatures(@Query('context') context?: string): Promise<ApiResponseType<MapFeature[]>> {
     try {
-      let features: MapFeature[];
-
-      if (context) {
-        switch (context) {
-          case 'relief':
-            features = await this.featureRepository.relief.getAllReliefFeatures();
-            break;
-          case 'natural':
-            // Get only forests since TreePlant doesn't extend MapFeature
-            features = await this.featureRepository.natural.getAllForests();
-            break;
-          case 'artificial':
-            features = await this.featureRepository.artificial.getAllArtificialFeatures();
-            break;
-          case 'cultural':
-            features = await this.featureRepository.cultural.getAllCulturalFeatures();
-            break;
-          default:
-            return {
-              success: false,
-              error: 'Invalid context. Must be one of: relief, natural, artificial, cultural',
-            };
-        }
-      } else {
-        features = await this.featureRepository.getAllFeatures();
+      if (context && !['relief', 'natural', 'artificial', 'cultural'].includes(context)) {
+        return {
+          success: false,
+          error: 'Invalid context. Must be one of: relief, natural, artificial, cultural',
+        };
       }
+
+      const features = await this.getAllFeaturesUseCase.execute(context as FeatureContext);
 
       return {
         success: true,
@@ -66,8 +63,8 @@ export class FeaturesController {
     total: number;
   }>> {
     try {
-      const stats = await this.featureRepository.getFeatureStatistics();
-      
+      const stats = await this.getFeatureStatisticsUseCase.execute();
+
       return {
         success: true,
         data: stats,
@@ -89,15 +86,15 @@ export class FeaturesController {
   async getFeature(@Param('id') id: string): Promise<ApiResponseType<MapFeature>> {
     try {
       const featureId = new FeatureId(id);
-      const feature = await this.featureRepository.findFeatureById(featureId);
-      
+      const feature = await this.getFeatureByIdUseCase.execute(featureId);
+
       if (!feature) {
         return {
           success: false,
           error: 'Feature not found',
         };
       }
-      
+
       return {
         success: true,
         data: feature,
@@ -116,8 +113,8 @@ export class FeaturesController {
   @ApiResponse({ status: 200, description: 'All features cleared successfully' })
   async clearAllFeatures(): Promise<ApiResponseType<string>> {
     try {
-      await this.featureRepository.clearAll();
-      
+      await this.clearAllFeaturesUseCase.execute();
+
       return {
         success: true,
         data: 'All features cleared successfully',

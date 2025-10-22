@@ -36,11 +36,6 @@ export interface ListMapsQuery {
 }
 
 /**
- * Legacy alias for ListMapsQuery
- */
-export interface MapQuery extends ListMapsQuery {}
-
-/**
  * Map summary for list views
  */
 export interface MapSummary {
@@ -127,7 +122,7 @@ export interface IMapQueryPort {
   /**
    * Finds maps based on query criteria
    */
-  findMaps(query: MapQuery): Promise<MapListResult>;
+  findMaps(query: ListMapsQuery): Promise<MapListResult>;
 
   /**
    * Gets detailed information about a specific tile

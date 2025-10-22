@@ -1,6 +1,7 @@
-import { MapFeature, FeatureId, FeatureCategory } from '../../../common/entities/MapFeature';
+import { FeatureId } from '../../../common/entities/../value-objects';
+import { FeatureCategory, MapFeature } from '../../../common/entities/MapFeature';
 import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
-import { Plant, PlantCategory, PlantSpecies, HerbaceousPlant, ShrubPlant, GroundCoverPlant } from './Plant';
+import { Plant, PlantCategory, PlantSpecies } from './Plant';
 
 /**
  * Grassland-specific feature type

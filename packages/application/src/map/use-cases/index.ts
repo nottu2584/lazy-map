@@ -6,3 +6,4 @@ export * from './ValidateMapSettingsUseCase';
 export * from './GetUserMapHistoryUseCase';
 export * from './SaveMapToHistoryUseCase';
 export * from './GetUserMapsUseCase';
+export * from './ValidateSeedUseCase';

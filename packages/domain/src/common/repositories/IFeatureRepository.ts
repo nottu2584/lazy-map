@@ -1,5 +1,5 @@
-import { MapFeature, FeatureId, FeatureCategory } from '../entities/MapFeature';
-import { SpatialBounds } from '../value-objects/SpatialBounds';
+import { MapFeature, FeatureCategory } from '../entities/MapFeature';
+import { SpatialBounds, FeatureId } from '../value-objects';
 
 /**
  * Query parameters for feature searches

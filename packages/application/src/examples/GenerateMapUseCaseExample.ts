@@ -1,5 +1,5 @@
 import { ILogger } from '@lazy-map/domain';
-import { SeedErrors, isLazyMapError } from '@lazy-map/domain';
+import { SeedErrors, isDomainError } from '@lazy-map/domain';
 
 /**
  * Example use case demonstrating logging system integration
@@ -365,14 +365,14 @@ export class GenerateMapUseCase {
   }
 
   private identifyFailurePoint(error: any): string {
-    if (isLazyMapError(error)) {
+    if (isDomainError(error)) {
       return error.details.context?.operation || 'unknown';
     }
     return error.constructor.name || 'unknown';
   }
 
   private isRetryableError(error: any): boolean {
-    if (isLazyMapError(error)) {
+    if (isDomainError(error)) {
       // Deterministic errors are generally not retryable
       return error.details.category !== 'DETERMINISTIC';
     }

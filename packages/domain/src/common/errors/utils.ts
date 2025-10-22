@@ -8,14 +8,6 @@ export function isDomainError(error: any): error is DomainError {
 }
 
 /**
- * Legacy type guard for backward compatibility
- * @deprecated Use isDomainError instead
- */
-export function isLazyMapError(error: any): error is DomainError {
-  return isDomainError(error);
-}
-
-/**
  * Extract error information for logging (data extraction only)
  */
 export function extractErrorInfo(error: any): {

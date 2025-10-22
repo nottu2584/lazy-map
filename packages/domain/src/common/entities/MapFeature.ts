@@ -1,27 +1,4 @@
-import { SpatialBounds } from '../value-objects/SpatialBounds';
-
-/**
- * Unique identifier for features
- */
-export class FeatureId {
-  constructor(public readonly value: string) {
-    if (!value || value.trim().length === 0) {
-      throw new Error('FeatureId cannot be empty');
-    }
-  }
-
-  static generate(): FeatureId {
-    return new FeatureId(`feat_${Math.random().toString(36).substr(2, 9)}`);
-  }
-
-  equals(other: FeatureId): boolean {
-    return this.value === other.value;
-  }
-
-  toString(): string {
-    return this.value;
-  }
-}
+import { SpatialBounds, FeatureId } from '../value-objects';
 
 /**
  * Feature categories for classification

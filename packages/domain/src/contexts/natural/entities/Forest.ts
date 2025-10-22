@@ -1,5 +1,6 @@
 import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
-import { MapFeature, FeatureId, FeatureCategory } from '../../../common/entities/MapFeature';
+import { MapFeature, FeatureCategory } from '../../../common/entities/MapFeature';
+import { FeatureId } from '../../../common/entities/../value-objects';
 import { TreePlant, PlantSpecies } from './Plant';
 
 /**

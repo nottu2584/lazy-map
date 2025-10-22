@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MapsController } from './maps.controller';
@@ -13,6 +14,12 @@ import { AdminModule } from './admin/admin.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: [
+        '.env',                    // First priority: local .env in backend directory
+        '.env.local',              // Second priority: local overrides
+        join(__dirname, '../.env'), // Fallback to backend directory if running from dist
+      ],
+      expandVariables: true,        // Allow ${VAR} syntax in .env files
     }),
     ApplicationModule,
     InfrastructureModule,

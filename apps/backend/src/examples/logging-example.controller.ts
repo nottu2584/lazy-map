@@ -10,7 +10,7 @@ import {
 import { ILogger } from '@lazy-map/domain';
 import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
 import { GenerateMapDto } from '../dto';
-import { isLazyMapError } from '@lazy-map/domain';
+import { isDomainError } from '@lazy-map/domain';
 
 /**
  * Example controller showing integration of the logging system
@@ -78,8 +78,8 @@ export class LoggingExampleController {
       });
 
       // Handle different error types appropriately
-      if (isLazyMapError(error)) {
-        // LazyMapError has structured information
+      if (isDomainError(error)) {
+        // DomainError has structured information
         throw new HttpException(
           {
             message: error.message,

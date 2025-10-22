@@ -46,6 +46,12 @@ export class LoginUserUseCase {
         return { success: false, errors };
       }
 
+      // Check if user has a password (OAuth users don't)
+      if (!user.password) {
+        errors.push('This account uses Google Sign-In. Please sign in with Google.');
+        return { success: false, errors };
+      }
+
       // Verify password
       const isPasswordValid = await this.passwordService.verify(password, user.password);
       if (!isPasswordValid) {

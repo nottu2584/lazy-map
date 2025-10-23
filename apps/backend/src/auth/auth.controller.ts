@@ -1,42 +1,42 @@
 import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  UseGuards,
-  Request,
-  HttpStatus,
-  UnauthorizedException,
-  ConflictException,
-  BadRequestException,
-  Inject,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import {
-  RegisterUserUseCase,
-  LoginUserUseCase,
-  GetUserProfileUseCase,
-  GoogleSignInUseCase,
-  LinkGoogleAccountUseCase,
-  RegisterUserCommand,
-  LoginUserCommand,
   GetUserProfileQuery,
+  GetUserProfileUseCase,
   GoogleSignInCommand,
+  GoogleSignInUseCase,
   LinkGoogleAccountCommand,
+  LinkGoogleAccountUseCase,
+  LoginUserCommand,
+  LoginUserUseCase,
+  RegisterUserCommand,
+  RegisterUserUseCase,
 } from '@lazy-map/application';
-import {
-  RegisterUserDto,
-  LoginUserDto,
-  AuthResponseDto,
-  UserProfileDto,
-  GoogleSignInDto,
-  LinkGoogleAccountDto
-} from './dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ILogger } from '@lazy-map/domain';
 import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
+import {
+  BadRequestException,
+  Body,
+  ConflictException,
+  Controller,
+  Get,
+  HttpStatus,
+  Inject,
+  Post,
+  Request,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  AuthResponseDto,
+  GoogleSignInDto,
+  LinkGoogleAccountDto,
+  LoginUserDto,
+  RegisterUserDto,
+  UserProfileDto
+} from './dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
-@ApiTags('Authentication')
+@ApiTags('authentication')
 @Controller('auth')
 export class AuthController {
   constructor(

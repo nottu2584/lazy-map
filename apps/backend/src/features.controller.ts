@@ -1,14 +1,14 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, Inject } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import {
   ApiResponse as ApiResponseType,
+  ClearAllFeaturesUseCase,
+  FeatureContext,
   GetAllFeaturesUseCase,
   GetFeatureByIdUseCase,
   GetFeatureStatisticsUseCase,
-  ClearAllFeaturesUseCase,
-  FeatureContext,
 } from '@lazy-map/application';
-import { MapFeature, FeatureId } from '@lazy-map/domain';
+import { FeatureId, MapFeature } from '@lazy-map/domain';
+import { Controller, Delete, Get, Inject, Param, Query } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('features')
 @Controller('features')

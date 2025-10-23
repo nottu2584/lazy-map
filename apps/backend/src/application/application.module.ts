@@ -1,23 +1,24 @@
-import { Module } from '@nestjs/common';
-import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 import {
+  ClearAllFeaturesUseCase,
   GenerateMapUseCase,
-  ValidateMapSettingsUseCase,
-  ValidateSeedUseCase,
-  GetMapUseCase,
-  GetMapTileUseCase,
-  ListMapsUseCase,
-  GetUserMapsUseCase,
-  RegisterUserUseCase,
-  LoginUserUseCase,
-  GetUserProfileUseCase,
-  GoogleSignInUseCase,
-  LinkGoogleAccountUseCase,
   GetAllFeaturesUseCase,
   GetFeatureByIdUseCase,
   GetFeatureStatisticsUseCase,
-  ClearAllFeaturesUseCase,
+  GetMapTileUseCase,
+  GetMapUseCase,
+  GetUserMapsUseCase,
+  GetUserProfileUseCase,
+  GoogleSignInUseCase,
+  HealthCheckUseCase,
+  LinkGoogleAccountUseCase,
+  ListMapsUseCase,
+  LoginUserUseCase,
+  RegisterUserUseCase,
+  ValidateMapSettingsUseCase,
+  ValidateSeedUseCase,
 } from '@lazy-map/application';
+import { Module } from '@nestjs/common';
+import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 
 @Module({
   imports: [InfrastructureModule],
@@ -66,6 +67,12 @@ import {
       },
     },
     {
+      provide: HealthCheckUseCase,
+      useFactory: () => {
+        return new HealthCheckUseCase();
+      },
+    },
+    {
       provide: GetMapUseCase,
       useFactory: (mapPersistence) => {
         return new GetMapUseCase(mapPersistence);
@@ -110,6 +117,10 @@ import {
     {
       provide: 'ValidateSeedUseCase',
       useExisting: ValidateSeedUseCase,
+    },
+    {
+      provide: 'HealthCheckUseCase',
+      useExisting: HealthCheckUseCase,
     },
 
     // User use cases
@@ -201,10 +212,12 @@ import {
     GetMapUseCase,
     GetUserMapsUseCase,
     ValidateSeedUseCase,
+    HealthCheckUseCase,
     'GenerateMapUseCase',
     'GetMapUseCase',
     'GetUserMapsUseCase',
     'ValidateSeedUseCase',
+    'HealthCheckUseCase',
     // Export User Use Cases
     RegisterUserUseCase,
     LoginUserUseCase,

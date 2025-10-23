@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { HealthController } from './health.controller';
 import { MapsController } from './maps.controller';
 import { FeaturesController } from './features.controller';
 import { ApplicationModule } from './application/application.module';
@@ -26,7 +25,7 @@ import { AdminModule } from './admin/admin.module';
     AuthModule,
     AdminModule,
   ],
-  controllers: [AppController, MapsController, FeaturesController],
-  providers: [AppService],
+  controllers: [HealthController, MapsController, FeaturesController],
+  providers: [],
 })
 export class AppModule {}

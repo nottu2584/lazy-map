@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
-import { HealthController } from './health.controller';
-import { MapsController } from './maps.controller';
-import { FeaturesController } from './features.controller';
-import { ApplicationModule } from './application/application.module';
-import { InfrastructureModule } from './infrastructure/infrastructure.module';
-import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
+import { ApplicationModule } from './application/application.module';
+import { AuthModule } from './auth/auth.module';
+import { FeaturesController } from './features.controller';
+import { HealthController } from './health.controller';
+import { InfrastructureModule } from './infrastructure/infrastructure.module';
+import { MapsController } from './maps.controller';
+import { TestErrorController } from './test-error.controller';
 
 @Module({
   imports: [
@@ -25,7 +26,13 @@ import { AdminModule } from './admin/admin.module';
     AuthModule,
     AdminModule,
   ],
-  controllers: [HealthController, MapsController, FeaturesController],
+  controllers: [
+    HealthController,
+    MapsController,
+    FeaturesController,
+    // Add test controller only in development
+    ...(process.env.NODE_ENV !== 'production' ? [TestErrorController] : []),
+  ],
   providers: [],
 })
 export class AppModule {}

@@ -1,8 +1,13 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
+import {
+  DomainErrorFilter,
+  GlobalExceptionFilter,
+  HttpExceptionFilter,
+} from './common/filters';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,6 +19,17 @@ async function bootstrap() {
     whitelist: true,
     forbidNonWhitelisted: true,
   }));
+
+  // Setup global exception filters
+  // Order matters: most specific first, most general last
+  const logger = app.get('ILogger'); // Get the logger from DI container
+
+  // Register all filters in a single call with correct order
+  app.useGlobalFilters(
+    new GlobalExceptionFilter(logger),    // Most general (catch-all)
+    new HttpExceptionFilter(logger),      // HTTP exceptions
+    new DomainErrorFilter(logger)         // Most specific (domain errors)
+  );
 
   // Enable CORS with configuration
   const nodeEnv = configService.get<string>('NODE_ENV', 'development');

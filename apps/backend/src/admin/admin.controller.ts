@@ -1,35 +1,34 @@
 import {
-  Controller,
-  Get,
-  Put,
-  Delete,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
   Param,
+  Post,
+  Put,
   Query,
   UseGuards,
-  HttpStatus,
-  HttpException,
   ValidationPipe
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiParam } from '@nestjs/swagger';
-import { AdminService } from './admin.service';
-import { AuthGuard } from '../auth/auth.guard';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AdminGuard as AdminRoleGuard } from '../auth/admin.guard';
+import { AuthGuard } from '../auth/auth.guard';
+import { AdminService } from './admin.service';
 import {
-  ListUsersDto,
-  UpdateUserDto,
-  SuspendUserDto,
-  ReactivateUserDto,
-  PromoteUserDto,
+  AdminActionResponseDto,
   DeleteUserDto,
-  UserStatsResponseDto,
+  ListUsersDto,
+  PromoteUserDto,
+  SuspendUserDto,
+  UpdateUserDto,
   UserListResponseDto,
   UserResponseDto,
-  AdminActionResponseDto
+  UserStatsResponseDto
 } from './dto';
 
-@ApiTags('Admin - User Management')
+@ApiTags('administration')
 @ApiBearerAuth()
 @Controller('admin/users')
 @UseGuards(AuthGuard, AdminRoleGuard)

@@ -1,7 +1,7 @@
 import { FeatureId } from '../../../common/entities/../value-objects';
 import { FeatureCategory, MapFeature } from '../../../common/entities/MapFeature';
 import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
-import { Plant, PlantCategory, PlantSpecies } from './Plant';
+import { Plant, PlantCategory, PlantSpecies } from './plant';
 
 /**
  * Grassland-specific feature type

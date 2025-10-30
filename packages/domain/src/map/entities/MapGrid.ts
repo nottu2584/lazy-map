@@ -12,8 +12,13 @@ export class MapId {
     }
   }
 
-  static generate(): MapId {
-    return new MapId(`map_${Math.random().toString(36).substr(2, 9)}`);
+  static generate(seedValue: string | number): MapId {
+    // Use a deterministic approach based on the seed
+    const hash = seedValue.toString().split('').reduce((acc, char) => {
+      return ((acc << 5) - acc) + char.charCodeAt(0);
+    }, 0);
+    const id = Math.abs(hash).toString(36).substring(0, 9).padEnd(9, '0');
+    return new MapId(`map_${id}`);
   }
 
   equals(other: MapId): boolean {
@@ -37,10 +42,10 @@ export class MapMetadata {
     public readonly tags: string[] = []
   ) {}
 
-  withUpdate(author?: string, description?: string): MapMetadata {
+  withUpdate(updatedAt: Date, author?: string, description?: string): MapMetadata {
     return new MapMetadata(
       this.createdAt,
-      new Date(),
+      updatedAt,
       author || this.author,
       description || this.description,
       this.tags
@@ -87,12 +92,14 @@ export class MapGrid {
   static createEmpty(
     name: string,
     dimensions: Dimensions,
+    seedValue: string | number,
+    createdAt: Date,
     cellSize: number = 32,
     author?: string,
     ownerId?: UserId
   ): MapGrid {
-    const id = MapId.generate();
-    const metadata = new MapMetadata(new Date(), new Date(), author);
+    const id = MapId.generate(seedValue);
+    const metadata = new MapMetadata(createdAt, createdAt, author);
     
     // Create empty tiles
     const tiles: MapTile[][] = [];

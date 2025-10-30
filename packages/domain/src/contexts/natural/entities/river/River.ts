@@ -2,6 +2,7 @@ import { FeatureCategory, MapFeature } from '../../../../common/entities/MapFeat
 import { FeatureId } from '../../../../common/value-objects';
 import { SpatialBounds } from '../../../../common/value-objects/SpatialBounds';
 import { Position } from '../../../../common/value-objects/Position';
+import { IRandomGenerator } from '../../../../common/interfaces/IRandomGenerator';
 import { FlowDirection } from '../../value-objects/FlowDirection';
 import { WaterLevel } from '../../value-objects/WaterLevel';
 import { WaterQuality } from '../../value-objects/WaterQuality';
@@ -202,7 +203,7 @@ export class River extends MapFeature {
   getFlowDirectionAt(position: Position): FlowDirection {
     // Find the nearest path point and return its flow direction
     if (this._path.length === 0) {
-      return FlowDirection.random(2); // Default moderate flow
+      return FlowDirection.create(0, 2); // Default moderate flow, north direction
     }
 
     let nearestPoint = this._path[0];
@@ -285,7 +286,7 @@ export class River extends MapFeature {
   }
 
   // Generate natural bends and curves
-  addNaturalMeanders(intensity: number = 0.5): void {
+  addNaturalMeanders(randomGenerator: IRandomGenerator, intensity: number = 0.5): void {
     if (this._path.length < 3) return;
 
     const meanderIntensity = Math.max(0, Math.min(1, intensity));
@@ -296,11 +297,11 @@ export class River extends MapFeature {
       newPath.push(point);
 
       // Add meander points between existing points
-      if (i < this._path.length - 1 && Math.random() < meanderIntensity) {
+      if (i < this._path.length - 1 && randomGenerator.next() < meanderIntensity) {
         const nextPoint = this._path[i + 1];
         const midPosition = new Position(
-          (point.position.x + nextPoint.position.x) / 2 + (Math.random() - 0.5) * 2,
-          (point.position.y + nextPoint.position.y) / 2 + (Math.random() - 0.5) * 2,
+          (point.position.x + nextPoint.position.x) / 2 + randomGenerator.nextFloat(-1, 1),
+          (point.position.y + nextPoint.position.y) / 2 + randomGenerator.nextFloat(-1, 1),
         );
 
         const meanderPoint = new RiverPoint(

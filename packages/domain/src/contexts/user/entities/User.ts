@@ -36,8 +36,14 @@ export class User {
     profilePicture?: string,
     emailVerified?: boolean
   ) {
-    this._createdAt = createdAt || new Date();
-    this._updatedAt = updatedAt || new Date();
+    if (!createdAt) {
+      throw new Error('createdAt date is required for User entity');
+    }
+    if (!updatedAt) {
+      throw new Error('updatedAt date is required for User entity');
+    }
+    this._createdAt = createdAt;
+    this._updatedAt = updatedAt;
     this._lastLoginAt = lastLoginAt || null;
     this._role = role || UserRole.user();
     this._status = status || UserStatus.active();
@@ -69,15 +75,30 @@ export class User {
   get emailVerified(): boolean { return this._emailVerified; }
 
   // Business methods
-  static create(email: Email, password: Password, username: Username): User {
+  static create(
+    email: Email,
+    password: Password,
+    username: Username,
+    createdAt: Date
+  ): User {
     const id = UserId.generate();
-    return new User(id, email, password, username);
+    return new User(
+      id,
+      email,
+      password,
+      username,
+      UserRole.user(),
+      UserStatus.active(),
+      createdAt,
+      createdAt
+    );
   }
 
   static createFromGoogle(
     googleId: string,
     email: Email,
     username: Username,
+    createdAt: Date,
     profilePicture?: string
   ): User {
     const id = UserId.generate();
@@ -88,8 +109,8 @@ export class User {
       username,
       UserRole.user(),
       UserStatus.active(),
-      new Date(),
-      new Date(),
+      createdAt,
+      createdAt,
       null,
       null,
       null,
@@ -139,72 +160,72 @@ export class User {
     );
   }
 
-  changeEmail(newEmail: Email): void {
+  changeEmail(newEmail: Email, updatedAt: Date): void {
     if (this._email.equals(newEmail)) {
       return; // No change needed
     }
     this._email = newEmail;
-    this.markUpdated();
+    this.markUpdated(updatedAt);
   }
 
-  changePassword(newPassword: Password): void {
+  changePassword(newPassword: Password, updatedAt: Date): void {
     if (this._authProvider !== 'local') {
       throw new Error('Cannot change password for OAuth users');
     }
     this._password = newPassword;
-    this.markUpdated();
+    this.markUpdated(updatedAt);
   }
 
-  changeUsername(newUsername: Username): void {
+  changeUsername(newUsername: Username, updatedAt: Date): void {
     if (this._username.equals(newUsername)) {
       return; // No change needed
     }
     this._username = newUsername;
-    this.markUpdated();
+    this.markUpdated(updatedAt);
   }
 
-  recordLogin(): void {
-    this._lastLoginAt = new Date();
-    this.markUpdated();
+  recordLogin(loginTime: Date): void {
+    this._lastLoginAt = loginTime;
+    this.markUpdated(loginTime);
   }
 
   // Administrative operations
-  suspend(adminId: UserId, reason: string): void {
+  suspend(adminId: UserId, reason: string, suspendedAt: Date): void {
     if (this._status.isSuspended()) {
       throw new Error('User is already suspended');
     }
-    
+
     this._status = UserStatus.suspended();
-    this._suspendedAt = new Date();
+    this._suspendedAt = suspendedAt;
     this._suspendedBy = adminId;
     this._suspensionReason = reason;
-    this.markUpdated();
+    this.markUpdated(suspendedAt);
   }
 
-  reactivate(): void {
+  reactivate(updatedAt: Date): void {
     if (!this._status.isSuspended()) {
       throw new Error('User is not suspended');
     }
-    
+
     this._status = UserStatus.active();
     this._suspendedAt = null;
     this._suspendedBy = null;
     this._suspensionReason = null;
-    this.markUpdated();
+    this.markUpdated(updatedAt);
   }
 
-  promote(newRole: UserRole): void {
+  promote(newRole: UserRole, updatedAt: Date): void {
     if (this._role.equals(newRole)) {
       return; // No change needed
     }
-    
+
     this._role = newRole;
-    this.markUpdated();
+    this.markUpdated(updatedAt);
   }
 
-  deactivate(): void {
+  deactivate(updatedAt: Date): void {
     this._status = UserStatus.deactivated();
-    this.markUpdated();
+    this.markUpdated(updatedAt);
   }
 
   // Permission checks
@@ -241,27 +262,27 @@ export class User {
     return this._googleId !== undefined;
   }
 
-  linkGoogleAccount(googleId: string, profilePicture?: string): void {
+  linkGoogleAccount(googleId: string, updatedAt: Date, profilePicture?: string): void {
     if (this._googleId) {
       throw new Error('User already has a Google account linked');
     }
     this._googleId = googleId;
     this._profilePicture = profilePicture;
     this._emailVerified = true;
-    this.markUpdated();
+    this.markUpdated(updatedAt);
   }
 
-  unlinkGoogleAccount(): void {
+  unlinkGoogleAccount(updatedAt: Date): void {
     if (!this._password) {
       throw new Error('Cannot unlink Google account without a password');
     }
     this._googleId = undefined;
     this._profilePicture = undefined;
-    this.markUpdated();
+    this.markUpdated(updatedAt);
   }
 
-  private markUpdated(): void {
-    this._updatedAt = new Date();
+  private markUpdated(updatedAt: Date): void {
+    this._updatedAt = updatedAt;
   }
 
   equals(other: User): boolean {

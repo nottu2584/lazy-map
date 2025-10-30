@@ -2,6 +2,7 @@ import { FeatureCategory, MapFeature } from '../../../../common/entities/MapFeat
 import { FeatureId } from '../../../../common/value-objects';
 import { SpatialBounds } from '../../../../common/value-objects/SpatialBounds';
 import { Position } from '../../../../common/value-objects/Position';
+import { IRandomGenerator } from '../../../../common/interfaces/IRandomGenerator';
 import { WaterLevel } from '../../value-objects/WaterLevel';
 import { WaterQuality } from '../../value-objects/WaterQuality';
 import { LakeFormation } from './enums/LakeFormation';
@@ -265,7 +266,7 @@ export class Lake extends MapFeature {
   }
 
   // Generate natural shoreline variation
-  generateNaturalShoreline(pointCount: number = 16): void {
+  generateNaturalShoreline(randomGenerator: IRandomGenerator, pointCount: number = 16): void {
     this._shoreline = [];
     const center = this.getCenterPosition();
     const baseRadius = Math.sqrt(this.area.dimensions.area / Math.PI);
@@ -274,7 +275,7 @@ export class Lake extends MapFeature {
       const angle = (i / pointCount) * 2 * Math.PI;
 
       // Add natural variation to radius
-      const radiusVariation = 0.8 + Math.random() * 0.4; // 0.8 to 1.2 multiplier
+      const radiusVariation = randomGenerator.nextFloat(0.8, 1.2); // 0.8 to 1.2 multiplier
       const radius = baseRadius * radiusVariation;
 
       const x = center.x + Math.cos(angle) * radius;
@@ -282,9 +283,9 @@ export class Lake extends MapFeature {
       const position = new Position(x, y);
 
       // Determine shore type based on formation and randomness
-      const shoreType = this.determineShoreTypeByFormation();
-      const depth = Math.random() * 2 + 1; // 1-3 depth at shore
-      const accessibility = Math.random() * 0.5 + 0.3; // 0.3-0.8 accessibility
+      const shoreType = this.determineShoreTypeByFormation(randomGenerator);
+      const depth = randomGenerator.nextFloat(1, 3); // 1-3 depth at shore
+      const accessibility = randomGenerator.nextFloat(0.3, 0.8); // 0.3-0.8 accessibility
 
       this.addShorelinePoint(new ShorelinePoint(position, shoreType, depth, accessibility));
     }
@@ -297,8 +298,8 @@ export class Lake extends MapFeature {
     );
   }
 
-  private determineShoreTypeByFormation(): ShorelineType {
-    const random = Math.random();
+  private determineShoreTypeByFormation(randomGenerator: IRandomGenerator): ShorelineType {
+    const random = randomGenerator.next();
 
     switch (this.formation) {
       case LakeFormation.VOLCANIC:

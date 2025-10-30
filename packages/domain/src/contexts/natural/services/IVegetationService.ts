@@ -1,6 +1,6 @@
 import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 import { Forest, Grassland, GrasslandType } from '../entities';
-import { Plant, PlantSpecies, PlantCategory } from '../entities/Plant';
+import { Plant, PlantSpecies, PlantCategory } from '../entities/plant';
 import { IRandomGenerator } from '../../../common/interfaces/IRandomGenerator';
 
 /**

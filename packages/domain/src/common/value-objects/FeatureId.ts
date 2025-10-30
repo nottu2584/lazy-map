@@ -10,10 +10,16 @@ export class FeatureId {
   }
 
   /**
-   * Generate a new random feature ID
+   * Generate a new deterministic feature ID based on a seed value
+   * @param seedValue - A string or number to use as the seed for ID generation
    */
-  static generate(): FeatureId {
-    return new FeatureId(`feat_${Math.random().toString(36).substr(2, 9)}`);
+  static generate(seedValue: string | number): FeatureId {
+    // Use a deterministic approach based on the seed
+    const hash = seedValue.toString().split('').reduce((acc, char) => {
+      return ((acc << 5) - acc) + char.charCodeAt(0);
+    }, 0);
+    const id = Math.abs(hash).toString(36).substring(0, 9).padEnd(9, '0');
+    return new FeatureId(`feat_${id}`);
   }
 
   /**

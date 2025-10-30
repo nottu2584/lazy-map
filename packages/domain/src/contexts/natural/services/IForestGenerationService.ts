@@ -1,6 +1,6 @@
 import { Forest } from '../entities/Forest';
 import { SpatialBounds, Seed } from '../../../common/value-objects';
-import { PlantSpecies } from '../entities/Plant';
+import { PlantSpecies } from '../entities/plant';
 
 /**
  * Forest generation settings for controlling tree placement and characteristics

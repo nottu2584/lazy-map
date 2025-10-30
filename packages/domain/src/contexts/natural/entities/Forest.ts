@@ -1,7 +1,7 @@
 import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 import { MapFeature, FeatureCategory } from '../../../common/entities/MapFeature';
 import { FeatureId } from '../../../common/entities/../value-objects';
-import { TreePlant, PlantSpecies } from './Plant';
+import { TreePlant, PlantSpecies } from './plant';
 
 /**
  * Forest-specific feature type

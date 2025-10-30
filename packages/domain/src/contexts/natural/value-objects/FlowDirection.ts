@@ -43,12 +43,12 @@ export class FlowDirection {
   }
 
   /**
-   * Create random flow direction
+   * Create flow direction with specified angle and velocity
+   * @param angle - The angle in degrees (0-360, where 0 = North)
+   * @param velocity - The flow velocity (0-10)
    */
-  static random(velocity?: number): FlowDirection {
-    const angle = Math.random() * 360;
-    const vel = velocity ?? Math.random() * 5 + 1; // 1-6 default range
-    return new FlowDirection(angle, vel);
+  static create(angle: number, velocity: number): FlowDirection {
+    return new FlowDirection(angle, velocity);
   }
 
   /**

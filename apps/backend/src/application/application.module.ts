@@ -1,5 +1,7 @@
 import {
+  ApplyFeatureMixingUseCase,
   ClearAllFeaturesUseCase,
+  DeleteUserUseCase,
   GenerateMapUseCase,
   GetAllFeaturesUseCase,
   GetFeatureByIdUseCase,
@@ -8,12 +10,18 @@ import {
   GetMapUseCase,
   GetUserMapsUseCase,
   GetUserProfileUseCase,
+  GetUserStatsUseCase,
   GoogleSignInUseCase,
   HealthCheckUseCase,
   LinkGoogleAccountUseCase,
   ListMapsUseCase,
+  ListUsersUseCase,
   LoginUserUseCase,
+  PromoteUserUseCase,
+  ReactivateUserUseCase,
   RegisterUserUseCase,
+  SuspendUserUseCase,
+  UpdateUserUseCase,
   ValidateMapSettingsUseCase,
   ValidateSeedUseCase,
 } from '@lazy-map/application';
@@ -23,12 +31,19 @@ import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 @Module({
   imports: [InfrastructureModule],
   providers: [
+    // Feature mixing use case (needed by GenerateMapUseCase)
+    {
+      provide: ApplyFeatureMixingUseCase,
+      useFactory: () => {
+        return new ApplyFeatureMixingUseCase();
+      },
+    },
     {
       provide: GenerateMapUseCase,
       useFactory: (
         mapGenService,
         vegetationGenService,
-        featureMixingService,
+        applyFeatureMixingUseCase,
         mapPersistence,
         randomGen,
         notificationPort,
@@ -37,7 +52,7 @@ import { InfrastructureModule } from '../infrastructure/infrastructure.module';
         return new GenerateMapUseCase(
           mapGenService,
           vegetationGenService,
-          featureMixingService,
+          applyFeatureMixingUseCase,
           mapPersistence,
           randomGen,
           notificationPort,
@@ -47,7 +62,7 @@ import { InfrastructureModule } from '../infrastructure/infrastructure.module';
       inject: [
         'IMapGenerationService',
         'IVegetationGenerationService',
-        'IFeatureMixingService',
+        ApplyFeatureMixingUseCase,
         'IMapPersistencePort',
         'IRandomGeneratorService',
         'INotificationPort',
@@ -160,6 +175,57 @@ import { InfrastructureModule } from '../infrastructure/infrastructure.module';
       inject: ['IUserRepository', 'IOAuthService', 'ILogger'],
     },
 
+    // Admin use cases
+    {
+      provide: ListUsersUseCase,
+      useFactory: (userRepository) => {
+        return new ListUsersUseCase(userRepository);
+      },
+      inject: ['IUserRepository'],
+    },
+    {
+      provide: UpdateUserUseCase,
+      useFactory: (userRepository) => {
+        return new UpdateUserUseCase(userRepository);
+      },
+      inject: ['IUserRepository'],
+    },
+    {
+      provide: SuspendUserUseCase,
+      useFactory: (userRepository) => {
+        return new SuspendUserUseCase(userRepository);
+      },
+      inject: ['IUserRepository'],
+    },
+    {
+      provide: ReactivateUserUseCase,
+      useFactory: (userRepository) => {
+        return new ReactivateUserUseCase(userRepository);
+      },
+      inject: ['IUserRepository'],
+    },
+    {
+      provide: PromoteUserUseCase,
+      useFactory: (userRepository) => {
+        return new PromoteUserUseCase(userRepository);
+      },
+      inject: ['IUserRepository'],
+    },
+    {
+      provide: DeleteUserUseCase,
+      useFactory: (userRepository) => {
+        return new DeleteUserUseCase(userRepository);
+      },
+      inject: ['IUserRepository'],
+    },
+    {
+      provide: GetUserStatsUseCase,
+      useFactory: (userRepository) => {
+        return new GetUserStatsUseCase(userRepository);
+      },
+      inject: ['IUserRepository'],
+    },
+
     // Feature use cases
     {
       provide: GetAllFeaturesUseCase,
@@ -224,6 +290,14 @@ import { InfrastructureModule } from '../infrastructure/infrastructure.module';
     GetUserProfileUseCase,
     GoogleSignInUseCase,
     LinkGoogleAccountUseCase,
+    // Export Admin Use Cases
+    ListUsersUseCase,
+    UpdateUserUseCase,
+    SuspendUserUseCase,
+    ReactivateUserUseCase,
+    PromoteUserUseCase,
+    DeleteUserUseCase,
+    GetUserStatsUseCase,
     // Export Feature Use Cases
     GetAllFeaturesUseCase,
     GetFeatureByIdUseCase,

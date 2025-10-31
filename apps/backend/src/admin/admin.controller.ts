@@ -82,7 +82,8 @@ export class AdminController {
       adminId,
       userId,
       email: updateDto.email,
-      username: updateDto.username
+      username: updateDto.username,
+      updatedAt: new Date()
     });
 
     if (!result.success) {
@@ -110,7 +111,8 @@ export class AdminController {
     const result = await this.adminService.suspendUser({
       adminId,
       userId,
-      reason: suspendDto.reason
+      reason: suspendDto.reason,
+      suspendedAt: new Date()
     });
 
     if (!result.success) {
@@ -136,7 +138,8 @@ export class AdminController {
   ): Promise<AdminActionResponseDto> {
     const result = await this.adminService.reactivateUser({
       adminId,
-      userId
+      userId,
+      reactivatedAt: new Date()
     });
 
     if (!result.success) {
@@ -164,7 +167,8 @@ export class AdminController {
     const result = await this.adminService.promoteUser({
       adminId,
       userId,
-      newRole: promoteDto.newRole
+      newRole: promoteDto.newRole,
+      promotedAt: new Date()
     });
 
     if (!result.success) {

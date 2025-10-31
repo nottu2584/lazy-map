@@ -18,8 +18,8 @@
     "dist/**",
     "node_modules/**",
     "coverage/**",
-    "**/*.spec.ts",
-    "**/*.spec.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx",
     "**/*.test.ts",
     "**/*.test.tsx"
   ]

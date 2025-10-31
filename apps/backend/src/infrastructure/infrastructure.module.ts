@@ -3,7 +3,6 @@ import {
   ConsoleNotificationService,
   createGoogleOAuthService,
   DatabaseModule,
-  FeatureMixingService,
   InMemoryMapHistoryRepository,
   InMemoryMapPersistence,
   InMemoryUserRepository,
@@ -36,7 +35,6 @@ const shouldUseDatabase = () => process.env.USE_DATABASE === 'true';
     // Domain service implementations
     { provide: 'IMapGenerationService', useClass: MapGenerationService },
     { provide: 'IVegetationGenerationService', useClass: VegetationGenerationService },
-    { provide: 'IFeatureMixingService', useClass: FeatureMixingService },
     { provide: 'IRandomGeneratorService', useClass: RandomGeneratorService },
 
     // Output port implementations
@@ -87,7 +85,6 @@ const shouldUseDatabase = () => process.env.USE_DATABASE === 'true';
   exports: [
     'IMapGenerationService',
     'IVegetationGenerationService',
-    'IFeatureMixingService',
     'IRandomGeneratorService',
     'IMapPersistencePort',
     'IMapRepository',

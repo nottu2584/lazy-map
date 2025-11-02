@@ -1,7 +1,7 @@
 import { Position } from '../../../../../common/value-objects/Position';
 import { FlowDirection } from '../../../value-objects/FlowDirection';
 import { RiverSegmentType } from '../enums/RiverSegmentType';
-import { ValidationError } from '../../../../../common/errors/DomainError';
+import { ValidationError } from '../../../../../common/errors/types/ValidationError';
 
 /**
  * Represents a point along a river's path

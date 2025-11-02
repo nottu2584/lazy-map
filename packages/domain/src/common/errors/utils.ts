@@ -1,4 +1,4 @@
-import { DomainError } from './DomainError';
+import { DomainError } from './base/DomainError';
 
 /**
  * Type guard to check if an error is a DomainError

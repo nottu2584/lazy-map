@@ -12,7 +12,8 @@ import { ILogger } from '@lazy-map/domain';
 export class LinkGoogleAccountCommand {
   constructor(
     public readonly userId: string,
-    public readonly idToken: string
+    public readonly idToken: string,
+    public readonly linkedAt: Date = new Date()
   ) {}
 }
 
@@ -78,7 +79,7 @@ export class LinkGoogleAccountUseCase {
       }
 
       // 6. Link the Google account
-      user.linkGoogleAccount(googleUserInfo.googleId, googleUserInfo.picture);
+      user.linkGoogleAccount(googleUserInfo.googleId, command.linkedAt, googleUserInfo.picture);
       await this.userRepository.save(user);
 
       this.logger.info('Google account linked successfully', {

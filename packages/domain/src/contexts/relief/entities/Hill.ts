@@ -53,26 +53,6 @@ export class Hill extends MapFeature {
     return HILL_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Hills can mix with natural features like forests
-    if (other.category === FeatureCategory.NATURAL) {
-      return true;
-    }
-
-    // Hills can mix with cultural features like territories
-    if (other.category === FeatureCategory.CULTURAL) {
-      return true;
-    }
-
-    // Hills can sometimes mix with artificial features like roads
-    if (other.category === FeatureCategory.ARTIFICIAL) {
-      const otherType = other.getType();
-      return otherType === 'road' || otherType === 'path';
-    }
-
-    // Hills cannot mix with other relief features
-    return false;
-  }
 
   /**
    * Calculates the movement penalty for traversing this hill

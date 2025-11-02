@@ -1,4 +1,3 @@
-export * from './IFeatureMixingService';
 export * from './RandomGenerationService';
 export * from './EntityIdGenerationService';
 export * from './SeedService';

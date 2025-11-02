@@ -552,7 +552,7 @@ describe('Hydrographic Entities', () => {
       expect(bog.supportsMigratory).toBe(false);
     });
 
-    // TODO: Implement getNestingAreas() method in Wetland class
+    // Future feature: getNestingAreas() method not yet implemented in Wetland class
     it.skip('should generate nesting areas', () => {
       const wetland = new Wetland(
         FeatureId.generate('test-id'),

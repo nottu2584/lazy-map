@@ -10,7 +10,8 @@ import { RIVER_FEATURE_TYPE } from './constants';
 import { RiverWidth, getWidthCategory } from './enums/RiverWidth';
 import { RiverSegmentType } from './enums/RiverSegmentType';
 import { RiverPoint } from './value-objects/RiverPoint';
-import { ValidationError, DomainRuleError } from '../../../../common/errors/DomainError';
+import { ValidationError } from '../../../../common/errors/types/ValidationError';
+import { DomainRuleError } from '../../../../common/errors/types/DomainRuleError';
 
 /**
  * River entity representing flowing water features
@@ -40,31 +41,6 @@ export class River extends MapFeature {
     return RIVER_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Rivers can mix with most features except buildings
-    if (other.category === FeatureCategory.ARTIFICIAL) {
-      const otherType = other.getType();
-      // Can mix with bridges, but not with buildings or roads directly
-      return otherType === 'bridge';
-    }
-
-    // Can mix with natural features (forests along banks)
-    if (other.category === FeatureCategory.NATURAL) {
-      return true;
-    }
-
-    // Can mix with relief features (rivers flow through valleys)
-    if (other.category === FeatureCategory.RELIEF) {
-      return true;
-    }
-
-    // Can mix with cultural features (settlements along rivers)
-    if (other.category === FeatureCategory.CULTURAL) {
-      return true;
-    }
-
-    return false;
-  }
 
   // Path management
   addPathPoint(point: RiverPoint): void {

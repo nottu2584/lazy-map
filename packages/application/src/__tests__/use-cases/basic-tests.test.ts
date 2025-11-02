@@ -3,8 +3,8 @@ import { describe, it, expect } from 'vitest';
 describe('Application Layer Basic Tests', () => {
   describe('Use Cases', () => {
     it('should be structurally sound after refactoring', () => {
-      // This is a placeholder test to ensure the test suite runs
-      // TODO: Re-implement comprehensive use case tests with new architecture
+      // Placeholder test to ensure the test suite runs
+      // Future work: Add comprehensive use case tests for all application layer use cases
       expect(true).toBe(true);
     });
 

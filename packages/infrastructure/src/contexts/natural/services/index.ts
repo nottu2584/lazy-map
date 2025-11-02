@@ -1,2 +1,2 @@
-export * from './HydrographicGenerationService';
-export * from './VegetationGenerationService';
+// Natural context services
+// (Legacy generation services have been removed - use tactical layer generators instead)

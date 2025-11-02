@@ -64,29 +64,6 @@ export class Settlement extends MapFeature {
     return SETTLEMENT_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Settlements can mix with natural features like rivers
-    if (other.category === FeatureCategory.NATURAL) {
-      const otherType = other.getType();
-      return otherType === 'river' || otherType === 'lake';
-    }
-    
-    // Settlements can mix with relief features like hills
-    if (other.category === FeatureCategory.RELIEF) {
-      const otherType = other.getType();
-      return otherType === 'hill' || otherType === 'valley' || otherType === 'plateau';
-    }
-    
-    // Settlements contain buildings and roads but don't really "mix" with them
-    // They define the area where buildings and roads exist
-    
-    // Settlements can mix with territories
-    if (other.category === FeatureCategory.CULTURAL) {
-      return other.getType() === 'territory';
-    }
-    
-    return false;
-  }
 
   /**
    * Add a building to the settlement

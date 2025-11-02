@@ -1,4 +1,4 @@
-import { ValidationError } from '../errors/DomainError';
+import { ValidationError } from '../errors/types/ValidationError';
 
 /**
  * Coordinates value object representing a position on the map

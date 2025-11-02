@@ -59,34 +59,6 @@ export class Bridge extends MapFeature {
     return BRIDGE_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Bridges typically span over natural features
-    if (other.category === FeatureCategory.NATURAL) {
-      const otherType = other.getType();
-      return otherType === 'river' || 
-             otherType === 'stream' || 
-             otherType === 'canyon';
-    }
-    
-    // Bridges can mix with cultural features
-    if (other.category === FeatureCategory.CULTURAL) {
-      return true;
-    }
-    
-    // Bridges typically connect to roads
-    if (other.category === FeatureCategory.ARTIFICIAL) {
-      const otherType = other.getType();
-      return otherType === 'road';
-    }
-    
-    // Bridges can sometimes span relief features like valleys
-    if (other.category === FeatureCategory.RELIEF) {
-      const otherType = other.getType();
-      return otherType === 'valley';
-    }
-    
-    return false;
-  }
 
   /**
    * Get the start position of the bridge

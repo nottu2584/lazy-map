@@ -1,14 +1,18 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
-import { AdminModule } from './admin/admin.module';
-import { ApplicationModule } from './application/application.module';
-import { AuthModule } from './auth/auth.module';
-import { FeaturesController } from './features.controller';
-import { HealthController } from './health.controller';
-import { InfrastructureModule } from './infrastructure/infrastructure.module';
-import { MapsController } from './maps.controller';
-import { TestErrorController } from './test-error.controller';
+
+// Provider modules - Wire up Clean Architecture layers
+import { ApplicationModule } from './application.module';
+import { InfrastructureModule } from './infrastructure.module';
+
+// Feature modules - HTTP endpoints organized by domain
+import { AdminModule } from './modules/admin/admin.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { MapsModule } from './modules/maps/maps.module';
+import { BenchmarkModule } from './modules/benchmark/benchmark.module';
+import { FeaturesModule } from './modules/features/features.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -21,18 +25,18 @@ import { TestErrorController } from './test-error.controller';
       ],
       expandVariables: true,        // Allow ${VAR} syntax in .env files
     }),
-    ApplicationModule,
-    InfrastructureModule,
+    // Provider modules - Wire up the Clean Architecture layers from packages/
+    ApplicationModule,      // Provides use cases from packages/application
+    InfrastructureModule,  // Provides services from packages/infrastructure
+    // Feature modules - HTTP endpoints organized by domain
     AuthModule,
     AdminModule,
+    MapsModule,
+    BenchmarkModule,
+    FeaturesModule,
+    HealthModule,
   ],
-  controllers: [
-    HealthController,
-    MapsController,
-    FeaturesController,
-    // Add test controller only in development
-    ...(process.env.NODE_ENV !== 'production' ? [TestErrorController] : []),
-  ],
+  controllers: [],
   providers: [],
 })
 export class AppModule {}

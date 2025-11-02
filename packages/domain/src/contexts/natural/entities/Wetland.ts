@@ -46,19 +46,6 @@ export class Wetland extends MapFeature {
     return WETLAND_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Wetlands can mix with many features as they're transitional zones
-    if (other.category === FeatureCategory.NATURAL) {
-      const otherType = other.getType();
-      return otherType === 'forest' || otherType === 'grassland'; // Transition zones
-    }
-
-    if (other.category === FeatureCategory.RELIEF) {
-      return true; // Wetlands in low-lying areas
-    }
-
-    return false;
-  }
 
   get isTraversable(): boolean {
     // Some wetlands can be crossed, others are impassable

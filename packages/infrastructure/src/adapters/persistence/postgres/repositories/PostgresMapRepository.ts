@@ -241,6 +241,8 @@ export class PostgresMapRepository implements IMapRepository {
       const map = MapGrid.createEmpty(
         request.name,
         request.dimensions,
+        request.seed || 'default-seed', // seedValue
+        new Date(request.metadata.createdAt), // createdAt
         32, // default cell size
         request.metadata.author,
         request.ownerId

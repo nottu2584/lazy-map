@@ -21,7 +21,7 @@ export class InMemoryMapHistoryRepository implements IMapHistoryRepository {
       history = new MapHistory(userId, []);
     }
 
-    history.addMap(mapId, mapName, thumbnailData);
+    history.addMap(mapId, mapName, new Date(), thumbnailData);
     await this.save(history);
   }
 

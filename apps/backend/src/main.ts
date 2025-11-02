@@ -45,13 +45,17 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   });
 
-  // Setup Swagger documentation
+  // Set global prefix for all routes
   const apiPrefix = configService.get<string>('API_PREFIX', 'api');
+  app.setGlobalPrefix(apiPrefix);
+
+  // Setup Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Lazy Map API')
     .setDescription('API for generating battle maps')
     .setVersion('1.0')
     .addTag('maps')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup(apiPrefix, app, document);

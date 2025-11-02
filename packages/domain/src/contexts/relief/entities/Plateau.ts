@@ -53,32 +53,6 @@ export class Plateau extends MapFeature {
     return PLATEAU_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Plateaus can mix with natural features based on their surface type
-    if (other.category === FeatureCategory.NATURAL) {
-      const otherType = other.getType();
-
-      // Forests can be on forested plateaus
-      if (otherType === 'forest' && this.surface === PlateauSurface.FORESTED) {
-        return true;
-      }
-
-      // Lakes or ponds can exist on most plateau types if they have water sources
-      if ((otherType === 'lake' || otherType === 'pond') && this.hasWaterSource) {
-        return true;
-      }
-
-      return false;
-    }
-
-    // Plateaus can mix with cultural features
-    if (other.category === FeatureCategory.CULTURAL) {
-      return true;
-    }
-
-    // Plateaus typically don't mix with other relief features
-    return false;
-  }
 
   /**
    * Determines if the plateau is accessible from a specific direction

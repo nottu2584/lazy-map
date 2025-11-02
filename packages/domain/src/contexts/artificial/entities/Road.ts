@@ -66,27 +66,6 @@ export class Road extends MapFeature {
     return ROAD_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Roads can mix with relief features except very steep ones
-    if (other.category === FeatureCategory.RELIEF) {
-      const otherType = other.getType();
-      return otherType !== 'cliff' && otherType !== 'mountain';
-    }
-    
-    // Roads can mix with cultural features
-    if (other.category === FeatureCategory.CULTURAL) {
-      return true;
-    }
-    
-    // Roads can sometimes mix with natural features like rivers (bridges)
-    if (other.category === FeatureCategory.NATURAL) {
-      const otherType = other.getType();
-      return (otherType === 'river' || otherType === 'stream') && this.hasBridge;
-    }
-    
-    // Roads don't mix with other artificial features
-    return false;
-  }
 
   /**
    * Add a waypoint to the road

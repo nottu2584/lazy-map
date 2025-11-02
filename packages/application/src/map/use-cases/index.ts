@@ -1,4 +1,3 @@
-export * from './GenerateMapUseCase';
 export * from './GetMapTileUseCase';
 export * from './GetMapUseCase';
 export * from './ListMapsUseCase';
@@ -7,3 +6,4 @@ export * from './GetUserMapHistoryUseCase';
 export * from './SaveMapToHistoryUseCase';
 export * from './GetUserMapsUseCase';
 export * from './ValidateSeedUseCase';
+export * from './GenerateTacticalMapUseCase';

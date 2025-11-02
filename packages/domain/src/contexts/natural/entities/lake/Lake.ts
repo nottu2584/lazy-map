@@ -43,30 +43,6 @@ export class Lake extends MapFeature {
     return LAKE_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Lakes can mix with most features
-    if (other.category === FeatureCategory.NATURAL) {
-      const otherType = other.getType();
-      // Can mix with forests (around shoreline), rivers (inlets/outlets)
-      return otherType !== 'lake'; // Lakes don't directly mix with other lakes
-    }
-
-    if (other.category === FeatureCategory.RELIEF) {
-      return true; // Lakes sit in valleys, basins
-    }
-
-    if (other.category === FeatureCategory.CULTURAL) {
-      return true; // Settlements around lakes
-    }
-
-    if (other.category === FeatureCategory.ARTIFICIAL) {
-      const otherType = other.getType();
-      // Can mix with docks, bridges, but not buildings directly on water
-      return otherType === 'dock' || otherType === 'bridge';
-    }
-
-    return false;
-  }
 
   // Shoreline management
   addShorelinePoint(point: ShorelinePoint): void {

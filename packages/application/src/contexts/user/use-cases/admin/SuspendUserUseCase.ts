@@ -4,7 +4,8 @@ export class SuspendUserCommand {
   constructor(
     public readonly adminId: string,
     public readonly userId: string,
-    public readonly reason: string
+    public readonly reason: string,
+    public readonly suspendedAt: Date = new Date()
   ) {}
 }
 
@@ -74,7 +75,7 @@ export class SuspendUserUseCase {
         };
       }
 
-      targetUser.suspend(adminUserId, command.reason.trim());
+      targetUser.suspend(adminUserId, command.reason.trim(), command.suspendedAt);
       await this.userRepository.save(targetUser);
 
       return {

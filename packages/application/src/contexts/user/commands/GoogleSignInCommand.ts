@@ -4,6 +4,7 @@
 export class GoogleSignInCommand {
   constructor(
     public readonly idToken: string,
-    public readonly clientId?: string
+    public readonly clientId?: string,
+    public readonly timestamp: Date = new Date()
   ) {}
 }

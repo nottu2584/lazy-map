@@ -1,5 +1,4 @@
 import { Dimensions } from '../../common/value-objects/Dimensions';
-import { HydrographicGenerationSettings } from '../../contexts/natural/services/IHydrographyService';
 import { MapGrid } from '../entities';
 
 /**
@@ -19,9 +18,6 @@ export interface MapGenerationSettings {
   generateRoads: boolean;
   generateBuildings: boolean;
   biomeType?: 'temperate' | 'tropical' | 'arctic' | 'desert' | 'mixed';
-
-  // Hydrographic generation settings
-  hydrographicSettings?: HydrographicGenerationSettings;
   integrateWaterFeatures?: boolean;
 }
 

@@ -1,8 +1,6 @@
-import {
-  ValidationError,
-  DomainRuleError,
-  ErrorContext
-} from '../../../common/errors/DomainError';
+import { ValidationError } from '../../../common/errors/types/ValidationError';
+import { DomainRuleError } from '../../../common/errors/types/DomainRuleError';
+import { ErrorContext } from '../../../common/errors/interfaces/ErrorContext';
 
 /**
  * Terrain-specific error codes

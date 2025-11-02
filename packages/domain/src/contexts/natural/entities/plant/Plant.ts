@@ -1,4 +1,4 @@
-import { SubTilePosition } from '../../../../common/value-objects/Position';
+import { SubTilePosition } from '../../../../common/value-objects/SubTilePosition';
 import {
   PlantCategory,
   PlantGrowthForm,

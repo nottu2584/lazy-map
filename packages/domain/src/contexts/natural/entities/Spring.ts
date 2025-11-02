@@ -48,22 +48,6 @@ export class Spring extends MapFeature {
     return SPRING_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Springs can mix with most natural features
-    if (other.category === FeatureCategory.NATURAL) {
-      return true;
-    }
-
-    if (other.category === FeatureCategory.RELIEF) {
-      return true; // Springs emerge from hillsides, rock formations
-    }
-
-    if (other.category === FeatureCategory.CULTURAL) {
-      return true; // Springs near settlements are valuable
-    }
-
-    return false;
-  }
 
   get isHotSpring(): boolean {
     return this.springType === SpringType.THERMAL && this.temperature > 100;

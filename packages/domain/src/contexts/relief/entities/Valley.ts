@@ -43,28 +43,6 @@ export class Valley extends MapFeature {
     return VALLEY_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Valleys can mix with natural features
-    if (other.category === FeatureCategory.NATURAL) {
-      const otherType = other.getType();
-      // Valleys often have rivers or forests
-      return otherType === 'river' || otherType === 'forest' || otherType === 'lake';
-    }
-
-    // Valleys can mix with cultural features
-    if (other.category === FeatureCategory.CULTURAL) {
-      return true;
-    }
-
-    // Valleys can sometimes mix with artificial features
-    if (other.category === FeatureCategory.ARTIFICIAL) {
-      const otherType = other.getType();
-      return otherType === 'road' || otherType === 'settlement' || otherType === 'farm';
-    }
-
-    // Valleys cannot mix with other relief features
-    return false;
-  }
 
   /**
    * Determines if the valley is suitable for farming

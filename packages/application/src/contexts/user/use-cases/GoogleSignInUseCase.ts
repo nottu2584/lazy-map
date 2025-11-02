@@ -61,7 +61,7 @@ export class GoogleSignInUseCase {
               }
             });
 
-            user.linkGoogleAccount(googleUserInfo.googleId, googleUserInfo.picture);
+            user.linkGoogleAccount(googleUserInfo.googleId, command.timestamp, googleUserInfo.picture);
             await this.userRepository.save(user);
           } else {
             // User has a different OAuth provider
@@ -88,6 +88,7 @@ export class GoogleSignInUseCase {
             googleUserInfo.googleId,
             email,
             uniqueUsername,
+            command.timestamp,
             googleUserInfo.picture
           );
 
@@ -104,7 +105,7 @@ export class GoogleSignInUseCase {
       }
 
       // 5. Record login
-      user.recordLogin();
+      user.recordLogin(command.timestamp);
       await this.userRepository.save(user);
 
       // 6. Generate JWT token

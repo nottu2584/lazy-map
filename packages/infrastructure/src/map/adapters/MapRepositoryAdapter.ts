@@ -43,8 +43,8 @@ export class MapRepositoryAdapter implements IMapRepository {
     // This is a temporary implementation - in production, you'd want to optimize this
     const allMaps: MapGrid[] = [];
 
-    // For now, we don't have a way to get all map IDs, so we return empty
-    // TODO: Implement proper querying in IMapPersistencePort
+    // Current limitation: IMapPersistencePort lacks full querying capability
+    // Returns empty result set until proper querying is implemented
 
     return {
       maps: allMaps,
@@ -54,9 +54,8 @@ export class MapRepositoryAdapter implements IMapRepository {
   }
 
   async findByArea(area: SpatialBounds): Promise<MapGrid[]> {
-    // This would need a specialized implementation in IMapPersistencePort
-    // For now, we'll return an empty array
-    // TODO: Implement spatial queries in IMapPersistencePort
+    // Current limitation: IMapPersistencePort lacks spatial query capability
+    // Returns empty array until spatial queries are implemented
     return [];
   }
 

@@ -163,21 +163,32 @@ This project follows **Clean Architecture** principles with **Domain-Driven Desi
 
 ### Project Structure
 
+> **Important**: This project follows Clean Architecture. The business logic lives in `packages/` (domain, application, infrastructure). The `apps/backend` is just the delivery mechanism (NestJS) that wires up the Clean Architecture layers.
+
 ```
 lazy-map/
-├── apps/                    # Applications
+├── apps/                    # Applications (delivery layer)
 │   ├── backend/            # NestJS API server
 │   │   ├── src/
-│   │   │   ├── *.controller.ts    # HTTP endpoints
-│   │   │   ├── application/       # Use case providers
-│   │   │   └── infrastructure/    # External services
+│   │   │   ├── modules/              # Feature modules (HTTP endpoints)
+│   │   │   │   ├── maps/             # Map generation endpoints
+│   │   │   │   ├── benchmark/        # Performance testing
+│   │   │   │   ├── features/         # Feature management
+│   │   │   │   ├── health/           # Health checks
+│   │   │   │   ├── admin/            # Admin functionality
+│   │   │   │   └── auth/             # Authentication
+│   │   │   ├── common/               # Shared NestJS utilities
+│   │   │   ├── application.module.ts # Wires up use cases
+│   │   │   ├── infrastructure.module.ts # Wires up services
+│   │   │   ├── app.module.ts        # Root module
+│   │   │   └── main.ts               # Entry point
 │   │   └── .env.example
 │   └── frontend/           # React application
 │       ├── src/
 │       └── .env.example
 │
-├── packages/               # Clean Architecture layers
-│   ├── domain/            # Business logic (pure)
+├── packages/               # Clean Architecture layers (CORE)
+│   ├── domain/            # Business logic (pure, no dependencies)
 │   │   └── src/
 │   │       ├── common/           # Shared kernel
 │   │       ├── contexts/         # Bounded contexts

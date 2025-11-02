@@ -5,7 +5,8 @@ export class UpdateUserCommand {
     public readonly adminId: string,
     public readonly userId: string,
     public readonly email?: string,
-    public readonly username?: string
+    public readonly username?: string,
+    public readonly updatedAt: Date = new Date()
   ) {}
 }
 
@@ -60,7 +61,7 @@ export class UpdateUserUseCase {
           };
         }
         
-        targetUser.changeEmail(newEmail);
+        targetUser.changeEmail(newEmail, command.updatedAt);
       }
 
       if (command.username) {
@@ -74,7 +75,7 @@ export class UpdateUserUseCase {
           };
         }
         
-        targetUser.changeUsername(newUsername);
+        targetUser.changeUsername(newUsername, command.updatedAt);
       }
 
       await this.userRepository.save(targetUser);

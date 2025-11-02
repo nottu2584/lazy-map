@@ -43,22 +43,6 @@ export class Forest extends MapFeature {
     return FOREST_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Forests can mix with relief features (hills, mountains)
-    // but not with water or building features
-    if (other.category === FeatureCategory.RELIEF) {
-      return true;
-    }
-    if (other.category === FeatureCategory.CULTURAL) {
-      return true;
-    }
-    if (other.category === FeatureCategory.NATURAL) {
-      // Can mix with clearings, but not with water features
-      const otherType = other.getType();
-      return otherType === 'clearing' || otherType === 'wetland';
-    }
-    return false;
-  }
 
   // Tree management
   addTree(tree: TreePlant): void {

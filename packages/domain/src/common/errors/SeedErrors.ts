@@ -1,4 +1,6 @@
-import { ValidationError, DeterministicError, ErrorContext } from './DomainError';
+import { ValidationError } from './types/ValidationError';
+import { DeterministicError } from './types/DeterministicError';
+import { ErrorContext } from './interfaces/ErrorContext';
 
 /**
  * Seed-specific error codes
@@ -109,7 +111,7 @@ export class SeedErrors {
       [
         'Use parameter-based seed generation instead',
         'Provide an explicit seed value',
-        'Use SeedPolicyService for reproducible seeds'
+        'Use ResolveSeedUseCase for reproducible seeds'
       ]
     );
   }

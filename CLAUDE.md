@@ -9,6 +9,14 @@ Guide for Claude Code (claude.ai/code) when working with this repository.
 **Architecture**: Clean Architecture + Domain-Driven Design
 **Tech Stack**: TypeScript monorepo with NestJS backend, React frontend
 
+## Documentation
+
+See `/docs` for complete documentation:
+- [Getting Started](docs/getting-started/installation.md)
+- [Architecture Overview](docs/architecture/overview.md)
+- [Map Generation](docs/architecture/map-generation.md)
+- [Roadmap](docs/roadmap.md)
+
 ## Quick Start
 
 ```bash
@@ -30,9 +38,23 @@ pnpm build               # All packages
 ```
 lazy-map/
 ├── apps/
-│   ├── backend/         # NestJS API server
+│   ├── backend/         # NestJS API server (delivery mechanism)
+│   │   └── src/
+│   │       ├── modules/               # Feature modules (HTTP endpoints)
+│   │       │   ├── maps/              # Map generation endpoints
+│   │       │   ├── benchmark/         # Performance benchmarking
+│   │       │   ├── features/          # Feature management
+│   │       │   ├── health/            # Health checks
+│   │       │   ├── admin/             # Admin functionality
+│   │       │   └── auth/              # Authentication
+│   │       ├── common/                # Shared NestJS utilities
+│   │       ├── dto/                   # Data transfer objects
+│   │       ├── application.module.ts  # Wires up use cases from packages/
+│   │       ├── infrastructure.module.ts # Wires up services from packages/
+│   │       ├── app.module.ts          # Root module
+│   │       └── main.ts                # Application entry point
 │   └── frontend/        # React + Konva map viewer
-└── packages/           # Clean Architecture layers
+└── packages/           # Clean Architecture layers (THE CORE)
     ├── domain/         # Business logic (no dependencies)
     ├── application/    # Use cases (depends: domain)
     └── infrastructure/ # External stuff (depends: domain + application)
@@ -135,6 +157,25 @@ constructor(
 - ✅ Infrastructure → Domain + Application
 - ❌ **NEVER** reverse these
 - ❌ **NO** services in application layer (use Use Cases)
+
+### 7. **Backend Organization (NestJS)**
+**Key Principle**: The backend is just the **delivery mechanism** - NOT the core of the application!
+
+**Module Structure Rules**:
+- **Feature modules** go in `modules/` directory
+- **Each module** has its own directory with:
+  - `*.module.ts` - Module definition
+  - `*.controller.ts` - HTTP endpoints
+  - `dto/` - Data transfer objects (if needed)
+  - `*.test.ts` - Tests alongside code
+- **Provider modules** at root level:
+  - `application.module.ts` - Wires up use cases from `packages/application`
+  - `infrastructure.module.ts` - Wires up services from `packages/infrastructure`
+- **Controllers MUST**:
+  - Use dependency injection (`@Inject`)
+  - Call Use Cases, never services directly
+  - Be in their module's directory
+- **NO business logic** in the backend - it's all in `packages/`
 
 ## 🎯 Domain Structure
 

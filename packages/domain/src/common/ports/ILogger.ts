@@ -1,4 +1,6 @@
-import { ErrorContext, ErrorCategory, ErrorSeverity } from '../errors/DomainError';
+import { ErrorContext } from '../errors/interfaces/ErrorContext';
+import { ErrorCategory } from '../errors/enums/ErrorCategory';
+import { ErrorSeverity } from '../errors/enums/ErrorSeverity';
 
 /**
  * Log levels for structured logging

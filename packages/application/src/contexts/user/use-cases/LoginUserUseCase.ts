@@ -10,7 +10,8 @@ import { IAuthenticationPort } from '../ports/IAuthenticationPort';
 export class LoginUserCommand {
   constructor(
     public readonly email: string,
-    public readonly password: string
+    public readonly password: string,
+    public readonly loginTime: Date = new Date()
   ) {}
 }
 
@@ -60,7 +61,7 @@ export class LoginUserUseCase {
       }
 
       // Record login
-      user.recordLogin();
+      user.recordLogin(command.loginTime);
       await this.userRepository.save(user);
 
       // Generate authentication token

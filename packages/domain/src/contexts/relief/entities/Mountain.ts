@@ -51,21 +51,6 @@ export class Mountain extends MapFeature {
     return MOUNTAIN_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Mountains can mix with natural features like forests
-    // and cultural features like borders
-    if (other.category === FeatureCategory.NATURAL) {
-      const otherType = other.getType();
-      return otherType === 'forest' || otherType === 'tree';
-    }
-
-    if (other.category === FeatureCategory.CULTURAL) {
-      return true;
-    }
-
-    // Mountains cannot mix with other relief features or artificial features
-    return false;
-  }
 
   /**
    * Gets the average slope of the mountain

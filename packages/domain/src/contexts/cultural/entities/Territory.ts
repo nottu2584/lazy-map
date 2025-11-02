@@ -67,11 +67,6 @@ export class Territory extends MapFeature {
     return TERRITORY_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Territories can overlap with all other feature types
-    // as they are abstract boundaries rather than physical features
-    return true;
-  }
 
   /**
    * Add a border point to define the territory's boundaries

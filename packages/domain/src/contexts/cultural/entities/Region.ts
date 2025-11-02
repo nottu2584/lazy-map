@@ -47,11 +47,6 @@ export class Region extends MapFeature {
     return REGION_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Regions can overlap with all other feature types
-    // They're abstract cultural divisions that don't physically interfere
-    return true;
-  }
 
   /**
    * Add a subregion to this region

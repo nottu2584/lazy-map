@@ -4,7 +4,8 @@ export class PromoteUserCommand {
   constructor(
     public readonly adminId: string,
     public readonly userId: string,
-    public readonly newRole: string
+    public readonly newRole: string,
+    public readonly promotedAt: Date = new Date()
   ) {}
 }
 
@@ -77,7 +78,7 @@ export class PromoteUserUseCase {
         };
       }
 
-      targetUser.promote(newRole);
+      targetUser.promote(newRole, command.promotedAt);
       await this.userRepository.save(targetUser);
 
       return {

@@ -12,7 +12,8 @@ export class RegisterUserCommand {
   constructor(
     public readonly email: string,
     public readonly password: string,
-    public readonly username: string
+    public readonly username: string,
+    public readonly createdAt: Date = new Date()
   ) {}
 }
 
@@ -64,7 +65,7 @@ export class RegisterUserUseCase {
       const hashedPassword = await this.passwordService.hash(password);
 
       // Create user
-      const user = User.create(email, hashedPassword, username);
+      const user = User.create(email, hashedPassword, username, command.createdAt);
 
       // Save user
       await this.userRepository.save(user);

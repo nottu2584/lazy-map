@@ -76,32 +76,6 @@ export class Grassland extends MapFeature {
     return GRASSLAND_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Grasslands can mix with various other features
-    if (other.category === FeatureCategory.NATURAL) {
-      const otherType = other.getType();
-      // Can transition into forests, water features
-      return ['forest', 'river', 'lake', 'wetland'].includes(otherType);
-    }
-    
-    if (other.category === FeatureCategory.RELIEF) {
-      // Can exist on hills, valleys
-      return true;
-    }
-    
-    if (other.category === FeatureCategory.ARTIFICIAL) {
-      const otherType = other.getType();
-      // Can coexist with roads and some buildings
-      return ['road', 'farm', 'pasture'].includes(otherType);
-    }
-    
-    if (other.category === FeatureCategory.CULTURAL) {
-      // Can exist within territories and regions
-      return true;
-    }
-    
-    return false;
-  }
 
   /**
    * Add a plant to the grassland

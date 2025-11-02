@@ -73,16 +73,6 @@ export class Building extends MapFeature {
     return BUILDING_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Buildings generally don't mix with other physical features
-    // except for cultural boundaries
-    if (other.category === FeatureCategory.CULTURAL) {
-      return true;
-    }
-    
-    // Buildings don't mix with natural or relief features
-    return false;
-  }
 
   /**
    * Add an entrance to the building

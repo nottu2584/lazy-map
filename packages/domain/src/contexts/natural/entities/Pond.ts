@@ -36,23 +36,6 @@ export class Pond extends MapFeature {
     return POND_FEATURE_TYPE;
   }
 
-  canMixWith(other: MapFeature): boolean {
-    // Ponds can mix with most natural features
-    if (other.category === FeatureCategory.NATURAL) {
-      const otherType = other.getType();
-      return otherType !== 'pond' && otherType !== 'lake'; // Don't mix with other water bodies
-    }
-
-    if (other.category === FeatureCategory.RELIEF) {
-      return true; // Ponds in valleys, depressions
-    }
-
-    if (other.category === FeatureCategory.CULTURAL) {
-      return true; // Farm ponds, ornamental ponds
-    }
-
-    return false;
-  }
 
   get depth(): number {
     return this._depth;

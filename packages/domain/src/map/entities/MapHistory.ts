@@ -57,16 +57,16 @@ export class MapHistory {
    * If the map already exists, it will be moved to the front
    * If the history is full, the oldest entry will be removed
    */
-  addMap(mapId: MapId, mapName: string, thumbnailData?: string): void {
+  addMap(mapId: MapId, mapName: string, accessedAt: Date, thumbnailData?: string): void {
     const existingIndex = this._entries.findIndex(entry => entry.mapId.equals(mapId));
-    
+
     // Remove existing entry if found
     if (existingIndex !== -1) {
       this._entries.splice(existingIndex, 1);
     }
 
     // Add new entry at the beginning (most recent)
-    const newEntry = new MapHistoryEntry(mapId, mapName, new Date(), thumbnailData);
+    const newEntry = new MapHistoryEntry(mapId, mapName, accessedAt, thumbnailData);
     this._entries.unshift(newEntry);
 
     // Enforce size limit

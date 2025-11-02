@@ -3,7 +3,8 @@ import { IUserRepository, User, UserId } from '@lazy-map/domain';
 export class ReactivateUserCommand {
   constructor(
     public readonly adminId: string,
-    public readonly userId: string
+    public readonly userId: string,
+    public readonly reactivatedAt: Date = new Date()
   ) {}
 }
 
@@ -58,7 +59,7 @@ export class ReactivateUserUseCase {
         };
       }
 
-      targetUser.reactivate();
+      targetUser.reactivate(command.reactivatedAt);
       await this.userRepository.save(targetUser);
 
       return {

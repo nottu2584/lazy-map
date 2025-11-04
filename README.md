@@ -116,23 +116,23 @@ This project follows **Clean Architecture** principles with **Domain-Driven Desi
 
 ```
 ┌─────────────────────────────────────────┐
-│         Interface Layer                  │
-│   (Controllers, React Components)        │
+│         Interface Layer                 │
+│   (Controllers, React Components)       │
 └─────────────────────────────────────────┘
                     ↓
 ┌─────────────────────────────────────────┐
-│         Application Layer                │
-│   (Use Cases, Commands, Queries)         │
+│         Application Layer               │
+│   (Use Cases, Commands, Queries)        │
 └─────────────────────────────────────────┘
                     ↓
 ┌─────────────────────────────────────────┐
-│           Domain Layer                   │
-│   (Entities, Value Objects, Rules)       │
+│           Domain Layer                  │
+│   (Entities, Value Objects, Rules)      │
 └─────────────────────────────────────────┘
                     ↓
 ┌─────────────────────────────────────────┐
-│        Infrastructure Layer              │
-│   (Database, External APIs, Adapters)    │
+│        Infrastructure Layer             │
+│   (Database, External APIs, Adapters)   │
 └─────────────────────────────────────────┘
 ```
 
@@ -152,11 +152,6 @@ This project follows **Clean Architecture** principles with **Domain-Driven Desi
    - No randomness in domain entities
    - All entities are deterministic
    - Side effects only in infrastructure
-
-4. **No Backwards Compatibility**
-   - Clean refactoring when needed
-   - Remove legacy code immediately
-   - No `@deprecated` annotations
 
 ### Project Structure
 
@@ -347,7 +342,6 @@ For AI agents and contributors: See [CLAUDE.md](./CLAUDE.md) for architecture ru
 - ✅ One entity/use case per file
 - ✅ Write tests for new features
 - ✅ Update documentation
-- ❌ No backwards compatibility code
 - ❌ No `Math.random()` in domain layer
 - ❌ No direct service usage in controllers
 

@@ -4,6 +4,16 @@ import {
   NoiseGenerator,
   DevelopmentLevel,
   Building,
+  BuildingType,
+  BuildingContext,
+  BuildingSite,
+  SpaceRequirements,
+  IBuildingGenerationService,
+  ISettlementPlanningService,
+  SettlementSize,
+  HistoricalPeriod,
+  SuitabilityMap,
+  SettlementPlan,
   Bridge,
   Road,
   Position,
@@ -25,18 +35,22 @@ import {
   HydrologyLayerData,
   TopographyLayerData
 } from '@lazy-map/domain';
+import { BuildingGenerationService } from '../../contexts/artificial/services/BuildingGenerationService';
 
 /**
  * Generates artificial structures based on development level and terrain
  * Creates buildings, roads, bridges, and other human-made features
+ * Now uses the new building generation system with interiors
  */
 export class StructuresLayer implements IStructuresLayerService {
   private width: number = 0;
   private height: number = 0;
   private logger?: ILogger;
+  private buildingGenerator: IBuildingGenerationService;
 
   constructor(logger?: ILogger) {
     this.logger = logger;
+    this.buildingGenerator = new BuildingGenerationService(logger);
   }
 
   /**
@@ -61,9 +75,10 @@ export class StructuresLayer implements IStructuresLayerService {
     );
 
     // 2. Place buildings based on development level
-    const buildings = this.placeBuildings(
+    const buildings = await this.placeBuildings(
       buildingSites,
       context.development,
+      context,
       seed
     );
 
@@ -203,16 +218,18 @@ export class StructuresLayer implements IStructuresLayerService {
 
   /**
    * Place buildings based on development level
+   * Now uses the new building generation system with interiors
    */
-  private placeBuildings(
+  private async placeBuildings(
     sites: { x: number; y: number; quality: number }[],
     developmentLevel: DevelopmentLevel,
+    context: TacticalMapContext,
     seed: Seed
-  ): BuildingFootprint[] {
-    const buildings: BuildingFootprint[] = [];
+  ): Promise<Building[]> {
+    const buildings: Building[] = [];
     const buildingNoise = NoiseGenerator.create(seed.getValue() * 10);
 
-    // Determine number of buildings
+    // Determine number of buildings based on development level
     let buildingCount = 0;
     switch (developmentLevel) {
       case DevelopmentLevel.WILDERNESS:
@@ -222,7 +239,7 @@ export class StructuresLayer implements IStructuresLayerService {
         buildingCount = Math.min(1, sites.length);
         break;
       case DevelopmentLevel.RURAL:
-        buildingCount = Math.min(2, sites.length);
+        buildingCount = Math.min(3, sites.length);
         break;
       case DevelopmentLevel.SETTLED:
         buildingCount = Math.min(8, sites.length);
@@ -238,6 +255,16 @@ export class StructuresLayer implements IStructuresLayerService {
         break;
     }
 
+    // Create building context from tactical map context
+    const buildingContext: BuildingContext = {
+      biome: context.biome || 'temperate',
+      wealthLevel: this.getWealthFromDevelopment(developmentLevel),
+      developmentLevel: developmentLevel,
+      historicalPeriod: 'high_medieval',
+      climate: context.season === 'winter' ? 'cold' : 'temperate',
+      purpose: undefined
+    };
+
     // Place buildings at best sites
     const usedSites = new Set<string>();
     for (let i = 0; i < buildingCount && i < sites.length; i++) {
@@ -247,8 +274,8 @@ export class StructuresLayer implements IStructuresLayerService {
       let tooClose = false;
       for (const existing of buildings) {
         const dist = Math.sqrt(
-          Math.pow(site.x - existing.origin.x, 2) +
-          Math.pow(site.y - existing.origin.y, 2)
+          Math.pow(site.x - existing.getPosition().getX(), 2) +
+          Math.pow(site.y - existing.getPosition().getY(), 2)
         );
         if (dist < 5) {
           tooClose = true;
@@ -257,77 +284,115 @@ export class StructuresLayer implements IStructuresLayerService {
       }
       if (tooClose) continue;
 
-      // Determine building type and size
+      // Determine building type based on development level
       const buildingRandom = buildingNoise.generateAt(site.x * 0.1, site.y * 0.1);
-      let type: 'house' | 'barn' | 'tower' | 'ruin';
+      let buildingType: BuildingType;
       let width: number;
       let height: number;
 
       if (developmentLevel === DevelopmentLevel.FRONTIER) {
-        type = 'house';
-        width = 1;
-        height = 1;
+        buildingType = BuildingType.HUT;
+        width = 10;
+        height = 10;
       } else if (developmentLevel === DevelopmentLevel.RURAL) {
-        type = buildingRandom < 0.5 ? 'house' : 'barn';
-        width = 2;
-        height = 2;
+        buildingType = buildingRandom < 0.5 ? BuildingType.COTTAGE : BuildingType.BARN;
+        width = buildingRandom < 0.5 ? 20 : 25;
+        height = buildingRandom < 0.5 ? 20 : 20;
       } else if (developmentLevel === DevelopmentLevel.SETTLED) {
-        if (buildingRandom < 0.6) {
-          type = 'house';
-          width = 2;
-          height = 2;
-        } else if (buildingRandom < 0.9) {
-          type = 'barn';
-          width = 3;
-          height = 2;
+        if (buildingRandom < 0.5) {
+          buildingType = BuildingType.HOUSE;
+          width = 20;
+          height = 25;
+        } else if (buildingRandom < 0.8) {
+          buildingType = BuildingType.FARMHOUSE;
+          width = 30;
+          height = 25;
+        } else if (buildingRandom < 0.95) {
+          buildingType = BuildingType.TAVERN;
+          width = 35;
+          height = 30;
         } else {
-          type = 'tower';
-          width = 1;
-          height = 1;
+          buildingType = BuildingType.CHURCH;
+          width = 40;
+          height = 35;
         }
       } else if (developmentLevel === DevelopmentLevel.URBAN) {
-        if (buildingRandom < 0.5) {
-          type = 'house';
-          width = 2 + Math.floor(buildingRandom * 2);
-          height = 2 + Math.floor(buildingRandom * 2);
-        } else if (buildingRandom < 0.8) {
-          type = 'barn';
-          width = 3;
-          height = 3;
+        if (buildingRandom < 0.4) {
+          buildingType = BuildingType.TOWNHOUSE;
+          width = 15 + Math.floor(buildingRandom * 10);
+          height = 20 + Math.floor(buildingRandom * 10);
+        } else if (buildingRandom < 0.7) {
+          buildingType = BuildingType.HOUSE;
+          width = 25;
+          height = 25;
+        } else if (buildingRandom < 0.9) {
+          buildingType = BuildingType.MANOR;
+          width = 45;
+          height = 40;
         } else {
-          type = 'tower';
-          width = 2;
-          height = 2;
+          buildingType = BuildingType.TOWER;
+          width = 15;
+          height = 15;
         }
-      } else if (developmentLevel === DevelopmentLevel.RUINS) {
-        type = 'ruin';
-        width = 2;
-        height = 2;
       } else {
-        // Default fallback
-        type = 'house';
-        width = 2;
-        height = 2;
+        // Default or ruins
+        buildingType = BuildingType.COTTAGE;
+        width = 20;
+        height = 20;
       }
 
-      // Add some ruins for atmosphere
-      if (buildingNoise.generateAt(site.x * 0.2, site.y * 0.2) > 0.85) {
-        type = 'ruin';
-      }
+      // Create building site
+      const buildingSite: BuildingSite = {
+        position: Position.create(site.x * 5, site.y * 5), // Convert to feet
+        width: width,
+        height: height,
+        slope: 0, // Will be calculated from topography
+        adjacentBuildings: buildings,
+        availableSpace: { width, height },
+        constraints: {}
+      };
 
-      buildings.push({
-        origin: { x: site.x, y: site.y },
-        width,
-        height,
-        type,
-        material: this.selectBuildingMaterial(type, seed.getValue() + i)
-      });
+      // Generate the building with new system
+      try {
+        const buildingSeed = Seed.fromNumber(seed.getValue() + i * 1000);
+        const building = await this.buildingGenerator.generateBuilding(
+          buildingType,
+          buildingSite,
+          buildingContext,
+          buildingSeed
+        );
 
-      // Mark site as used
-      for (let dy = 0; dy < height; dy++) {
-        for (let dx = 0; dx < width; dx++) {
-          usedSites.add(`${site.x + dx},${site.y + dy}`);
+        // Optionally generate interior for important buildings
+        const shouldHaveInterior =
+          buildingType === BuildingType.TAVERN ||
+          buildingType === BuildingType.CHURCH ||
+          buildingType === BuildingType.MANOR ||
+          (buildingType === BuildingType.HOUSE && buildingRandom > 0.7);
+
+        if (shouldHaveInterior) {
+          const requirements = this.getDefaultRequirements(buildingType);
+          const interiorSeed = Seed.fromNumber(buildingSeed.getValue() + 500);
+          const buildingWithInterior = await this.buildingGenerator.generateInteriorLayout(
+            building,
+            requirements,
+            interiorSeed
+          );
+          buildings.push(buildingWithInterior);
+        } else {
+          buildings.push(building);
         }
+
+        // Mark site as used
+        const footprint = building.getFootprint();
+        for (let dy = 0; dy < Math.ceil(footprint.getHeight() / 5); dy++) {
+          for (let dx = 0; dx < Math.ceil(footprint.getWidth() / 5); dx++) {
+            usedSites.add(`${site.x + dx},${site.y + dy}`);
+          }
+        }
+      } catch (error) {
+        this.logger?.warn('Failed to generate building', {
+          metadata: { site, type: buildingType, error: error instanceof Error ? error.message : 'Unknown error' }
+        });
       }
     }
 
@@ -335,20 +400,65 @@ export class StructuresLayer implements IStructuresLayerService {
   }
 
   /**
-   * Select appropriate building material
+   * Get wealth level from development level
    */
-  private selectBuildingMaterial(type: string, seed: number): MaterialType {
-    const random = (seed % 100) / 100;
+  private getWealthFromDevelopment(development: DevelopmentLevel): number {
+    switch (development) {
+      case DevelopmentLevel.WILDERNESS: return 0.1;
+      case DevelopmentLevel.FRONTIER: return 0.2;
+      case DevelopmentLevel.RURAL: return 0.3;
+      case DevelopmentLevel.SETTLED: return 0.5;
+      case DevelopmentLevel.URBAN: return 0.7;
+      case DevelopmentLevel.RUINS: return 0.2;
+      default: return 0.3;
+    }
+  }
 
-    if (type === 'tower') {
-      return MaterialType.STONE;
-    } else if (type === 'ruin') {
-      return random < 0.7 ? MaterialType.STONE : MaterialType.WOOD;
-    } else if (type === 'barn') {
-      return MaterialType.WOOD;
-    } else {
-      // House
-      return random < 0.5 ? MaterialType.WOOD : MaterialType.STONE;
+  /**
+   * Get default space requirements for building type
+   */
+  private getDefaultRequirements(type: BuildingType): SpaceRequirements {
+    switch (type) {
+      case BuildingType.TAVERN:
+        return {
+          requiredRooms: [
+            { type: 'common_room', count: 1, minSize: 150 },
+            { type: 'kitchen', count: 1, minSize: 60 },
+            { type: 'storage', count: 1, minSize: 40 }
+          ],
+          optionalRooms: [
+            { type: 'private_room', count: 3, minSize: 50 }
+          ]
+        };
+      case BuildingType.CHURCH:
+        return {
+          requiredRooms: [
+            { type: 'sanctuary', count: 1, minSize: 200 },
+            { type: 'vestry', count: 1, minSize: 40 }
+          ],
+          optionalRooms: []
+        };
+      case BuildingType.MANOR:
+        return {
+          requiredRooms: [
+            { type: 'hall', count: 1, minSize: 200 },
+            { type: 'kitchen', count: 1, minSize: 80 },
+            { type: 'bedroom', count: 4, minSize: 60 }
+          ],
+          optionalRooms: [
+            { type: 'study', count: 1, minSize: 50 }
+          ]
+        };
+      case BuildingType.HOUSE:
+        return {
+          requiredRooms: [
+            { type: 'hall', count: 1, minSize: 60 },
+            { type: 'bedroom', count: 2, minSize: 50 }
+          ],
+          optionalRooms: []
+        };
+      default:
+        return { requiredRooms: [], optionalRooms: [] };
     }
   }
 
@@ -356,7 +466,7 @@ export class StructuresLayer implements IStructuresLayerService {
    * Generate road network using pathfinding
    */
   private generateRoadNetwork(
-    buildings: BuildingFootprint[],
+    buildings: Building[],
     vegetation: VegetationLayerData,
     hydrology: HydrologyLayerData,
     topography: TopographyLayerData,
@@ -389,9 +499,11 @@ export class StructuresLayer implements IStructuresLayerService {
 
             const from = buildings[fromIdx];
             const to = buildings[toIdx];
+            const fromPos = from.getPosition();
+            const toPos = to.getPosition();
             const dist = Math.sqrt(
-              Math.pow(to.origin.x - from.origin.x, 2) +
-              Math.pow(to.origin.y - from.origin.y, 2)
+              Math.pow(toPos.getX() - fromPos.getX(), 2) +
+              Math.pow(toPos.getY() - fromPos.getY(), 2)
             );
 
             if (dist < minDist) {
@@ -406,9 +518,11 @@ export class StructuresLayer implements IStructuresLayerService {
           // Create road segment
           const from = buildings[bestFrom];
           const to = buildings[bestTo];
+          const fromPos = from.getPosition();
+          const toPos = to.getPosition();
           const path = this.findRoadPath(
-            from.origin,
-            to.origin,
+            { x: Math.floor(fromPos.getX() / 5), y: Math.floor(fromPos.getY() / 5) },
+            { x: Math.floor(toPos.getX() / 5), y: Math.floor(toPos.getY() / 5) },
             vegetation,
             hydrology,
             topography
@@ -551,7 +665,7 @@ export class StructuresLayer implements IStructuresLayerService {
    * Place decorative structures like wells and shrines
    */
   private placeDecorativeStructures(
-    buildings: BuildingFootprint[],
+    buildings: Building[],
     roadNetwork: RoadNetwork,
     vegetation: VegetationLayerData,
     context: TacticalMapContext,
@@ -567,7 +681,11 @@ export class StructuresLayer implements IStructuresLayerService {
 
     // Place wells near buildings
     for (const building of buildings) {
-      if (decorNoise.generateAt(building.origin.x * 0.2, building.origin.y * 0.2) > 0.7) {
+      const pos = building.getPosition();
+      const tileX = Math.floor(pos.getX() / 5);
+      const tileY = Math.floor(pos.getY() / 5);
+
+      if (decorNoise.generateAt(tileX * 0.2, tileY * 0.2) > 0.7) {
         // Find spot near building
         const offsets = [
           { dx: -2, dy: 0 }, { dx: 2, dy: 0 },
@@ -575,8 +693,8 @@ export class StructuresLayer implements IStructuresLayerService {
         ];
 
         for (const offset of offsets) {
-          const x = building.origin.x + offset.dx;
-          const y = building.origin.y + offset.dy;
+          const x = tileX + offset.dx;
+          const y = tileY + offset.dy;
 
           if (x >= 0 && x < this.width && y >= 0 && y < this.height &&
               vegetation.tiles[y][x].vegetationType !== VegetationType.DENSE_FOREST) {
@@ -608,7 +726,7 @@ export class StructuresLayer implements IStructuresLayerService {
    * Create tile data combining all structure properties
    */
   private createTileData(
-    buildings: BuildingFootprint[],
+    buildings: Building[],
     roadNetwork: RoadNetwork,
     bridges: BridgeLocation[],
     decorativeStructures: { x: number; y: number; type: StructureType }[],
@@ -636,22 +754,32 @@ export class StructuresLayer implements IStructuresLayerService {
 
     // Add buildings
     for (const building of buildings) {
-      for (let dy = 0; dy < building.height; dy++) {
-        for (let dx = 0; dx < building.width; dx++) {
-          const x = building.origin.x + dx;
-          const y = building.origin.y + dy;
+      const footprint = building.getFootprint();
+      const pos = building.getPosition();
+      const tileX = Math.floor(pos.getX() / 5);
+      const tileY = Math.floor(pos.getY() / 5);
+      const widthInTiles = Math.ceil(footprint.getWidth() / 5);
+      const heightInTiles = Math.ceil(footprint.getHeight() / 5);
+
+      for (let dy = 0; dy < heightInTiles; dy++) {
+        for (let dx = 0; dx < widthInTiles; dx++) {
+          const x = tileX + dx;
+          const y = tileY + dy;
 
           if (x < this.width && y < this.height) {
+            const material = building.getMaterial();
+            const isRuin = context.development === DevelopmentLevel.RUINS;
+            const isTower = building.getType() === BuildingType.TOWER;
+
             tiles[y][x] = {
               hasStructure: true,
               structureType: StructureType.BUILDING,
-              material: building.material,
-              height: building.type === 'tower' ? 30 : 15,
-              condition: building.type === 'ruin' ?
-                        StructureCondition.RUINED : StructureCondition.GOOD,
-              isPassable: building.type === 'ruin',
+              material: this.convertBuildingMaterialToMaterialType(material),
+              height: isTower ? 30 : building.getFloorCount() * 10,
+              condition: isRuin ? StructureCondition.RUINED : StructureCondition.GOOD,
+              isPassable: isRuin,
               providesCover: true,
-              providesElevation: building.type === 'tower',
+              providesElevation: isTower || building.getFloorCount() > 1,
               roadConnectivity: 0
             };
           }
@@ -751,5 +879,28 @@ export class StructuresLayer implements IStructuresLayerService {
     }
 
     return connectivity;
+  }
+
+  /**
+   * Convert domain BuildingMaterial to infrastructure MaterialType
+   */
+  private convertBuildingMaterialToMaterialType(material: any): MaterialType {
+    const materialType = material.getType();
+    switch (materialType) {
+      case 'wood_rough':
+      case 'wood_planked':
+        return MaterialType.WOOD;
+      case 'stone_rough':
+      case 'stone_cut':
+      case 'stone_fortified':
+        return MaterialType.STONE;
+      case 'brick':
+        return MaterialType.STONE; // Map brick to stone for simplicity
+      case 'wattle_daub':
+      case 'adobe':
+        return MaterialType.DIRT; // Map these to dirt for simplicity
+      default:
+        return MaterialType.WOOD;
+    }
   }
 }

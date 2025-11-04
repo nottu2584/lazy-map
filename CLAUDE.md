@@ -60,6 +60,36 @@ this.logger?.debug('Message', { metadata: { data } });
 - `RoomRequirements` (specification for multiple rooms)
 - Use descriptive, domain-specific names
 
+### 6. File Organization & Imports
+**Critical Rules**:
+- **Every folder MUST have an `index.ts`** that exports its contents
+- **Always import from folder indexes**, never direct file imports
+- **No `/dist` paths** in imports
+
+**Example Structure**:
+```
+contexts/
+├── artificial/
+│   ├── index.ts          # exports * from './entities', './services', etc.
+│   ├── entities/
+│   │   ├── index.ts      # exports * from './Building', './Road', etc.
+│   │   ├── Building.ts
+│   │   └── Road.ts
+│   └── services/
+│       ├── index.ts      # exports interface definitions
+│       └── IBuildingGenerationService.ts
+```
+
+✅ **Correct Import**:
+```typescript
+import { Building, IBuildingGenerationService } from '@lazy-map/domain';
+```
+
+❌ **Wrong Import**:
+```typescript
+import { Building } from '@lazy-map/domain/contexts/artificial/entities/Building';
+```
+
 ## Domain Contexts
 
 - `relief/` - Terrain, elevation, geology
@@ -73,9 +103,36 @@ this.logger?.debug('Message', { metadata: { data } });
 1. **Domain First**: Define entities/value objects
 2. **Use Cases**: Create application orchestration
 3. **Infrastructure**: Implement domain interfaces
-4. **Controllers**: Wire to use cases with @Inject
+4. **Controllers**: Wire to use cases with class-based @Inject
 5. **Documentation**: Update /docs when changing features
 6. **Testing**: Ensure deterministic generation
+
+## Dependency Injection Pattern
+
+**ALWAYS use class-based injection in NestJS controllers/services:**
+
+✅ **Correct - Class-based injection**:
+```typescript
+constructor(
+  @Inject(GenerateTacticalMapUseCase)
+  private readonly useCase: GenerateTacticalMapUseCase,
+  @Inject(LOGGER_TOKEN) private readonly logger: ILogger
+) {}
+```
+
+❌ **Wrong - String token injection**:
+```typescript
+constructor(
+  @Inject('GenerateTacticalMapUseCase')  // Don't use string tokens!
+  private readonly useCase: GenerateTacticalMapUseCase
+) {}
+```
+
+**Why class-based?**
+- Type-safe with IDE support
+- Simpler and cleaner code
+- No string token maintenance
+- Standard NestJS pattern
 
 ## Common Patterns
 

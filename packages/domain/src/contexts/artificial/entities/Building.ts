@@ -1,201 +1,339 @@
-import { MapFeature, FeatureCategory } from '../../../common/entities/MapFeature';
-import { FeatureId } from '../../../common/entities/../value-objects';
-import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
 import { Position } from '../../../common/value-objects/Position';
+import { Seed } from '../../../common/value-objects/Seed';
+import { BuildingFootprint } from '../value-objects/BuildingFootprint';
+import { BuildingMaterial, BuildingType } from '../value-objects/BuildingMaterial';
+import { Floor } from '../value-objects/Floor';
+import { Room } from '../value-objects/Room';
 
 /**
- * Building-specific feature type
+ * Building entity - represents a complete structure with floors, walls, and rooms
+ * This is an entity (not value object) because buildings have identity and lifecycle
  */
-export const BUILDING_FEATURE_TYPE = 'building';
-
-/**
- * Building types
- */
-export enum BuildingType {
-  RESIDENTIAL = 'residential',
-  COMMERCIAL = 'commercial',
-  MILITARY = 'military',
-  RELIGIOUS = 'religious',
-  GOVERNMENTAL = 'governmental',
-  INDUSTRIAL = 'industrial',
-  AGRICULTURAL = 'agricultural',
-  RUINS = 'ruins',
-}
-
-/**
- * Building material types
- */
-export enum BuildingMaterial {
-  WOOD = 'wood',
-  STONE = 'stone',
-  BRICK = 'brick',
-  METAL = 'metal',
-  THATCH = 'thatch',
-  MIXED = 'mixed',
-}
-
-/**
- * Building size classifications
- */
-export enum BuildingSize {
-  TINY = 'tiny',
-  SMALL = 'small',
-  MEDIUM = 'medium',
-  LARGE = 'large',
-  HUGE = 'huge',
-}
-
-/**
- * Building entity representing a man-made structure
- */
-export class Building extends MapFeature {
-  private _entrances: Position[] = [];
-  private _stories: number;
-
-  constructor(
-    id: FeatureId,
-    name: string,
-    area: SpatialBounds,
-    public readonly buildingType: BuildingType,
-    public readonly material: BuildingMaterial,
-    public readonly size: BuildingSize,
-    stories: number = 1,
-    public readonly hasInterior: boolean = true,
-    public readonly condition: number = 1.0,
-    priority: number = 4
-  ) {
-    super(id, name, FeatureCategory.ARTIFICIAL, area, priority);
-    this._stories = this.validateStories(stories);
-    this.validateCondition(condition);
-  }
-
-  getType(): string {
-    return BUILDING_FEATURE_TYPE;
-  }
-
+export class Building {
+  private constructor(
+    private readonly id: string,
+    private readonly type: BuildingType,
+    private readonly position: Position,
+    private readonly orientation: number, // degrees rotation
+    private readonly footprint: BuildingFootprint,
+    private readonly floors: Floor[],
+    private readonly material: BuildingMaterial,
+    private readonly foundation: Foundation,
+    private readonly roof: RoofStyle,
+    private readonly age: number, // years since construction
+    private readonly condition: number, // 0-1, 1 = perfect
+    private readonly additions: BuildingAddition[]
+  ) {}
 
   /**
-   * Add an entrance to the building
+   * Create a new building with deterministic ID from seed
    */
-  addEntrance(position: Position): void {
-    if (!this.isPositionOnPerimeter(position)) {
-      throw new Error('Entrance must be on the building perimeter');
-    }
-    this._entrances.push(position);
-  }
+  static create(params: {
+    type: BuildingType;
+    position: Position;
+    width: number;
+    height: number;
+    material: BuildingMaterial;
+    seed: Seed;
+    orientation?: number;
+    foundation?: Foundation;
+    roof?: RoofStyle;
+  }): Building {
+    const id = `building_${params.seed.getValue()}_${params.position.getX()}_${params.position.getY()}`;
 
-  /**
-   * Get all entrances
-   */
-  getEntrances(): Position[] {
-    return [...this._entrances];
-  }
+    const footprint = BuildingFootprint.fromRectangle(
+      params.position,
+      params.width,
+      params.height
+    );
 
-  /**
-   * Get number of stories
-   */
-  get stories(): number {
-    return this._stories;
-  }
+    const groundFloor = Floor.ground(footprint);
 
-  /**
-   * Set number of stories
-   */
-  set stories(value: number) {
-    this._stories = this.validateStories(value);
-  }
-
-  /**
-   * Get the total floor area of the building
-   */
-  getTotalFloorArea(): number {
-    return this.area.dimensions.area * this._stories;
-  }
-
-  /**
-   * Determine if the building can be fortified
-   */
-  canBeFortified(): boolean {
-    return this.material === BuildingMaterial.STONE || 
-           this.material === BuildingMaterial.BRICK ||
-           this.buildingType === BuildingType.MILITARY;
-  }
-
-  /**
-   * Calculate defensive value of the building
-   */
-  getDefensiveValue(): number {
-    let baseValue: number;
-    
-    switch (this.material) {
-      case BuildingMaterial.STONE:
-        baseValue = 0.8;
-        break;
-      case BuildingMaterial.BRICK:
-        baseValue = 0.7;
-        break;
-      case BuildingMaterial.METAL:
-        baseValue = 0.9;
-        break;
-      case BuildingMaterial.WOOD:
-        baseValue = 0.5;
-        break;
-      case BuildingMaterial.THATCH:
-        baseValue = 0.2;
-        break;
-      default:
-        baseValue = 0.6;
-    }
-    
-    // Adjust for condition and building type
-    const conditionFactor = this.condition;
-    const typeFactor = this.buildingType === BuildingType.MILITARY ? 1.5 : 1.0;
-    
-    return baseValue * conditionFactor * typeFactor;
-  }
-
-  /**
-   * Check if a position is on the building's perimeter
-   */
-  private isPositionOnPerimeter(position: Position): boolean {
-    const minX = this.area.position.x;
-    const maxX = this.area.position.x + this.area.dimensions.width;
-    const minY = this.area.position.y;
-    const maxY = this.area.position.y + this.area.dimensions.height;
-    
-    // Check if the position is on any of the four edges
-    return (
-      (position.x === minX && position.y >= minY && position.y <= maxY) ||
-      (position.x === maxX && position.y >= minY && position.y <= maxY) ||
-      (position.y === minY && position.x >= minX && position.x <= maxX) ||
-      (position.y === maxY && position.x >= minX && position.x <= maxX)
+    return new Building(
+      id,
+      params.type,
+      params.position,
+      params.orientation || 0,
+      footprint,
+      [groundFloor],
+      params.material,
+      params.foundation || Foundation.FLAT,
+      params.roof || RoofStyle.PITCHED_THATCH,
+      0, // new building
+      1.0, // perfect condition
+      []
     );
   }
 
-  private validateStories(stories: number): number {
-    if (stories < 1) {
-      throw new Error('Building must have at least one story');
+  /**
+   * Add a floor to the building
+   */
+  addFloor(above: boolean = true): Building {
+    if (!this.canAddFloor()) {
+      throw new Error('Building cannot support additional floors');
     }
-    
-    // Validate maximum stories based on building size
-    const maxStories = {
-      [BuildingSize.TINY]: 1,
-      [BuildingSize.SMALL]: 2,
-      [BuildingSize.MEDIUM]: 4,
-      [BuildingSize.LARGE]: 8,
-      [BuildingSize.HUGE]: 20
-    };
-    
-    if (stories > maxStories[this.size]) {
-      throw new Error(`A ${this.size} building cannot have more than ${maxStories[this.size]} stories`);
-    }
-    
-    return stories;
+
+    const newLevel = above
+      ? this.getTopFloor().getLevel() + 1
+      : this.getBottomFloor().getLevel() - 1;
+
+    const newFloor = above
+      ? Floor.upper(newLevel, this.footprint, this.getTopFloor().getElevation())
+      : Floor.basement(newLevel, this.footprint, Math.abs(newLevel) * 7);
+
+    const newFloors = [...this.floors, newFloor].sort((a, b) => a.getLevel() - b.getLevel());
+
+    return new Building(
+      this.id,
+      this.type,
+      this.position,
+      this.orientation,
+      this.footprint,
+      newFloors,
+      this.material,
+      this.foundation,
+      this.roof,
+      this.age,
+      this.condition,
+      this.additions
+    );
   }
 
-  private validateCondition(condition: number): void {
-    if (condition < 0 || condition > 1) {
-      throw new Error('Building condition must be between 0 and 1');
+  /**
+   * Add rooms to a specific floor
+   */
+  addRoomsToFloor(floorLevel: number, rooms: Room[]): Building {
+    const floor = this.floors.find(f => f.getLevel() === floorLevel);
+    if (!floor) {
+      throw new Error(`Floor level ${floorLevel} does not exist`);
     }
+
+    const updatedFloor = floor.withRooms(rooms);
+    const newFloors = this.floors.map(f =>
+      f.getLevel() === floorLevel ? updatedFloor : f
+    );
+
+    return new Building(
+      this.id,
+      this.type,
+      this.position,
+      this.orientation,
+      this.footprint,
+      newFloors,
+      this.material,
+      this.foundation,
+      this.roof,
+      this.age,
+      this.condition,
+      this.additions
+    );
   }
+
+  /**
+   * Add an addition/extension to the building
+   */
+  addAddition(addition: BuildingAddition): Building {
+    // Validate addition can be attached
+    if (!this.canAttachAddition(addition)) {
+      throw new Error('Cannot attach addition at specified location');
+    }
+
+    return new Building(
+      this.id,
+      this.type,
+      this.position,
+      this.orientation,
+      this.footprint,
+      this.floors,
+      this.material,
+      this.foundation,
+      this.roof,
+      this.age,
+      this.condition,
+      [...this.additions, addition]
+    );
+  }
+
+  /**
+   * Age the building (deteriorate condition)
+   */
+  age(years: number): Building {
+    const newAge = this.age + years;
+    const degradation = this.material.getDegradation(newAge, 0.5);
+    const newCondition = Math.max(0, this.condition - degradation);
+
+    return new Building(
+      this.id,
+      this.type,
+      this.position,
+      this.orientation,
+      this.footprint,
+      this.floors,
+      this.material,
+      this.foundation,
+      this.roof,
+      newAge,
+      newCondition,
+      this.additions
+    );
+  }
+
+  /**
+   * Check if building can support another floor
+   */
+  canAddFloor(): boolean {
+    const currentFloors = this.floors.filter(f => f.getLevel() > 0).length + 1;
+    return this.material.canSupportFloors(currentFloors + 1);
+  }
+
+  /**
+   * Check if building can attach an addition
+   */
+  private canAttachAddition(addition: BuildingAddition): boolean {
+    // Check if addition footprint overlaps with existing
+    for (const existing of this.additions) {
+      if (addition.footprint.overlaps(existing.footprint)) {
+        return false;
+      }
+    }
+
+    // Check if addition shares a wall with main building
+    return addition.footprint.findSharedWall(this.footprint) !== null;
+  }
+
+  /**
+   * Check if building can share a wall with another
+   */
+  canShareWallWith(other: Building): boolean {
+    return this.footprint.findSharedWall(other.footprint) !== null;
+  }
+
+  /**
+   * Get total building height
+   */
+  getTotalHeight(): number {
+    const topFloor = this.getTopFloor();
+    return topFloor.getElevation() + topFloor.getCeilingHeight() + 2; // +2 for roof
+  }
+
+  /**
+   * Get total floor area (all floors)
+   */
+  getTotalFloorArea(): number {
+    return this.floors.reduce((sum, floor) => sum + floor.getTotalArea(), 0);
+  }
+
+  /**
+   * Get total number of rooms
+   */
+  getTotalRoomCount(): number {
+    return this.floors.reduce((sum, floor) => sum + floor.getRooms().length, 0);
+  }
+
+  /**
+   * Check if building is a ruin
+   */
+  isRuin(): boolean {
+    return this.condition < 0.3 || this.type === BuildingType.RUIN;
+  }
+
+  /**
+   * Check if building has a specific room type
+   */
+  hasRoomType(roomType: string): boolean {
+    return this.floors.some(floor => floor.hasRoomType(roomType));
+  }
+
+  // Private helpers
+  private getTopFloor(): Floor {
+    return this.floors.reduce((top, floor) =>
+      floor.getLevel() > top.getLevel() ? floor : top
+    );
+  }
+
+  private getBottomFloor(): Floor {
+    return this.floors.reduce((bottom, floor) =>
+      floor.getLevel() < bottom.getLevel() ? floor : bottom
+    );
+  }
+
+  // Getters
+  getId(): string { return this.id; }
+  getType(): BuildingType { return this.type; }
+  getPosition(): Position { return this.position; }
+  getOrientation(): number { return this.orientation; }
+  getFootprint(): BuildingFootprint { return this.footprint; }
+  getFloors(): ReadonlyArray<Floor> { return this.floors; }
+  getMaterial(): BuildingMaterial { return this.material; }
+  getFoundation(): Foundation { return this.foundation; }
+  getRoof(): RoofStyle { return this.roof; }
+  getAge(): number { return this.age; }
+  getCondition(): number { return this.condition; }
+  getAdditions(): ReadonlyArray<BuildingAddition> { return this.additions; }
+  getFloorCount(): number { return this.floors.length; }
+}
+
+/**
+ * Building addition/extension
+ */
+export class BuildingAddition {
+  constructor(
+    public readonly type: AdditionType,
+    public readonly footprint: BuildingFootprint,
+    public readonly material: BuildingMaterial,
+    public readonly connectionType: ConnectionType,
+    public readonly floors: number = 1
+  ) {}
+}
+
+/**
+ * Foundation types for different terrains
+ */
+export enum Foundation {
+  FLAT = 'flat',               // Normal foundation
+  RAISED = 'raised',           // On stilts/posts
+  CARVED = 'carved',           // Cut into hillside
+  STEPPED = 'stepped',         // Multiple levels
+  TERRACED = 'terraced',       // With retaining walls
+  CELLAR = 'cellar'           // With basement
+}
+
+/**
+ * Roof styles
+ */
+export enum RoofStyle {
+  FLAT = 'flat',
+  PITCHED_THATCH = 'pitched_thatch',
+  PITCHED_TILE = 'pitched_tile',
+  PITCHED_SLATE = 'pitched_slate',
+  PITCHED_WOOD = 'pitched_wood',
+  HIPPED = 'hipped',
+  GABLED = 'gabled',
+  GAMBREL = 'gambrel',
+  MANSARD = 'mansard',
+  DOME = 'dome',
+  CONICAL = 'conical'
+}
+
+/**
+ * Types of building additions
+ */
+export enum AdditionType {
+  LEAN_TO = 'lean_to',
+  WING = 'wing',
+  TOWER = 'tower',
+  PORCH = 'porch',
+  SHED = 'shed',
+  ANNEX = 'annex'
+}
+
+/**
+ * How additions connect to main building
+ */
+export enum ConnectionType {
+  SHARED_WALL = 'shared_wall',
+  DOOR = 'door',
+  COVERED_WALKWAY = 'covered_walkway',
+  UNDERGROUND = 'underground',
+  NONE = 'none'
 }

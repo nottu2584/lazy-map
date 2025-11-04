@@ -1,16 +1,17 @@
 # Lazy Map
 
-> **Deterministic tabletop RPG map generator built with Clean Architecture**
+> **Deterministic tactical battlemap generator built with Clean Architecture**
 
-Generate beautiful, reproducible grid-based maps for D&D, Pathfinder, and other tabletop RPGs. Same seed always generates the same map - perfect for consistent gameplay and testing.
+Generate reproducible tactical-scale maps for D&D 5e and other tabletop RPGs. Create encounter areas with realistic terrain, buildings with interiors, and natural features - all deterministically generated from seeds.
 
 ## ✨ Features
 
 - **🎲 Deterministic Generation** - Same seed = same map, every time
-- **🗺️ Rich Terrain System** - Forests, rivers, mountains, settlements with realistic transitions
-- **📐 Grid-Based Design** - Optimized for virtual tabletops (Roll20, FoundryVTT)
-- **🏗️ Clean Architecture** - Domain-driven, testable, maintainable
-- **🌱 Seeded Randomization** - String or numeric seeds for memorable maps
+- **⚔️ Tactical Scale** - 50-100 tiles at 5ft/tile for combat encounters
+- **🏰 Building Interiors** - Multi-floor structures with rooms and furnishings
+- **🌳 6-Layer System** - Geology → Topography → Hydrology → Vegetation → Structures → Features
+- **🏗️ Clean Architecture** - Domain-driven design, testable, maintainable
+- **🌱 Memorable Seeds** - Use strings like "goblin-ambush" or "tavern-cellar"
 
 ## 🚀 Quick Start
 
@@ -51,30 +52,26 @@ pnpm dev
 ### Basic Map Generation
 
 ```typescript
-// Simple map with string seed
-const map = await mapApi.generateMap({
-  name: "Goblin Ambush",
-  seed: "forest-encounter-01",  // Memorable string seed
-  width: 25,
-  height: 20
+// Generate tactical encounter map
+const map = await mapApi.generateTacticalMap({
+  name: "Tavern Brawl",
+  seed: "tavern-brawl-01",
+  context: {
+    biome: "temperate",
+    elevation: "lowland",
+    hydrology: "normal",
+    development: "settled",  // Generates buildings
+    season: "summer"
+  }
 });
 
-// Customized terrain distribution
-const map = await mapApi.generateMap({
-  seed: "mountain-pass",
-  width: 30,
-  height: 30,
-  terrainDistribution: {
-    grassland: 0.3,
-    forest: 0.2,
-    mountain: 0.4,
-    water: 0.1
-  },
-  generateForests: true,
-  forestSettings: {
-    forestDensity: 0.4,
-    treeDensity: 0.8,
-    treeClumping: 0.7
+// Forest ambush encounter
+const map = await mapApi.generateTacticalMap({
+  seed: "goblin-ambush",
+  context: {
+    biome: "forest",
+    development: "wilderness",
+    vegetationDensity: 0.8
   }
 });
 ```
@@ -325,12 +322,15 @@ pnpm test:e2e
 
 ## 📚 Documentation
 
-| Document | Description |
-|----------|-------------|
-| [CLAUDE.md](./CLAUDE.md) | AI agent guide & architecture details |
-| [docs/DATABASE_SETUP.md](./docs/DATABASE_SETUP.md) | Database configuration guide |
-| [docs/ENVIRONMENT_STRATEGY.md](./docs/ENVIRONMENT_STRATEGY.md) | Environment separation strategy |
-| [docs/GOOGLE_OAUTH_INTEGRATION_PLAN.md](./docs/GOOGLE_OAUTH_INTEGRATION_PLAN.md) | OAuth implementation plan |
+Full documentation available in `/docs`:
+
+- **[Getting Started](./docs/getting-started/installation.md)** - Installation and setup
+- **[Architecture Overview](./docs/architecture/overview.md)** - System design and patterns
+- **[Map Generation](./docs/architecture/map-generation.md)** - 6-layer generation system
+- **[Building System](./docs/architecture/building-system.md)** - Building generation with interiors
+- **[Roadmap](./docs/roadmap.md)** - Development priorities
+
+For AI agents and contributors: See [CLAUDE.md](./CLAUDE.md) for architecture rules and patterns.
 
 ## 🤝 Contributing
 

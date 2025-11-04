@@ -31,9 +31,10 @@ Each layer depends on the previous, creating realistic terrain through geologica
 - **Example**: Dense trees near water, sparse on cliffs
 
 ### Layer 4: Structures (Buildings)
-- **Creates**: Buildings, roads, bridges
+- **Creates**: Buildings with interiors, roads, bridges
+- **Buildings**: Multi-floor structures with rooms and shared walls
 - **Depends on**: Buildable terrain from topography
-- **Example**: Roads follow easiest paths, bridges span water
+- **Example**: Row houses share walls, taverns have common rooms and kitchens
 
 ### Layer 5: Features (Tactical)
 - **Creates**: Hazards, resources, cover positions

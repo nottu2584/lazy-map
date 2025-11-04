@@ -18,6 +18,7 @@ Deterministic tactical battlemap generator for tabletop RPGs.
 ### Architecture
 - [Overview](./architecture/overview.md) - Clean Architecture principles
 - [Map Generation](./architecture/map-generation.md) - The 6-layer system
+- [Building System](./architecture/building-system.md) - Buildings with interiors
 - [Conventions](./architecture/conventions.md) - Code style and naming
 
 ### Guides

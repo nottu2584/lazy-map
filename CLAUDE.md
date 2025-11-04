@@ -1,292 +1,143 @@
 # CLAUDE.md
 
-Guide for Claude Code (claude.ai/code) when working with this repository.
+Agent guide for Lazy Map - tactical battlemap generator for tabletop RPGs.
 
-## What This Project Does
+## Core Principles
 
-**Lazy Map** generates graphical battlemaps for tabletop games. Users input settings (size, terrain, features) and get deterministic, grid-based maps perfect for D&D/RPG sessions.
-
-**Architecture**: Clean Architecture + Domain-Driven Design
-**Tech Stack**: TypeScript monorepo with NestJS backend, React frontend
-
-## Documentation
-
-See `/docs` for complete documentation:
-- [Getting Started](docs/getting-started/installation.md)
-- [Architecture Overview](docs/architecture/overview.md)
-- [Map Generation](docs/architecture/map-generation.md)
-- [Roadmap](docs/roadmap.md)
-
-## Quick Start
-
-```bash
-# Setup everything
-pnpm run setup
-
-# Start development
-pnpm run dev              # Both frontend + backend
-pnpm run dev:backend      # Just NestJS server (port 3000)
-pnpm run dev:frontend     # Just React app (port 5173)
-
-# Testing & Building
-pnpm test                 # All tests
-pnpm build               # All packages
-```
+**Architecture**: Clean Architecture + DDD
+**Determinism**: Same seed → identical map (ALWAYS)
+**Scale**: 50-100 tiles @ 5ft/tile (tactical combat)
 
 ## Project Structure
 
 ```
 lazy-map/
 ├── apps/
-│   ├── backend/         # NestJS API server (delivery mechanism)
-│   │   └── src/
-│   │       ├── modules/               # Feature modules (HTTP endpoints)
-│   │       │   ├── maps/              # Map generation endpoints
-│   │       │   ├── benchmark/         # Performance benchmarking
-│   │       │   ├── features/          # Feature management
-│   │       │   ├── health/            # Health checks
-│   │       │   ├── admin/             # Admin functionality
-│   │       │   └── auth/              # Authentication
-│   │       ├── common/                # Shared NestJS utilities
-│   │       ├── dto/                   # Data transfer objects
-│   │       ├── application.module.ts  # Wires up use cases from packages/
-│   │       ├── infrastructure.module.ts # Wires up services from packages/
-│   │       ├── app.module.ts          # Root module
-│   │       └── main.ts                # Application entry point
-│   └── frontend/        # React + Konva map viewer
-└── packages/           # Clean Architecture layers (THE CORE)
-    ├── domain/         # Business logic (no dependencies)
-    ├── application/    # Use cases (depends: domain)
-    └── infrastructure/ # External stuff (depends: domain + application)
+│   ├── backend/         # NestJS delivery layer (NO business logic)
+│   └── frontend/        # React + Konva viewer
+└── packages/            # Core business logic
+    ├── domain/          # Pure entities (NO dependencies)
+    ├── application/     # Use cases (depends: domain)
+    └── infrastructure/  # External implementations (depends: domain + application)
 ```
 
-## 🏗️ Architecture Rules (MUST FOLLOW)
+## Critical Rules
 
-### 1. **Single Responsibility Principle**
-**Rule**: One file = One entity/use case/service
+### 1. Clean Architecture
+- **Domain → Nothing** (pure, deterministic)
+- **Application → Domain only** (orchestration)
+- **Infrastructure → Domain + Application** (implementations)
+- **Controllers → Use Cases** (NEVER services directly)
 
-❌ **Bad Example**:
+### 2. Single Responsibility
+- One file = One class/entity/use case
+- Split files > 100 lines with multiple concepts
+- No backwards compatibility or @deprecated code
+
+### 3. Determinism
+- No `Math.random()` in domain
+- Use seeded random from `Seed` value objects
+- All generation must be reproducible
+
+### 4. Error & Logging
 ```typescript
-// WaterFeature.ts - Multiple entities (WRONG)
-export class Spring { /*...*/ }
-export class Pond { /*...*/ }
-export class Wetland { /*...*/ }
+// Errors: Use DomainError hierarchy
+throw new ValidationError(
+  'ERROR_CODE',
+  'Technical message',
+  'User message',
+  { component: 'Name', operation: 'method' },
+  ['Fix suggestion']
+);
+
+// Logging: Use ILogger interface
+this.logger?.debug('Message', { metadata: { data } });
 ```
 
-✅ **Good Example**:
-```typescript
-// Spring.ts
-export class Spring extends MapFeature { /*...*/ }
+### 5. Naming Consistency
+- Be consistent with pluralization
+- `SpaceRequirements` (contains multiple requirements)
+- `RoomRequirements` (specification for multiple rooms)
+- Use descriptive, domain-specific names
 
-// Pond.ts
-export class Pond extends MapFeature { /*...*/ }
+## Domain Contexts
 
-// Wetland.ts
-export class Wetland extends MapFeature { /*...*/ }
-```
+- `relief/` - Terrain, elevation, geology
+- `natural/` - Vegetation, water features
+- `artificial/` - Buildings, roads, structures
+- `cultural/` - Settlements, territories
+- `map/` - Aggregate root
 
-### 2. **Clean Architecture Flow**
-**Rule**: Controllers → Use Cases → Repositories
+## Development Workflow
 
-❌ **Wrong**:
-```typescript
-// Controller directly using services
-export class MapsController {
-  private readonly seedService = new SeedService(); // WRONG!
-}
-```
+1. **Domain First**: Define entities/value objects
+2. **Use Cases**: Create application orchestration
+3. **Infrastructure**: Implement domain interfaces
+4. **Controllers**: Wire to use cases with @Inject
+5. **Documentation**: Update /docs when changing features
+6. **Testing**: Ensure deterministic generation
 
-✅ **Right**:
-```typescript
-// Controller using Use Case
-export class MapsController {
-  constructor(
-    @Inject('ValidateSeedUseCase')
-    private readonly validateSeedUseCase: ValidateSeedUseCase
-  ) {}
-}
-```
+## Common Patterns
 
-### 3. **No Backwards Compatibility**
-**Rule**: Remove legacy code immediately
-
-❌ **Never keep**:
-- `@deprecated` code
-- "backward compatibility" comments
-- Legacy wrapper services (like MapService)
-- Empty/orphaned files
-
-✅ **Do instead**:
-- Clean breaks when refactoring
-- Remove old code completely
-- Update all references
-
-### 4. **Domain Purity**
-**Rule**: Domain entities must be deterministic
-
-❌ **Wrong**:
-```typescript
-get seasonalActivity() {
-  return Math.random() > 0.5 ? 'wet' : 'dry'; // NO RANDOMNESS!
-}
-```
-
-✅ **Right**:
-```typescript
-constructor(
-  // ...
-  public readonly seasonalPattern: 'wet' | 'dry' // Deterministic
-) {}
-```
-
-### 5. **File Organization**
-**Rules**:
-- **Clean imports** - No `/dist` paths
-- **Consistent structure** - Follow Lake/River pattern for new entities
-
-**Domain Contexts**:
-- `relief/` = Terrain, elevation, topography
-- `natural/` = Forests, rivers, **water features (Spring, Pond, Wetland)**
-- `artificial/` = Buildings, roads, structures
-- `cultural/` = Settlements, territories
-
-### 6. **Dependencies**
-**Strict Rules**:
-- ✅ Domain → Nothing
-- ✅ Application → Domain only
-- ✅ Infrastructure → Domain + Application
-- ❌ **NEVER** reverse these
-- ❌ **NO** services in application layer (use Use Cases)
-
-### 7. **Backend Organization (NestJS)**
-**Key Principle**: The backend is just the **delivery mechanism** - NOT the core of the application!
-
-**Module Structure Rules**:
-- **Feature modules** go in `modules/` directory
-- **Each module** has its own directory with:
-  - `*.module.ts` - Module definition
-  - `*.controller.ts` - HTTP endpoints
-  - `dto/` - Data transfer objects (if needed)
-  - `*.test.ts` - Tests alongside code
-- **Provider modules** at root level:
-  - `application.module.ts` - Wires up use cases from `packages/application`
-  - `infrastructure.module.ts` - Wires up services from `packages/infrastructure`
-- **Controllers MUST**:
-  - Use dependency injection (`@Inject`)
-  - Call Use Cases, never services directly
-  - Be in their module's directory
-- **NO business logic** in the backend - it's all in `packages/`
-
-## 🎯 Domain Structure
-
-```
-packages/domain/src/
-├── common/              # Shared across contexts
-│   ├── entities/        # MapFeature, MapTile
-│   ├── value-objects/   # Position, Dimensions, Range, Seed
-│   ├── services/        # SeedService, RandomGeneration
-│   └── interfaces/      # ILogger, IRandomGenerator
-├── contexts/            # Business domains
-│   ├── relief/         # Terrain generation
-│   ├── natural/        # Forests, rivers
-│   ├── artificial/     # Buildings, roads
-│   └── cultural/       # Settlements
-└── map/                # Map aggregate root
-    ├── entities/       # MapGrid
-    ├── services/       # IMapGenerationService
-    └── repositories/   # IMapRepository
-```
-
-## 🔧 Development Patterns
-
-### Adding New Features
-1. **Start with Domain** - What's the core business concept?
-2. **Pick Context** - Which bounded context does it belong to?
-3. **Create Value Objects** - Immutable data + validation
-4. **Add Domain Services** - Complex business logic
-5. **Build Use Cases** - Application layer orchestration
-6. **Implement Infrastructure** - External integrations
-
-### Code Examples
-
-**Value Object** (immutable, validated data):
+### Value Object
 ```typescript
 export class Position {
-  private constructor(private readonly x: number, private readonly y: number) {}
+  private constructor(private readonly x: number, private readonly y: number) {
+    Object.freeze(this);
+  }
 
   static create(x: number, y: number): Position {
-    if (x < 0 || y < 0) throw new Error('Coordinates must be positive');
+    // Validation
+    if (x < 0) throw new ValidationError(/*...*/);
     return new Position(x, y);
   }
 
+  // Getters only (immutable)
   getX(): number { return this.x; }
-  getY(): number { return this.y; }
 }
 ```
 
-**Domain Service** (complex business logic):
+### Use Case
 ```typescript
-export class SeedService {
-  generateSeed(input?: number | string): Seed {
-    if (typeof input === 'string') return Seed.fromString(input);
-    if (typeof input === 'number') return Seed.fromNumber(input);
-    return Seed.createDefault();
+@Injectable()
+export class GenerateBuildingUseCase {
+  constructor(
+    @Inject('IBuildingGenerationService')
+    private readonly generator: IBuildingGenerationService
+  ) {}
+
+  async execute(command: Command): Promise<Result> {
+    // Orchestrate domain logic
   }
 }
 ```
 
-### Testing Strategy
-- **Domain**: Pure unit tests (no mocks - no dependencies!)
-- **Application**: Mock domain services, test orchestration
-- **Infrastructure**: Integration tests with real externals
-- **Deterministic**: Same seed = same map (always!)
+## Map Generation Layers
 
-## 🚫 Common Mistakes to Avoid
+0. **Geology** - Bedrock, soil (foundation)
+1. **Topography** - Elevation, slopes
+2. **Hydrology** - Water flow, springs
+3. **Vegetation** - Plants based on moisture
+4. **Structures** - Buildings with interiors
+5. **Features** - Tactical elements
 
-1. **Mixed Responsibilities**: Don't put multiple concepts in one file
-2. **Wrong Layer**: Don't put orchestration logic in value objects
-3. **Dependency Violations**: Domain must never import from application/infrastructure
-4. **Large Files**: Split when >100 lines or multiple classes
-5. **Generic Utils**: Use domain services instead of static utility classes
-6. **Direct Service Usage**: Controllers must use Use Cases, not services
-7. **Legacy Code**: Remove immediately, no backwards compatibility
+Each layer depends on previous, creating realistic terrain.
 
-## 🎮 Key Features
+## Quick Reference
 
-**Deterministic Generation**:
-- Same seed = identical map every time
-- Perfect for testing and reproducible sessions
-- String seeds work: "my-awesome-dungeon" → unique map
+- **Docs**: `/docs` - All documentation
+- **Commands**: `pnpm dev`, `pnpm test`, `pnpm build`
+- **Ports**: Backend 3000, Frontend 5173
+- **Seeds**: Strings ("goblin-ambush") or numbers (12345)
 
-**Clean Separation**:
-- Business logic isolated in domain layer
-- Easy to test, modify, and extend
-- Clear boundaries between concerns
+## Maintenance
 
-## 📝 Recent Clean Architecture Refactoring
-
-**Water Features Reorganization**:
-- Split `WaterFeature.ts` (345 lines, 3 entities) into:
-  - `Spring.ts` - Water source features
-  - `Pond.ts` - Small standing water
-  - `Wetland.ts` - Marshes and swamps
-- Fixed non-deterministic code (removed Math.random())
-- Aligned with Lake/River entity patterns
-
-**Legacy Code Removal**:
-- Deleted `MapService` (anti-pattern wrapper)
-- Removed `Tree.ts` (deprecated compatibility)
-- Cleaned `application/map/services/` directory
-- Eliminated all `@deprecated` code
-- Replaced `isLazyMapError` with `isDomainError` throughout codebase
-- Removed backwards compatibility methods from `RandomGeneratorService`
-
-**Architecture Enforcement**:
-- Controllers now only use Use Cases
-- No direct service instantiation
-- Clean import paths (no `/dist`)
-- Strict single responsibility per file
+- Update `/docs` when changing features
+- Remove legacy code immediately
+- Keep files focused and small
+- Ensure all generation is deterministic
+- Use domain errors with recovery suggestions
 
 ---
 
-*This guide ensures consistent, maintainable code following Clean Architecture principles. When in doubt, favor smaller, focused files over large ones with multiple responsibilities.*
+*Agent: Prioritize determinism, clean architecture, and single responsibility. When uncertain, check existing patterns in codebase.*

@@ -156,7 +156,7 @@ export class InMemoryUserRepository implements IUserRepository {
       activeUsers: allUsers.filter(user => user.status.isActive()).length,
       suspendedUsers: allUsers.filter(user => user.status.isSuspended()).length,
       pendingUsers: allUsers.filter(user => user.status.isPending()).length,
-      adminUsers: allUsers.filter(user => user.role.hasAdminPrivileges()).length
+      adminUsers: allUsers.filter(user => user.role.isAdmin()).length
     };
   }
 

@@ -1,64 +1,25 @@
-// Geological foundation layer
-export {
-  GeologyLayer,
-  GeologyLayerData,
-  GeologyTileData,
-  IGeologyLayerService
-} from './GeologyLayer';
+/**
+ * Infrastructure layer service implementations
+ *
+ * Note: Domain types (interfaces, data structures) should be imported
+ * directly from @lazy-map/domain. This file only exports the concrete
+ * implementation classes following Clean Architecture principles.
+ */
 
-// Topographic expression layer
-export {
-  TopographyLayer,
-  TopographyLayerData,
-  TopographyTileData,
-  ITopographyLayerService
-} from './TopographyLayer';
+// Geological foundation layer implementation
+export { GeologyLayer } from './GeologyLayer';
 
-// Hydrological flow layer
-export {
-  HydrologyLayer,
-  HydrologyLayerData,
-  HydrologyTileData,
-  IHydrologyLayerService,
-  StreamSegment
-} from './HydrologyLayer';
+// Topographic expression layer implementation
+export { TopographyLayer } from './TopographyLayer';
 
-// Vegetation growth layer
-export {
-  VegetationLayer,
-  VegetationLayerData,
-  VegetationTileData,
-  VegetationType,
-  IVegetationLayerService,
-  ForestPatch
-} from './VegetationLayer';
+// Hydrological flow layer implementation
+export { HydrologyLayer } from './HydrologyLayer';
 
-// Artificial structures layer
-export {
-  StructuresLayer,
-  StructuresLayerData,
-  StructureTileData,
-  StructureType,
-  StructureCondition,
-  IStructuresLayerService,
-  BuildingFootprint,
-  RoadNetwork,
-  RoadSegment,
-  BridgeLocation
-} from './StructuresLayer';
+// Vegetation growth layer implementation
+export { VegetationLayer } from './VegetationLayer';
 
-// Features and points of interest layer
-export {
-  FeaturesLayer,
-  FeaturesLayerData,
-  FeatureTileData,
-  FeatureType,
-  HazardLevel,
-  VisibilityLevel,
-  InteractionType,
-  IFeaturesLayerService,
-  HazardLocation,
-  ResourceLocation,
-  LandmarkLocation,
-  TacticalFeatureLocation
-} from './FeaturesLayer';
+// Artificial structures layer implementation
+export { StructuresLayer } from './StructuresLayer';
+
+// Features and points of interest layer implementation
+export { FeaturesLayer } from './FeaturesLayer';

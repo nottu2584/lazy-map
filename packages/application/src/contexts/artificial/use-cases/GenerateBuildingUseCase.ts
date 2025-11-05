@@ -1,13 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
 import {
   Building,
   BuildingType,
   IBuildingGenerationService,
   BuildingSite,
   BuildingContext,
-  SpaceRequirements
+  SpaceRequirements,
+  Position,
+  Seed
 } from '@lazy-map/domain';
-import { Position, Seed } from '@lazy-map/domain';
 
 /**
  * Command for generating a building
@@ -43,10 +43,8 @@ export class GenerateBuildingResult {
  * Use case for generating a building
  * Follows Clean Architecture - orchestrates domain logic
  */
-@Injectable()
 export class GenerateBuildingUseCase {
   constructor(
-    @Inject('IBuildingGenerationService')
     private readonly buildingGenerator: IBuildingGenerationService
   ) {}
 
@@ -253,8 +251,9 @@ export class GenerateBuildingUseCase {
    * Get which side should be shared wall
    */
   private getSharedWallSide(position: Position, building: Building): string {
-    const dx = position.getX() - building.getPosition().getX();
-    const dy = position.getY() - building.getPosition().getY();
+    const buildingPos = building.getPosition();
+    const dx = position.x - buildingPos.x;
+    const dy = position.y - buildingPos.y;
 
     if (Math.abs(dx) > Math.abs(dy)) {
       return dx > 0 ? 'west' : 'east';
@@ -267,8 +266,8 @@ export class GenerateBuildingUseCase {
    * Calculate distance between positions
    */
   private getDistance(p1: Position, p2: Position): number {
-    const dx = p1.getX() - p2.getX();
-    const dy = p1.getY() - p2.getY();
+    const dx = p1.x - p2.x;
+    const dy = p1.y - p2.y;
     return Math.sqrt(dx * dx + dy * dy);
   }
 }

@@ -182,7 +182,7 @@ export class BuildingGenerationService implements IBuildingGenerationService {
 
         // Create room bounds
         const bounds = new RoomBounds(
-          Position.create(currentX, currentY),
+          new Position(currentX, currentY),
           roomWidth,
           roomHeight
         );
@@ -231,10 +231,17 @@ export class BuildingGenerationService implements IBuildingGenerationService {
       [BuildingType.TOWNHOUSE]: { min: 15, max: 20 },
       [BuildingType.MANOR]: { min: 40, max: 60 },
       [BuildingType.BARN]: { min: 20, max: 40 },
+      [BuildingType.STABLE]: { min: 15, max: 30 },
+      [BuildingType.WORKSHOP]: { min: 15, max: 25 },
       [BuildingType.TAVERN]: { min: 30, max: 45 },
+      [BuildingType.INN]: { min: 35, max: 50 },
       [BuildingType.CHURCH]: { min: 35, max: 50 },
+      [BuildingType.CHAPEL]: { min: 15, max: 25 },
+      [BuildingType.MILL]: { min: 20, max: 30 },
       [BuildingType.TOWER]: { min: 10, max: 15 },
-      [BuildingType.CASTLE]: { min: 60, max: 100 }
+      [BuildingType.GATEHOUSE]: { min: 20, max: 30 },
+      [BuildingType.CASTLE]: { min: 60, max: 100 },
+      [BuildingType.FORTIFICATION]: { min: 30, max: 50 }
     };
 
     const dims = baseDimensions[type] || { min: 15, max: 30 };
@@ -343,10 +350,21 @@ export class BuildingGenerationService implements IBuildingGenerationService {
       [BuildingType.HUT]: 1,
       [BuildingType.HOUSE]: 1 + (random() > 0.5 ? 1 : 0),
       [BuildingType.COTTAGE]: 1 + (random() > 0.7 ? 1 : 0),
+      [BuildingType.FARMHOUSE]: 1 + (random() > 0.6 ? 1 : 0),
       [BuildingType.TOWNHOUSE]: 2 + (random() > 0.5 ? 1 : 0),
       [BuildingType.MANOR]: 2 + Math.floor(random() * 2),
+      [BuildingType.BARN]: 1,
+      [BuildingType.STABLE]: 1,
+      [BuildingType.WORKSHOP]: 1,
+      [BuildingType.TAVERN]: 1 + (random() > 0.4 ? 1 : 0),
+      [BuildingType.INN]: 2 + (random() > 0.6 ? 1 : 0),
+      [BuildingType.CHURCH]: 1,
+      [BuildingType.CHAPEL]: 1,
+      [BuildingType.MILL]: 2 + (random() > 0.7 ? 1 : 0),
       [BuildingType.TOWER]: 3 + Math.floor(random() * 2),
-      [BuildingType.CASTLE]: 3 + Math.floor(random() * 3)
+      [BuildingType.GATEHOUSE]: 2,
+      [BuildingType.CASTLE]: 3 + Math.floor(random() * 3),
+      [BuildingType.FORTIFICATION]: 1
     };
 
     const floors = baseFloors[type] || 1;
@@ -452,19 +470,19 @@ export class BuildingGenerationService implements IBuildingGenerationService {
     const gap = 1; // Allow 1 foot gap for walls
 
     // Check horizontal adjacency
-    if (Math.abs(bounds1.origin.getX() + bounds1.width - bounds2.origin.getX()) < gap ||
-        Math.abs(bounds2.origin.getX() + bounds2.width - bounds1.origin.getX()) < gap) {
+    if (Math.abs(bounds1.origin.x + bounds1.width - bounds2.origin.x) < gap ||
+        Math.abs(bounds2.origin.x + bounds2.width - bounds1.origin.x) < gap) {
       // Check vertical overlap
-      return !(bounds1.origin.getY() + bounds1.height < bounds2.origin.getY() ||
-               bounds2.origin.getY() + bounds2.height < bounds1.origin.getY());
+      return !(bounds1.origin.y + bounds1.height < bounds2.origin.y ||
+               bounds2.origin.y + bounds2.height < bounds1.origin.y);
     }
 
     // Check vertical adjacency
-    if (Math.abs(bounds1.origin.getY() + bounds1.height - bounds2.origin.getY()) < gap ||
-        Math.abs(bounds2.origin.getY() + bounds2.height - bounds1.origin.getY()) < gap) {
+    if (Math.abs(bounds1.origin.y + bounds1.height - bounds2.origin.y) < gap ||
+        Math.abs(bounds2.origin.y + bounds2.height - bounds1.origin.y) < gap) {
       // Check horizontal overlap
-      return !(bounds1.origin.getX() + bounds1.width < bounds2.origin.getX() ||
-               bounds2.origin.getX() + bounds2.width < bounds1.origin.getX());
+      return !(bounds1.origin.x + bounds1.width < bounds2.origin.x ||
+               bounds2.origin.x + bounds2.width < bounds1.origin.x);
     }
 
     return false;

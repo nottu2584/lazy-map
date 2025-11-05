@@ -1,10 +1,54 @@
 /**
+ * Wall construction styles/techniques from ancient to renaissance periods
+ * These describe HOW walls are built, not just what they're made of
+ */
+export enum ConstructionStyle {
+  // Ancient Period Styles
+  MUD_BRICK = 'mud_brick',           // Adobe - sun-dried mud and straw bricks
+  RUBBLE_MASONRY = 'rubble_masonry', // Irregular stones with mud/clay mortar
+  CYCLOPEAN = 'cyclopean',           // Massive boulders, no mortar (Greek/Mycenaean)
+  ASHLAR = 'ashlar',                 // Precisely cut squared stones
+  OPUS_INCERTUM = 'opus_incertum',   // Roman concrete with irregular stone facing
+  OPUS_RETICULATUM = 'opus_reticulatum', // Roman concrete with diagonal net pattern
+  OPUS_LATERICIUM = 'opus_latericium',   // Roman concrete with fired brick facing
+
+  // Medieval Period Styles
+  WATTLE_DAUB = 'wattle_daub',       // Woven wood lattice with clay/dung/straw daub
+  TIMBER_FRAME = 'timber_frame',     // Heavy timber structural frame (generic)
+  BRICK_NOG = 'brick_nog',           // Timber frame with brick nogging infill
+  STONE_NOG = 'stone_nog',           // Timber frame with stone nogging infill
+  RUBBLE_CORE = 'rubble_core',       // Castle walls - ashlar faces with rubble core
+
+  // Renaissance & Later Styles
+  BRICK_LAID = 'brick_laid',         // Fired clay bricks with mortar
+  DRESSED_STONE = 'dressed_stone',   // Refined cut stone blocks
+
+  // Simple/Poor Styles
+  COB = 'cob',                       // Mixed earth, straw, and water (no bricks)
+  PALISADE = 'palisade',             // Wooden stakes/logs for fortification
+  TURF = 'turf'                      // Stacked sod/earth blocks
+}
+
+/**
+ * Primary materials that walls are made from
+ * What consumers actually need to know for gameplay
+ */
+export enum WallMaterial {
+  STONE = 'stone',     // Stone-based walls
+  WOOD = 'wood',       // Wood-based walls
+  BRICK = 'brick',     // Brick-based walls
+  EARTH = 'earth',     // Earth/mud-based walls
+  COMPOSITE = 'composite' // Mixed material walls
+}
+
+/**
  * Building material properties for medieval/ancient structures
- * Determines wall thickness, durability, and construction methods
+ * Combines primary material with construction style for complete wall definition
  */
 export class BuildingMaterial {
   private constructor(
-    private readonly type: MaterialType,
+    private readonly primaryMaterial: WallMaterial,
+    private readonly constructionStyle: ConstructionStyle,
     private readonly wallThickness: number, // in feet
     private readonly durability: number, // 0-1 scale
     private readonly weatherResistance: number, // 0-1 scale
@@ -15,70 +59,181 @@ export class BuildingMaterial {
   }
 
   /**
-   * Predefined medieval building materials
+   * Predefined historical building materials from ancient to renaissance periods
    */
   static readonly MATERIALS = {
+    // Ancient Period Materials
     MUD_BRICK: new BuildingMaterial(
-      MaterialType.MUD,
-      1.0, // 1ft thick walls
+      WallMaterial.EARTH,
+      ConstructionStyle.MUD_BRICK,
+      1.5, // 1.5ft adobe walls
       0.3, // low durability
       0.2, // poor weather resistance
       0.1, // very cheap
-      ['desert', 'plains', 'swamp']
+      ['desert', 'plains', 'mesopotamian', 'egyptian']
     ),
 
+    CYCLOPEAN: new BuildingMaterial(
+      WallMaterial.STONE,
+      ConstructionStyle.CYCLOPEAN,
+      3.0, // 3ft+ massive boulders
+      0.95, // exceptional durability
+      0.9, // excellent weather resistance
+      0.7, // expensive (labor intensive)
+      ['greek', 'mycenaean', 'mountain', 'fortress']
+    ),
+
+    ASHLAR: new BuildingMaterial(
+      WallMaterial.STONE,
+      ConstructionStyle.ASHLAR,
+      2.0, // 2ft precisely cut blocks
+      0.9, // excellent durability
+      0.85, // excellent weather resistance
+      0.85, // very expensive
+      ['urban', 'temple', 'palace', 'monumental']
+    ),
+
+    OPUS_INCERTUM: new BuildingMaterial(
+      WallMaterial.COMPOSITE,
+      ConstructionStyle.OPUS_INCERTUM,
+      2.0, // 2ft Roman concrete core
+      0.85, // excellent durability
+      0.8, // good weather resistance
+      0.5, // moderate cost
+      ['roman', 'italian', 'provincial']
+    ),
+
+    OPUS_RETICULATUM: new BuildingMaterial(
+      WallMaterial.COMPOSITE,
+      ConstructionStyle.OPUS_RETICULATUM,
+      2.0, // 2ft Roman concrete with net pattern
+      0.87, // excellent durability
+      0.82, // very good weather resistance
+      0.6, // moderate-high cost
+      ['roman', 'urban', 'villa']
+    ),
+
+    OPUS_LATERICIUM: new BuildingMaterial(
+      WallMaterial.COMPOSITE,
+      ConstructionStyle.OPUS_LATERICIUM,
+      2.0, // 2ft Roman concrete with brick facing
+      0.88, // excellent durability
+      0.85, // excellent weather resistance
+      0.65, // moderate-high cost
+      ['roman', 'imperial', 'bath', 'basilica']
+    ),
+
+    // Medieval Period Materials
     WATTLE_DAUB: new BuildingMaterial(
-      MaterialType.WATTLE,
-      0.5, // 6 inch walls
+      WallMaterial.COMPOSITE,
+      ConstructionStyle.WATTLE_DAUB,
+      0.5, // 6 inch woven wood with daub
       0.4, // moderate-low durability
       0.3, // poor-moderate weather resistance
-      0.2, // cheap
-      ['forest', 'plains', 'rural']
+      0.15, // very cheap
+      ['forest', 'plains', 'rural', 'peasant']
     ),
 
-    WOOD_PLANK: new BuildingMaterial(
-      MaterialType.WOOD_PLANK,
-      0.5, // 6 inch walls
+    TIMBER_FRAME: new BuildingMaterial(
+      WallMaterial.WOOD,
+      ConstructionStyle.TIMBER_FRAME,
+      0.75, // 9 inch heavy timber frame
       0.6, // moderate durability
       0.5, // moderate weather resistance
-      0.4, // affordable
-      ['forest', 'mountain', 'coastal']
+      0.35, // affordable
+      ['forest', 'town', 'medieval', 'germanic']
     ),
 
-    WOOD_LOG: new BuildingMaterial(
-      MaterialType.WOOD_LOG,
-      1.5, // 1.5ft thick walls
+    BRICK_NOG: new BuildingMaterial(
+      WallMaterial.COMPOSITE,
+      ConstructionStyle.BRICK_NOG,
+      0.75, // 9 inch frame + brick infill
       0.7, // good durability
-      0.6, // good weather resistance
+      0.65, // good weather resistance
       0.5, // moderate cost
-      ['forest', 'mountain']
+      ['town', 'urban', 'late_medieval', 'flemish']
     ),
 
-    STONE_RUBBLE: new BuildingMaterial(
-      MaterialType.STONE_RUBBLE,
-      1.5, // 1.5ft thick walls
+    STONE_NOG: new BuildingMaterial(
+      WallMaterial.COMPOSITE,
+      ConstructionStyle.STONE_NOG,
+      0.75, // 9 inch frame + stone infill
+      0.75, // good-high durability
+      0.7, // good weather resistance
+      0.55, // moderate-high cost
+      ['town', 'quarry', 'highland', 'english']
+    ),
+
+    RUBBLE_MASONRY: new BuildingMaterial(
+      WallMaterial.STONE,
+      ConstructionStyle.RUBBLE_MASONRY,
+      2.0, // 2ft irregular stones with mortar
       0.8, // very good durability
-      0.8, // excellent weather resistance
-      0.6, // expensive
-      ['mountain', 'coastal', 'plains']
+      0.75, // good weather resistance
+      0.4, // moderate cost
+      ['mountain', 'coastal', 'village', 'farmstead']
     ),
 
-    STONE_CUT: new BuildingMaterial(
-      MaterialType.STONE_CUT,
-      2.0, // 2ft thick walls
-      0.9, // excellent durability
+    RUBBLE_CORE: new BuildingMaterial(
+      WallMaterial.STONE,
+      ConstructionStyle.RUBBLE_CORE,
+      6.0, // 6ft+ castle walls (ashlar faces, rubble fill)
+      0.95, // exceptional durability
       0.9, // excellent weather resistance
-      0.8, // very expensive
-      ['mountain', 'urban', 'castle']
+      1.0, // extremely expensive
+      ['castle', 'fortress', 'cathedral', 'keep']
     ),
 
-    STONE_FORTIFIED: new BuildingMaterial(
-      MaterialType.STONE_FORTIFIED,
-      3.0, // 3ft thick walls (castle walls)
-      1.0, // maximum durability
-      1.0, // maximum weather resistance
-      1.0, // extremely expensive
-      ['castle', 'fortification']
+    // Renaissance & Later Materials
+    BRICK_LAID: new BuildingMaterial(
+      WallMaterial.BRICK,
+      ConstructionStyle.BRICK_LAID,
+      1.0, // 1ft fired brick walls
+      0.8, // high durability
+      0.75, // good weather resistance
+      0.45, // moderate cost
+      ['urban', 'renaissance', 'industrial', 'dutch']
+    ),
+
+    DRESSED_STONE: new BuildingMaterial(
+      WallMaterial.STONE,
+      ConstructionStyle.DRESSED_STONE,
+      1.5, // 1.5ft refined cut stone
+      0.85, // very high durability
+      0.8, // very good weather resistance
+      0.7, // expensive
+      ['renaissance', 'baroque', 'palazzo', 'mansion']
+    ),
+
+    // Simple/Poor Materials
+    COB: new BuildingMaterial(
+      WallMaterial.EARTH,
+      ConstructionStyle.COB,
+      2.0, // 2ft thick earth walls
+      0.35, // low-moderate durability
+      0.25, // poor weather resistance
+      0.05, // extremely cheap
+      ['rural', 'peasant', 'agricultural', 'vernacular']
+    ),
+
+    PALISADE: new BuildingMaterial(
+      WallMaterial.WOOD,
+      ConstructionStyle.PALISADE,
+      0.5, // 6 inch wooden stakes
+      0.4, // moderate-low durability
+      0.35, // poor-moderate weather resistance
+      0.2, // cheap
+      ['frontier', 'fortification', 'motte', 'bailey']
+    ),
+
+    TURF: new BuildingMaterial(
+      WallMaterial.EARTH,
+      ConstructionStyle.TURF,
+      2.5, // 2.5ft stacked sod blocks
+      0.3, // low durability
+      0.3, // poor weather resistance
+      0.02, // almost free
+      ['northern', 'icelandic', 'scottish', 'temporary']
     )
   };
 
@@ -124,7 +279,7 @@ export class BuildingMaterial {
 
     // Fallback to basic materials if none found
     if (materials.length === 0) {
-      materials.push(this.MATERIALS.WATTLE_DAUB, this.MATERIALS.WOOD_PLANK);
+      materials.push(this.MATERIALS.WATTLE_DAUB, this.MATERIALS.TIMBER_FRAME, this.MATERIALS.COB);
     }
 
     return materials;
@@ -155,12 +310,21 @@ export class BuildingMaterial {
     return Math.min(1, baseDecay + weatherDecay);
   }
 
-  // Getters
-  getType(): MaterialType { return this.type; }
+  // Getters - Material-first API
+  getMaterial(): WallMaterial { return this.primaryMaterial; }
+  getConstructionStyle(): ConstructionStyle { return this.constructionStyle; }
   getWallThickness(): number { return this.wallThickness; }
   getDurability(): number { return this.durability; }
   getWeatherResistance(): number { return this.weatherResistance; }
   getCostFactor(): number { return this.costFactor; }
+
+  /**
+   * Legacy getter for compatibility - maps to primary material
+   * @deprecated Use getMaterial() instead
+   */
+  getType(): string {
+    return this.primaryMaterial;
+  }
 
   /**
    * Check if this material is suitable for a building type
@@ -169,7 +333,7 @@ export class BuildingMaterial {
     switch (buildingType) {
       case BuildingType.CASTLE:
       case BuildingType.FORTIFICATION:
-        return this.durability >= 0.8; // Need stone
+        return this.durability >= 0.8; // Need strong materials
 
       case BuildingType.CHURCH:
       case BuildingType.MANOR:
@@ -177,26 +341,15 @@ export class BuildingMaterial {
 
       case BuildingType.BARN:
       case BuildingType.STABLE:
-        return this.type === MaterialType.WOOD_PLANK ||
-               this.type === MaterialType.WOOD_LOG;
+        // Barns/stables typically use wood or composite materials
+        return this.primaryMaterial === WallMaterial.WOOD ||
+               this.primaryMaterial === WallMaterial.COMPOSITE ||
+               (this.primaryMaterial === WallMaterial.EARTH && this.constructionStyle === ConstructionStyle.COB);
 
       default:
         return true; // Houses can use any material
     }
   }
-}
-
-/**
- * Material types enum
- */
-export enum MaterialType {
-  MUD = 'mud',
-  WATTLE = 'wattle',
-  WOOD_PLANK = 'wood_plank',
-  WOOD_LOG = 'wood_log',
-  STONE_RUBBLE = 'stone_rubble',
-  STONE_CUT = 'stone_cut',
-  STONE_FORTIFIED = 'stone_fortified'
 }
 
 /**
@@ -220,6 +373,5 @@ export enum BuildingType {
   TOWER = 'tower',
   GATEHOUSE = 'gatehouse',
   CASTLE = 'castle',
-  FORTIFICATION = 'fortification',
-  RUIN = 'ruin'
+  FORTIFICATION = 'fortification'
 }

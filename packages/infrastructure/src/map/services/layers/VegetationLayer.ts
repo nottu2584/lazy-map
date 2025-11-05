@@ -521,19 +521,19 @@ export class VegetationLayer implements IVegetationLayerService {
 
         // Determine vegetation type
         if (treeCount >= 2) {
-          vegetationType[y][x] = VegetationType.DENSE_FOREST;
+          vegetationType[y][x] = VegetationType.DENSE_TREES;
         } else if (treeCount === 1) {
-          vegetationType[y][x] = VegetationType.SPARSE_FOREST;
+          vegetationType[y][x] = VegetationType.SPARSE_TREES;
         } else if (shrubCount > 0) {
           // Check for wetland vegetation based on moisture
           if (hydrology.tiles[y][x].moisture === 'saturated' ||
               hydrology.tiles[y][x].moisture === 'wet') {
-            vegetationType[y][x] = VegetationType.WETLAND_VEGETATION;
+            vegetationType[y][x] = VegetationType.UNDERGROWTH;
           } else {
-            vegetationType[y][x] = VegetationType.SHRUBLAND;
+            vegetationType[y][x] = VegetationType.SHRUBS;
           }
         } else if (tilePlants.length > 0) {
-          vegetationType[y][x] = VegetationType.GRASSLAND;
+          vegetationType[y][x] = VegetationType.GRASS;
         } else {
           vegetationType[y][x] = VegetationType.NONE;
         }
@@ -597,14 +597,14 @@ export class VegetationLayer implements IVegetationLayerService {
         }
 
         // Calculate passability
-        const isPassable = vegType !== VegetationType.DENSE_FOREST &&
+        const isPassable = vegType !== VegetationType.DENSE_TREES &&
                           hydrology.tiles[y][x].waterDepth < 2;
 
         // Concealment and cover
         const providesConcealment = tacticalProps.canopyDensity[y][x] > 0.3 ||
-                                   vegType === VegetationType.SHRUBLAND;
-        const providesCover = vegType === VegetationType.DENSE_FOREST ||
-                             (vegType === VegetationType.SPARSE_FOREST && tacticalProps.canopyHeight[y][x] > 15);
+                                   vegType === VegetationType.SHRUBS;
+        const providesCover = vegType === VegetationType.DENSE_TREES ||
+                             (vegType === VegetationType.SPARSE_TREES && tacticalProps.canopyHeight[y][x] > 15);
 
         tiles[y][x] = {
           canopyHeight: tacticalProps.canopyHeight[y][x],
@@ -637,8 +637,8 @@ export class VegetationLayer implements IVegetationLayerService {
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
         if (!visited[y][x] &&
-            (tiles[y][x].vegetationType === VegetationType.DENSE_FOREST ||
-             tiles[y][x].vegetationType === VegetationType.SPARSE_FOREST)) {
+            (tiles[y][x].vegetationType === VegetationType.DENSE_TREES ||
+             tiles[y][x].vegetationType === VegetationType.SPARSE_TREES)) {
           const patch = this.traceForestPatch(x, y, tiles, visited);
           if (patch.tiles.length >= 3) {
             patches.push(patch);
@@ -690,8 +690,8 @@ export class VegetationLayer implements IVegetationLayerService {
 
           if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height &&
               !visited[ny][nx] &&
-              (tiles[ny][nx].vegetationType === VegetationType.DENSE_FOREST ||
-               tiles[ny][nx].vegetationType === VegetationType.SPARSE_FOREST)) {
+              (tiles[ny][nx].vegetationType === VegetationType.DENSE_TREES ||
+               tiles[ny][nx].vegetationType === VegetationType.SPARSE_TREES)) {
             visited[ny][nx] = true;
             queue.push({ x: nx, y: ny });
           }

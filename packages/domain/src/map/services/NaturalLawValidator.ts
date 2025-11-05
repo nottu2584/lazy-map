@@ -4,10 +4,9 @@ import {
   HydrologyLayerData,
   VegetationLayerData,
   StructuresLayerData,
-  VegetationType,
-  StructureType,
-  MoistureLevel
+  StructureType
 } from './layers';
+import { VegetationType, MoistureLevel } from '../entities/TacticalMapTile';
 import { ValidationError } from '../../common/errors/types';
 
 /**
@@ -295,7 +294,7 @@ export class NaturalLawValidator {
 
         if (structTile.hasStructure) {
           // Buildings shouldn't be on very steep slopes
-          if (structTile.structureType === StructureType.BUILDING && topoTile.slope > 30) {
+          if (structTile.structureType === StructureType.HOUSE && topoTile.slope > 30) {
             this.addViolation(
               ViolationType.STRUCTURES,
               ViolationSeverity.WARNING,

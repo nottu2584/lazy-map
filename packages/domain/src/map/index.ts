@@ -1,5 +1,19 @@
+// Export all from entities except the conflicting types
 export * from './entities';
 export * from './repositories';
 export * from './services';
-export * from './value-objects';
+// Export from value-objects without conflicts - we'll use the TacticalMapTile versions
+export {
+  TacticalProperties,
+  TopographicLayer,
+  TileCoordinate,
+  LayerBenchmark,
+  TacticalMapContext,
+  BiomeType,
+  ElevationZone,
+  HydrologyType,
+  DevelopmentLevel,
+  Season,
+  RequiredFeatures
+} from './value-objects';
 export * from './errors';

@@ -40,6 +40,7 @@ export enum StructureType {
   BARN = 'barn',
   TOWER = 'tower',
   WALL = 'wall',
+  ROAD = 'road',
   BRIDGE = 'bridge',
   WELL = 'well',
   SHRINE = 'shrine',

@@ -10,11 +10,12 @@ interface MapSettingsFormProps {
 
 export function MapSettingsForm({ onGenerate, isGenerating }: MapSettingsFormProps) {
   const [settings, setSettings] = useState<MapSettings>({
-    name: 'My Battlemap',
-    width: 25,
-    height: 20,
-    cellSize: 32,
+    name: 'My Tactical Map',
+    width: 50,
+    height: 50,
+    cellSize: 5,
     seed: '',
+    // Keep these for backward compatibility but they're not used by the backend
     generateForests: true,
     generateRivers: false,
     generateRoads: false,
@@ -131,26 +132,6 @@ export function MapSettingsForm({ onGenerate, isGenerating }: MapSettingsFormPro
     value: MapSettings[K]
   ) => {
     setSettings(prev => ({ ...prev, [key]: value }));
-  };
-
-  const updateTerrainDistribution = (terrain: string, value: number) => {
-    setSettings(prev => ({
-      ...prev,
-      terrainDistribution: {
-        ...prev.terrainDistribution,
-        [terrain]: value
-      }
-    }));
-  };
-
-  const updateForestSettings = (key: string, value: number) => {
-    setSettings(prev => ({
-      ...prev,
-      forestSettings: {
-        ...prev.forestSettings,
-        [key]: value
-      }
-    }));
   };
 
   return (
@@ -310,76 +291,20 @@ export function MapSettingsForm({ onGenerate, isGenerating }: MapSettingsFormPro
         </div>
       </div>
 
-      {/* Terrain Distribution */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-3">Terrain Distribution</h3>
-        <div className="space-y-3">
-          {Object.entries(settings.terrainDistribution).map(([terrain, value]) => (
-            <div key={terrain}>
-              <label className="block text-sm font-medium text-gray-700 capitalize">
-                {terrain}: {Math.round(value * 100)}%
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={value}
-                onChange={(e) => updateTerrainDistribution(terrain, parseFloat(e.target.value))}
-                className="mt-1 block w-full"
-              />
-            </div>
-          ))}
+      {/* Tactical Map Information */}
+      <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+        <h3 className="text-sm font-medium text-blue-900 mb-2">Tactical Map Generation</h3>
+        <p className="text-sm text-blue-700">
+          The tactical context (biome, elevation, and development level) is automatically
+          determined from the seed value. Each unique seed creates a consistent environment
+          with appropriate terrain, vegetation, and structures.
+        </p>
+        <div className="mt-2 text-xs text-blue-600">
+          <p>• <strong>Biome:</strong> Desert, Temperate, Tropical, Arctic, or Arid</p>
+          <p>• <strong>Elevation:</strong> Lowland, Midland, or Highland</p>
+          <p>• <strong>Development:</strong> Wilderness, Rural, or Urban</p>
         </div>
       </div>
-
-      {/* Features */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-3">Features</h3>
-        <div className="space-y-2">
-          {[
-            { key: 'generateForests', label: 'Generate Forests' },
-            { key: 'generateRivers', label: 'Generate Rivers' },
-            { key: 'generateRoads', label: 'Generate Roads' },
-            { key: 'generateBuildings', label: 'Generate Buildings' }
-          ].map(({ key, label }) => (
-            <label key={key} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={settings[key as keyof MapSettings] as boolean}
-                onChange={(e) => updateSetting(key as keyof MapSettings, e.target.checked as any)}
-                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-              />
-              <span className="ml-2 text-sm text-gray-700">{label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Forest Settings */}
-      {settings.generateForests && (
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-3">Forest Settings</h3>
-          <div className="space-y-3">
-            {Object.entries(settings.forestSettings).map(([key, value]) => (
-              <div key={key}>
-                <label className="block text-sm font-medium text-gray-700">
-                  {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}: {Math.round(value * 100)}%
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={value}
-                  onChange={(e) => updateForestSettings(key, parseFloat(e.target.value))}
-                  className="mt-1 block w-full"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <button
         type="submit"

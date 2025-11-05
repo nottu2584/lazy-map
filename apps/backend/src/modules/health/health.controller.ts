@@ -10,7 +10,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 @Controller('health')
 export class HealthController {
   constructor(
-    @Inject('HealthCheckUseCase')
+    @Inject(HealthCheckUseCase)
     private readonly healthCheckUseCase: HealthCheckUseCase
   ) {}
 

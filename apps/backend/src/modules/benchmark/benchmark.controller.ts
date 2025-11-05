@@ -49,7 +49,7 @@ export class BenchmarkController {
 
   constructor(
     @Inject(LOGGER_TOKEN) private readonly logger: ILogger,
-    @Inject('GenerateTacticalMapUseCase')
+    @Inject(GenerateTacticalMapUseCase)
     private readonly generateTacticalMapUseCase: GenerateTacticalMapUseCase
   ) {}
 
@@ -184,10 +184,7 @@ export class BenchmarkController {
 
       return {
         success: false,
-        error: {
-          message: error instanceof Error ? error.message : 'Benchmark failed',
-          code: 'BENCHMARK_ERROR'
-        },
+        error: error instanceof Error ? error.message : 'Benchmark failed',
         message: 'Failed to complete benchmark'
       };
     }
@@ -257,10 +254,7 @@ export class BenchmarkController {
 
       return {
         success: false,
-        error: {
-          message: error instanceof Error ? error.message : 'Quick benchmark failed',
-          code: 'QUICK_BENCHMARK_ERROR'
-        },
+        error: error instanceof Error ? error.message : 'Quick benchmark failed',
         message: 'Failed to complete quick benchmark'
       };
     }

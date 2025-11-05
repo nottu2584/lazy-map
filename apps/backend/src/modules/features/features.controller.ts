@@ -14,13 +14,13 @@ import { ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/
 @Controller('features')
 export class FeaturesController {
   constructor(
-    @Inject('GetAllFeaturesUseCase')
+    @Inject(GetAllFeaturesUseCase)
     private readonly getAllFeaturesUseCase: GetAllFeaturesUseCase,
-    @Inject('GetFeatureByIdUseCase')
+    @Inject(GetFeatureByIdUseCase)
     private readonly getFeatureByIdUseCase: GetFeatureByIdUseCase,
-    @Inject('GetFeatureStatisticsUseCase')
+    @Inject(GetFeatureStatisticsUseCase)
     private readonly getFeatureStatisticsUseCase: GetFeatureStatisticsUseCase,
-    @Inject('ClearAllFeaturesUseCase')
+    @Inject(ClearAllFeaturesUseCase)
     private readonly clearAllFeaturesUseCase: ClearAllFeaturesUseCase,
   ) {}
 

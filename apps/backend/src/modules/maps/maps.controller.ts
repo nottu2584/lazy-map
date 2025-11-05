@@ -1,11 +1,10 @@
 import { Controller, Post, Body, Get, Param, UseGuards, Request, Inject } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiResponse as ApiResponseType } from '@lazy-map/application';
-import { MapGrid, ILogger, Dimensions, Seed } from '@lazy-map/domain';
+import { MapGrid, ILogger, Dimensions, Seed, TacticalMapContext } from '@lazy-map/domain';
 import {
   GetMapQuery,
   GenerateTacticalMapUseCase,
-  GenerateTacticalMapCommand,
   GetMapUseCase,
   GetUserMapsUseCase,
   GetUserMapsQuery,
@@ -14,7 +13,7 @@ import {
   ValidateSeedResult
 } from '@lazy-map/application';
 import { GenerateMapDto, ValidateSeedDto } from './dto';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
 
 @ApiTags('maps')
@@ -22,13 +21,13 @@ import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
 export class MapsController {
 
   constructor(
-    @Inject('GenerateTacticalMapUseCase')
+    @Inject(GenerateTacticalMapUseCase)
     private readonly generateTacticalMapUseCase: GenerateTacticalMapUseCase,
-    @Inject('GetMapUseCase')
+    @Inject(GetMapUseCase)
     private readonly getMapUseCase: GetMapUseCase,
-    @Inject('GetUserMapsUseCase')
+    @Inject(GetUserMapsUseCase)
     private readonly getUserMapsUseCase: GetUserMapsUseCase,
-    @Inject('ValidateSeedUseCase')
+    @Inject(ValidateSeedUseCase)
     private readonly validateSeedUseCase: ValidateSeedUseCase,
     @Inject(LOGGER_TOKEN) private readonly logger: ILogger,
   ) {}
@@ -58,20 +57,18 @@ export class MapsController {
         }
       });
 
-      // Convert DTO to tactical map command
+      // Convert DTO to parameters
       const width = dto.width || dto.dimensions?.width || 50;
       const height = dto.height || dto.dimensions?.height || 50;
       const seedValue = dto.seed || Math.floor(Math.random() * 1000000).toString();
+      const seed = typeof seedValue === 'string' ? Seed.fromString(seedValue) : Seed.fromNumber(seedValue);
 
-      const command: GenerateTacticalMapCommand = {
-        dimensions: new Dimensions(width, height),
-        seed: typeof seedValue === 'string' ? Seed.fromString(seedValue) : Seed.fromNumber(seedValue)
-        // context is generated from seed if not provided
-      };
+      // Generate context from seed
+      const context = TacticalMapContext.fromSeed(seed);
 
       // Execute tactical map generation
       const startTime = Date.now();
-      const result = await this.generateTacticalMapUseCase.execute(command);
+      const result = await this.generateTacticalMapUseCase.execute(width, height, context, seed);
       const duration = Date.now() - startTime;
 
       operationLogger.info('Tactical map generation completed successfully', {

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MapsController } from './maps.controller';
+import { ApplicationModule } from '../../application.module';
 
 /**
  * Maps Module
@@ -7,6 +8,7 @@ import { MapsController } from './maps.controller';
  * Uses Clean Architecture - controllers call use cases from application layer
  */
 @Module({
+  imports: [ApplicationModule],
   controllers: [MapsController],
   providers: [],
   exports: []

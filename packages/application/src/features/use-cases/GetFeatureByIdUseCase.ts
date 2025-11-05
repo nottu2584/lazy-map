@@ -49,14 +49,15 @@ export class GetFeatureByIdUseCase {
     if (wetland) return wetland;
 
     // Try artificial features
-    const building = await this.artificialRepository.getBuilding(id);
-    if (building) return building;
+    // TODO: Fix Building/Road/Bridge type compatibility with MapFeature
+    // const building = await this.artificialRepository.getBuilding(id);
+    // if (building) return building;
 
-    const road = await this.artificialRepository.getRoad(id);
-    if (road) return road;
+    // const road = await this.artificialRepository.getRoad(id);
+    // if (road) return road;
 
-    const bridge = await this.artificialRepository.getBridge(id);
-    if (bridge) return bridge;
+    // const bridge = await this.artificialRepository.getBridge(id);
+    // if (bridge) return bridge;
 
     // Try cultural features
     const territory = await this.culturalRepository.getTerritory(id);

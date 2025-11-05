@@ -78,7 +78,7 @@ export class GenerateTacticalMapUseCase {
         width,
         height,
         biome: context.biome,
-        development: context.developmentLevel,
+        development: context.development,
         seed: seed.getValue()
       }
     });

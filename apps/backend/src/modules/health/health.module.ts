@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { HealthController } from './health.controller';
+import { ApplicationModule } from '../../application.module';
 
 /**
  * Health Module
@@ -7,6 +8,7 @@ import { HealthController } from './health.controller';
  * Uses Clean Architecture - controllers call use cases from application layer
  */
 @Module({
+  imports: [ApplicationModule],
   controllers: [HealthController],
   providers: [],
   exports: []

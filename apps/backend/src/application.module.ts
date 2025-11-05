@@ -23,6 +23,8 @@ import {
   UpdateUserUseCase,
   ValidateMapSettingsUseCase,
   ValidateSeedUseCase,
+  CheckAdminAccessUseCase,
+  GetUserPermissionsUseCase,
 } from '@lazy-map/application';
 import { Module } from '@nestjs/common';
 import { InfrastructureModule } from './infrastructure.module';
@@ -37,17 +39,29 @@ import { InfrastructureModule } from './infrastructure.module';
         geologyService,
         topographyService,
         hydrologyService,
+        vegetationService,
+        structuresService,
+        featuresService,
+        logger
       ) => {
         return new GenerateTacticalMapUseCase(
           geologyService,
           topographyService,
           hydrologyService,
+          vegetationService,
+          structuresService,
+          featuresService,
+          logger
         );
       },
       inject: [
         'IGeologyLayerService',
         'ITopographyLayerService',
         'IHydrologyLayerService',
+        'IVegetationLayerService',
+        'IStructuresLayerService',
+        'IFeaturesLayerService',
+        'ILogger'
       ],
     },
     {
@@ -97,27 +111,6 @@ import { InfrastructureModule } from './infrastructure.module';
       inject: ['IMapPersistencePort'],
     },
 
-    // Provide Use Cases with string tokens for injection
-    {
-      provide: 'GenerateTacticalMapUseCase',
-      useExisting: GenerateTacticalMapUseCase,
-    },
-    {
-      provide: 'GetMapUseCase',
-      useExisting: GetMapUseCase,
-    },
-    {
-      provide: 'GetUserMapsUseCase',
-      useExisting: GetUserMapsUseCase,
-    },
-    {
-      provide: 'ValidateSeedUseCase',
-      useExisting: ValidateSeedUseCase,
-    },
-    {
-      provide: 'HealthCheckUseCase',
-      useExisting: HealthCheckUseCase,
-    },
 
     // User use cases
     {
@@ -157,6 +150,20 @@ import { InfrastructureModule } from './infrastructure.module';
     },
 
     // Admin use cases
+    {
+      provide: CheckAdminAccessUseCase,
+      useFactory: (userRepository, logger) => {
+        return new CheckAdminAccessUseCase(userRepository, logger);
+      },
+      inject: ['IUserRepository', 'ILogger'],
+    },
+    {
+      provide: GetUserPermissionsUseCase,
+      useFactory: (userRepository, logger) => {
+        return new GetUserPermissionsUseCase(userRepository, logger);
+      },
+      inject: ['IUserRepository', 'ILogger'],
+    },
     {
       provide: ListUsersUseCase,
       useFactory: (userRepository) => {
@@ -236,22 +243,6 @@ import { InfrastructureModule } from './infrastructure.module';
       },
       inject: ['IReliefFeatureRepository', 'INaturalFeatureRepository', 'IArtificialFeatureRepository', 'ICulturalFeatureRepository'],
     },
-    {
-      provide: 'GetAllFeaturesUseCase',
-      useExisting: GetAllFeaturesUseCase,
-    },
-    {
-      provide: 'GetFeatureByIdUseCase',
-      useExisting: GetFeatureByIdUseCase,
-    },
-    {
-      provide: 'GetFeatureStatisticsUseCase',
-      useExisting: GetFeatureStatisticsUseCase,
-    },
-    {
-      provide: 'ClearAllFeaturesUseCase',
-      useExisting: ClearAllFeaturesUseCase,
-    },
   ],
   exports: [
     // Export Map Use Cases
@@ -260,11 +251,6 @@ import { InfrastructureModule } from './infrastructure.module';
     GetUserMapsUseCase,
     ValidateSeedUseCase,
     HealthCheckUseCase,
-    'GenerateTacticalMapUseCase',
-    'GetMapUseCase',
-    'GetUserMapsUseCase',
-    'ValidateSeedUseCase',
-    'HealthCheckUseCase',
     // Export User Use Cases
     RegisterUserUseCase,
     LoginUserUseCase,
@@ -272,6 +258,8 @@ import { InfrastructureModule } from './infrastructure.module';
     GoogleSignInUseCase,
     LinkGoogleAccountUseCase,
     // Export Admin Use Cases
+    CheckAdminAccessUseCase,
+    GetUserPermissionsUseCase,
     ListUsersUseCase,
     UpdateUserUseCase,
     SuspendUserUseCase,
@@ -284,10 +272,6 @@ import { InfrastructureModule } from './infrastructure.module';
     GetFeatureByIdUseCase,
     GetFeatureStatisticsUseCase,
     ClearAllFeaturesUseCase,
-    'GetAllFeaturesUseCase',
-    'GetFeatureByIdUseCase',
-    'GetFeatureStatisticsUseCase',
-    'ClearAllFeaturesUseCase',
   ],
 })
 export class ApplicationModule {}

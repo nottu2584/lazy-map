@@ -7,13 +7,17 @@ import {
   PromoteUserUseCase,
   DeleteUserUseCase,
   GetUserStatsUseCase,
+  CheckAdminAccessUseCase,
+  GetUserPermissionsUseCase,
   ListUsersQuery,
   UpdateUserCommand,
   SuspendUserCommand,
   ReactivateUserCommand,
   PromoteUserCommand,
   DeleteUserCommand,
-  GetUserStatsQuery
+  GetUserStatsQuery,
+  CheckAdminAccessCommand,
+  GetUserPermissionsQuery
 } from '@lazy-map/application';
 
 @Injectable()
@@ -25,7 +29,9 @@ export class AdminService {
     @Inject(ReactivateUserUseCase) private readonly reactivateUserUseCase: ReactivateUserUseCase,
     @Inject(PromoteUserUseCase) private readonly promoteUserUseCase: PromoteUserUseCase,
     @Inject(DeleteUserUseCase) private readonly deleteUserUseCase: DeleteUserUseCase,
-    @Inject(GetUserStatsUseCase) private readonly getUserStatsUseCase: GetUserStatsUseCase
+    @Inject(GetUserStatsUseCase) private readonly getUserStatsUseCase: GetUserStatsUseCase,
+    @Inject(CheckAdminAccessUseCase) private readonly checkAdminAccessUseCase: CheckAdminAccessUseCase,
+    @Inject(GetUserPermissionsUseCase) private readonly getUserPermissionsUseCase: GetUserPermissionsUseCase
   ) {}
 
   async listUsers(query: ListUsersQuery) {
@@ -57,23 +63,16 @@ export class AdminService {
   }
 
   async checkAdminAccess(userId: string) {
-    // This would need to be implemented as a separate use case or through the repository
-    // For now, we'll need to check the user's role directly
-    // This is a placeholder - you may want to create a CheckAdminAccessUseCase
-    return { hasAccess: false, error: 'Not implemented' };
+    const result = await this.checkAdminAccessUseCase.execute({ userId });
+    return {
+      hasAccess: result.hasAccess,
+      role: result.role,
+      permissions: result.permissions,
+      error: result.error
+    };
   }
 
-  async checkSuperAdminAccess(userId: string) {
-    // This would need to be implemented as a separate use case or through the repository
-    // For now, we'll need to check the user's role directly
-    // This is a placeholder - you may want to create a CheckSuperAdminAccessUseCase
-    return { hasAccess: false, error: 'Not implemented' };
-  }
-
-  async checkDeleteAccess(userId: string) {
-    // This would need to be implemented as a separate use case or through the repository
-    // For now, we'll need to check the user's role directly
-    // This is a placeholder - you may want to create a CheckDeleteAccessUseCase
-    return { hasAccess: false, error: 'Not implemented' };
+  async getUserPermissions(userId: string) {
+    return this.getUserPermissionsUseCase.execute({ userId });
   }
 }

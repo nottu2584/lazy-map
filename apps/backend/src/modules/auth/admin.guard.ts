@@ -8,6 +8,12 @@ import {
 } from '@nestjs/common';
 import { IUserRepository, UserId } from '@lazy-map/domain';
 
+/**
+ * Guard that checks if user has admin privileges
+ * Simplified version that only checks for ADMIN role
+ *
+ * @deprecated Use @RequireAdmin() decorator with RolesGuard or AuthRolesGuard instead
+ */
 @Injectable()
 export class AdminGuard implements CanActivate {
   constructor(
@@ -16,7 +22,7 @@ export class AdminGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const userId = request.user?.id || request.body?.adminId;
+    const userId = request.user?.userId || request.user?.id || request.body?.adminId;
 
     if (!userId) {
       throw new UnauthorizedException('User not authenticated');
@@ -30,7 +36,13 @@ export class AdminGuard implements CanActivate {
         throw new ForbiddenException('User not found');
       }
 
-      if (!admin.canManageUsers()) {
+      // Check if user is active
+      if (!admin.canUseSystem()) {
+        throw new ForbiddenException('User account is suspended or inactive');
+      }
+
+      // Check if user has admin role
+      if (!admin.role.isAdmin()) {
         throw new ForbiddenException('Insufficient permissions - admin access required');
       }
 
@@ -38,8 +50,8 @@ export class AdminGuard implements CanActivate {
       request.admin = {
         id: admin.id.value,
         role: admin.role.toString(),
-        canPromote: admin.canPromoteUsers(),
-        canDelete: admin.canDeleteUsers()
+        canManageUsers: admin.canManageUsers(),
+        canManageSystem: admin.role.isAdmin()
       };
 
       return true;

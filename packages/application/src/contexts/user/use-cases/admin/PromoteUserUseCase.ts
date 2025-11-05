@@ -71,12 +71,6 @@ export class PromoteUserUseCase {
         };
       }
 
-      if (newRole.isSuperAdmin() && !admin.role.isSuperAdmin()) {
-        return {
-          success: false,
-          error: 'Only super admins can promote users to super admin'
-        };
-      }
 
       targetUser.promote(newRole, command.promotedAt);
       await this.userRepository.save(targetUser);

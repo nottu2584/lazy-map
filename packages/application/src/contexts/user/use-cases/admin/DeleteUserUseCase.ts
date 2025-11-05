@@ -67,12 +67,6 @@ export class DeleteUserUseCase {
         };
       }
 
-      if (targetUser.role.isSuperAdmin() && !admin.role.isSuperAdmin()) {
-        return {
-          success: false,
-          error: 'Only super admins can delete super admin users'
-        };
-      }
 
       const deletedUserData = {
         id: targetUser.id.value,

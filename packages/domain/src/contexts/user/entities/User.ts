@@ -238,7 +238,7 @@ export class User {
   }
 
   hasAdminPrivileges(): boolean {
-    return this._role.hasAdminPrivileges() && this.canUseSystem();
+    return this._role.isAdmin() && this.canUseSystem();
   }
 
   canManageUsers(): boolean {
@@ -246,11 +246,11 @@ export class User {
   }
 
   canPromoteUsers(): boolean {
-    return this._role.canPromoteUsers() && this.canUseSystem();
+    return this._role.canManageUsers() && this.canUseSystem();
   }
 
   canDeleteUsers(): boolean {
-    return this._role.canDeleteUsers() && this.canUseSystem();
+    return this._role.canManageUsers() && this.canUseSystem();
   }
 
   // OAuth-specific methods

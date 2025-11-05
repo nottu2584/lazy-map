@@ -7,10 +7,18 @@ interface MapCanvasProps {
 }
 
 const TERRAIN_COLORS = {
+  // Terrain types from tactical map
+  grass: '#7CB342',
+  dirt: '#8D6E63',
+  stone: '#757575',
+  water: '#1976D2',
+  marsh: '#4E342E',
+  sand: '#FFD54F',
+  snow: '#ECEFF1',
+  // Legacy terrain types (fallback)
   grassland: '#7CB342',
   forest: '#2E7D32',
   mountain: '#5D4037',
-  water: '#1976D2',
   default: '#9E9E9E'
 };
 
@@ -119,6 +127,22 @@ export function MapCanvas({ map }: MapCanvasProps) {
   };
 
   const getFeatureSymbol = (feature: string): string => {
+    // Vegetation features
+    if (feature.includes('dense_trees')) return '🌲';
+    if (feature.includes('sparse_trees')) return '🌳';
+    if (feature.includes('shrubs')) return '🌿';
+
+    // Structure features
+    if (feature.includes('building')) return '🏠';
+    if (feature.includes('wall')) return '🧱';
+    if (feature.includes('road')) return '═';
+
+    // Tactical cover features
+    if (feature.includes('cover_full')) return '▓';
+    if (feature.includes('cover_partial')) return '▒';
+    if (feature.includes('cover_light')) return '░';
+
+    // Legacy features
     switch (feature) {
       case 'tree': return '🌲';
       case 'rock': return '🗿';
@@ -142,8 +166,9 @@ export function MapCanvas({ map }: MapCanvasProps) {
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 text-sm">
-        {Object.entries(TERRAIN_COLORS).map(([terrain, color]) => (
-          terrain !== 'default' && (
+        {Object.entries(TERRAIN_COLORS)
+          .filter(([terrain]) => !['default', 'grassland', 'forest', 'mountain'].includes(terrain))
+          .map(([terrain, color]) => (
             <div key={terrain} className="flex items-center gap-2">
               <div
                 className="w-4 h-4 border border-gray-300"
@@ -151,8 +176,7 @@ export function MapCanvas({ map }: MapCanvasProps) {
               />
               <span className="capitalize">{terrain}</span>
             </div>
-          )
-        ))}
+          ))}
       </div>
 
       {/* Canvas Container */}

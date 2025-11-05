@@ -114,7 +114,7 @@ export interface ISettlementPlanningService {
    * @param maxDistance Maximum distance to consider sharing
    * @returns Map of building pairs that should share walls
    */
-  determineSh aredWalls(
+  determineSharedWalls(
     buildings: PlannedBuilding[],
     maxDistance: number
   ): Promise<Map<string, string[]>>;

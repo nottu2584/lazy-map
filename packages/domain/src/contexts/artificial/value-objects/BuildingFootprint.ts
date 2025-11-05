@@ -44,9 +44,9 @@ export class BuildingFootprint {
 
     const outline: Position[] = [
       origin,
-      Position.create(origin.getX() + width, origin.getY()),
-      Position.create(origin.getX() + width, origin.getY() + height),
-      Position.create(origin.getX(), origin.getY() + height)
+      new Position(origin.x + width, origin.y),
+      new Position(origin.x + width, origin.y + height),
+      new Position(origin.x, origin.y + height)
     ];
 
     const area = width * height;
@@ -73,8 +73,8 @@ export class BuildingFootprint {
     let area = 0;
     for (let i = 0; i < points.length; i++) {
       const j = (i + 1) % points.length;
-      area += points[i].getX() * points[j].getY();
-      area -= points[j].getX() * points[i].getY();
+      area += points[i].x * points[j].y;
+      area -= points[j].x * points[i].y;
     }
     area = Math.abs(area) / 2;
 
@@ -82,14 +82,14 @@ export class BuildingFootprint {
     let perimeter = 0;
     for (let i = 0; i < points.length; i++) {
       const j = (i + 1) % points.length;
-      const dx = points[j].getX() - points[i].getX();
-      const dy = points[j].getY() - points[i].getY();
+      const dx = points[j].x - points[i].x;
+      const dy = points[j].y - points[i].y;
       perimeter += Math.sqrt(dx * dx + dy * dy);
     }
 
     // Calculate bounding box for width/height
-    const xs = points.map(p => p.getX());
-    const ys = points.map(p => p.getY());
+    const xs = points.map(p => p.x);
+    const ys = points.map(p => p.y);
     const width = Math.max(...xs) - Math.min(...xs);
     const height = Math.max(...ys) - Math.min(...ys);
 
@@ -107,10 +107,10 @@ export class BuildingFootprint {
     const otherMax = other.getMaxPosition();
 
     return !(
-      thisMax.getX() < otherMin.getX() ||
-      thisMin.getX() > otherMax.getX() ||
-      thisMax.getY() < otherMin.getY() ||
-      thisMin.getY() > otherMax.getY()
+      thisMax.x < otherMin.x ||
+      thisMin.x > otherMax.x ||
+      thisMax.y < otherMin.y ||
+      thisMin.y > otherMax.y
     );
   }
 
@@ -150,8 +150,8 @@ export class BuildingFootprint {
 
     for (const point of this.outline) {
       for (const otherPoint of other.outline) {
-        const dx = point.getX() - otherPoint.getX();
-        const dy = point.getY() - otherPoint.getY();
+        const dx = point.x - otherPoint.x;
+        const dy = point.y - otherPoint.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         minDistance = Math.min(minDistance, distance);
       }
@@ -168,24 +168,24 @@ export class BuildingFootprint {
   getOutline(): ReadonlyArray<Position> { return this.outline; }
 
   getCenter(): Position {
-    const sumX = this.outline.reduce((sum, p) => sum + p.getX(), 0);
-    const sumY = this.outline.reduce((sum, p) => sum + p.getY(), 0);
-    return Position.create(
+    const sumX = this.outline.reduce((sum, p) => sum + p.x, 0);
+    const sumY = this.outline.reduce((sum, p) => sum + p.y, 0);
+    return new Position(
       sumX / this.outline.length,
       sumY / this.outline.length
     );
   }
 
   private getMinPosition(): Position {
-    const xs = this.outline.map(p => p.getX());
-    const ys = this.outline.map(p => p.getY());
-    return Position.create(Math.min(...xs), Math.min(...ys));
+    const xs = this.outline.map(p => p.x);
+    const ys = this.outline.map(p => p.y);
+    return new Position(Math.min(...xs), Math.min(...ys));
   }
 
   private getMaxPosition(): Position {
-    const xs = this.outline.map(p => p.getX());
-    const ys = this.outline.map(p => p.getY());
-    return Position.create(Math.max(...xs), Math.max(...ys));
+    const xs = this.outline.map(p => p.x);
+    const ys = this.outline.map(p => p.y);
+    return new Position(Math.max(...xs), Math.max(...ys));
   }
 
   private edgesParallelAndClose(
@@ -193,10 +193,10 @@ export class BuildingFootprint {
     start2: Position, end2: Position
   ): boolean {
     // Calculate edge vectors
-    const v1x = end1.getX() - start1.getX();
-    const v1y = end1.getY() - start1.getY();
-    const v2x = end2.getX() - start2.getX();
-    const v2y = end2.getY() - start2.getY();
+    const v1x = end1.x - start1.x;
+    const v1y = end1.y - start1.y;
+    const v2x = end2.x - start2.x;
+    const v2y = end2.y - start2.y;
 
     // Check if parallel (cross product near zero)
     const cross = Math.abs(v1x * v2y - v1y * v2x);
@@ -210,10 +210,10 @@ export class BuildingFootprint {
   }
 
   private pointToLineDistance(point: Position, lineStart: Position, lineEnd: Position): number {
-    const A = point.getX() - lineStart.getX();
-    const B = point.getY() - lineStart.getY();
-    const C = lineEnd.getX() - lineStart.getX();
-    const D = lineEnd.getY() - lineStart.getY();
+    const A = point.x - lineStart.x;
+    const B = point.y - lineStart.y;
+    const C = lineEnd.x - lineStart.x;
+    const D = lineEnd.y - lineStart.y;
 
     const dot = A * C + B * D;
     const lenSq = C * C + D * D;
@@ -226,18 +226,18 @@ export class BuildingFootprint {
     let xx, yy;
 
     if (param < 0) {
-      xx = lineStart.getX();
-      yy = lineStart.getY();
+      xx = lineStart.x;
+      yy = lineStart.y;
     } else if (param > 1) {
-      xx = lineEnd.getX();
-      yy = lineEnd.getY();
+      xx = lineEnd.x;
+      yy = lineEnd.y;
     } else {
-      xx = lineStart.getX() + param * C;
-      yy = lineStart.getY() + param * D;
+      xx = lineStart.x + param * C;
+      yy = lineStart.y + param * D;
     }
 
-    const dx = point.getX() - xx;
-    const dy = point.getY() - yy;
+    const dx = point.x - xx;
+    const dy = point.y - yy;
     return Math.sqrt(dx * dx + dy * dy);
   }
 }

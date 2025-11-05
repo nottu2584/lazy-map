@@ -29,13 +29,22 @@ import {
   BuildingFootprint,
   RoadNetwork,
   RoadSegment,
-  BridgeLocation,
   VegetationType,
   VegetationLayerData,
   HydrologyLayerData,
   TopographyLayerData
 } from '@lazy-map/domain';
-import { BuildingGenerationService } from '../../contexts/artificial/services/BuildingGenerationService';
+import { BuildingGenerationService } from '../../../contexts/artificial/services/BuildingGenerationService';
+
+/**
+ * Bridge location information
+ */
+interface BridgeLocation {
+  position: { x: number; y: number };
+  material: MaterialType;
+  length: number;
+  direction: 'horizontal' | 'vertical';
+}
 
 /**
  * Generates artificial structures based on development level and terrain
@@ -92,8 +101,12 @@ export class StructuresLayer implements IStructuresLayerService {
       seed
     );
 
-    // 4. Place bridges where roads cross water
-    const bridges = this.placeBridges(
+    // 4. Bridge generation - not yet implemented as entities
+    // See: docs/features/planned/bridge-generation-system.md
+    // For now, bridges exist only in tile data
+    const bridges: Bridge[] = [];
+    // Generate bridge locations for tile placement
+    const bridgeLocations = this.placeBridges(
       roadNetwork,
       hydrology,
       topography,
@@ -113,13 +126,13 @@ export class StructuresLayer implements IStructuresLayerService {
     const tiles = this.createTileData(
       buildings,
       roadNetwork,
-      bridges,
+      bridgeLocations,
       decorativeStructures,
       context
     );
 
     // 7. Calculate statistics
-    const totalStructureCount = buildings.length + bridges.length + decorativeStructures.length;
+    const totalStructureCount = buildings.length + bridgeLocations.length + decorativeStructures.length;
 
     return {
       tiles,
@@ -146,14 +159,14 @@ export class StructuresLayer implements IStructuresLayerService {
         // Check basic suitability
         if (hydrology.tiles[y][x].waterDepth > 0) continue;
         if (topography.tiles[y][x].slope > 20) continue;
-        if (vegetation.tiles[y][x].vegetationType === VegetationType.DENSE_FOREST) continue;
+        if (vegetation.tiles[y][x].vegetationType === VegetationType.DENSE_TREES) continue;
 
         // Calculate site quality
         let quality = 1.0;
 
         // Prefer clearings
         if (vegetation.tiles[y][x].vegetationType === VegetationType.NONE ||
-            vegetation.tiles[y][x].vegetationType === VegetationType.GRASSLAND) {
+            vegetation.tiles[y][x].vegetationType === VegetationType.GRASS) {
           quality += 0.3;
         }
 
@@ -210,7 +223,7 @@ export class StructuresLayer implements IStructuresLayerService {
         if (nx >= this.width || ny >= this.height) return false;
         if (hydrology.tiles[ny][nx].waterDepth > 0) return false;
         if (topography.tiles[ny][nx].slope > 30) return false;
-        if (vegetation.tiles[ny][nx].vegetationType === VegetationType.DENSE_FOREST) return false;
+        if (vegetation.tiles[ny][nx].vegetationType === VegetationType.DENSE_TREES) return false;
       }
     }
     return true;
@@ -274,8 +287,8 @@ export class StructuresLayer implements IStructuresLayerService {
       let tooClose = false;
       for (const existing of buildings) {
         const dist = Math.sqrt(
-          Math.pow(site.x - existing.getPosition().getX(), 2) +
-          Math.pow(site.y - existing.getPosition().getY(), 2)
+          Math.pow(site.x - existing.getPosition().x, 2) +
+          Math.pow(site.y - existing.getPosition().y, 2)
         );
         if (dist < 5) {
           tooClose = true;
@@ -343,13 +356,13 @@ export class StructuresLayer implements IStructuresLayerService {
 
       // Create building site
       const buildingSite: BuildingSite = {
-        position: Position.create(site.x * 5, site.y * 5), // Convert to feet
+        position: new Position(site.x * 5, site.y * 5), // Convert to feet
         width: width,
         height: height,
         slope: 0, // Will be calculated from topography
         adjacentBuildings: buildings,
         availableSpace: { width, height },
-        constraints: {}
+        constraints: { maxHeight: 50 } // Add required maxHeight constraint
       };
 
       // Generate the building with new system
@@ -478,7 +491,7 @@ export class StructuresLayer implements IStructuresLayerService {
 
     // No roads in wilderness
     if (context.development === DevelopmentLevel.WILDERNESS) {
-      return { segments, intersections, totalLength: 0 };
+      return { segments, intersections };
     }
 
     // Connect buildings with roads
@@ -502,8 +515,8 @@ export class StructuresLayer implements IStructuresLayerService {
             const fromPos = from.getPosition();
             const toPos = to.getPosition();
             const dist = Math.sqrt(
-              Math.pow(toPos.getX() - fromPos.getX(), 2) +
-              Math.pow(toPos.getY() - fromPos.getY(), 2)
+              Math.pow(toPos.x - fromPos.x, 2) +
+              Math.pow(toPos.y - fromPos.y, 2)
             );
 
             if (dist < minDist) {
@@ -521,8 +534,8 @@ export class StructuresLayer implements IStructuresLayerService {
           const fromPos = from.getPosition();
           const toPos = to.getPosition();
           const path = this.findRoadPath(
-            { x: Math.floor(fromPos.getX() / 5), y: Math.floor(fromPos.getY() / 5) },
-            { x: Math.floor(toPos.getX() / 5), y: Math.floor(toPos.getY() / 5) },
+            { x: Math.floor(fromPos.x / 5), y: Math.floor(fromPos.y / 5) },
+            { x: Math.floor(toPos.x / 5), y: Math.floor(toPos.y / 5) },
             vegetation,
             hydrology,
             topography
@@ -562,7 +575,7 @@ export class StructuresLayer implements IStructuresLayerService {
       }
     }
 
-    return { segments, intersections, totalLength };
+    return { segments, intersections };
   }
 
   /**
@@ -645,7 +658,7 @@ export class StructuresLayer implements IStructuresLayerService {
 
             bridges.push({
               position: bridgeStart,
-              orientation,
+              direction: orientation,
               length,
               material: bridgeNoise.generateAt(bridgeStart.x * 0.1, bridgeStart.y * 0.1) > 0.5 ?
                        MaterialType.STONE : MaterialType.WOOD
@@ -682,8 +695,8 @@ export class StructuresLayer implements IStructuresLayerService {
     // Place wells near buildings
     for (const building of buildings) {
       const pos = building.getPosition();
-      const tileX = Math.floor(pos.getX() / 5);
-      const tileY = Math.floor(pos.getY() / 5);
+      const tileX = Math.floor(pos.x / 5);
+      const tileY = Math.floor(pos.y / 5);
 
       if (decorNoise.generateAt(tileX * 0.2, tileY * 0.2) > 0.7) {
         // Find spot near building
@@ -697,7 +710,7 @@ export class StructuresLayer implements IStructuresLayerService {
           const y = tileY + offset.dy;
 
           if (x >= 0 && x < this.width && y >= 0 && y < this.height &&
-              vegetation.tiles[y][x].vegetationType !== VegetationType.DENSE_FOREST) {
+              vegetation.tiles[y][x].vegetationType !== VegetationType.DENSE_TREES) {
             structures.push({ x, y, type: StructureType.WELL });
             break;
           }
@@ -743,11 +756,9 @@ export class StructuresLayer implements IStructuresLayerService {
           structureType: null,
           material: null,
           height: 0,
-          condition: StructureCondition.GOOD,
-          isPassable: true,
-          providesCover: false,
-          providesElevation: false,
-          roadConnectivity: 0
+          isRoad: false,
+          isPath: false,
+          condition: StructureCondition.GOOD
         };
       }
     }
@@ -756,8 +767,8 @@ export class StructuresLayer implements IStructuresLayerService {
     for (const building of buildings) {
       const footprint = building.getFootprint();
       const pos = building.getPosition();
-      const tileX = Math.floor(pos.getX() / 5);
-      const tileY = Math.floor(pos.getY() / 5);
+      const tileX = Math.floor(pos.x / 5);
+      const tileY = Math.floor(pos.y / 5);
       const widthInTiles = Math.ceil(footprint.getWidth() / 5);
       const heightInTiles = Math.ceil(footprint.getHeight() / 5);
 
@@ -773,14 +784,12 @@ export class StructuresLayer implements IStructuresLayerService {
 
             tiles[y][x] = {
               hasStructure: true,
-              structureType: StructureType.BUILDING,
+              structureType: StructureType.HOUSE,
               material: this.convertBuildingMaterialToMaterialType(material),
               height: isTower ? 30 : building.getFloorCount() * 10,
-              condition: isRuin ? StructureCondition.RUINED : StructureCondition.GOOD,
-              isPassable: isRuin,
-              providesCover: true,
-              providesElevation: isTower || building.getFloorCount() > 1,
-              roadConnectivity: 0
+              isRoad: false,
+              isPath: false,
+              condition: isRuin ? StructureCondition.RUINED : StructureCondition.GOOD
             };
           }
         }
@@ -798,11 +807,9 @@ export class StructuresLayer implements IStructuresLayerService {
               structureType: StructureType.ROAD,
               material: segment.material,
               height: 0,
-              condition: StructureCondition.GOOD,
-              isPassable: true,
-              providesCover: false,
-              providesElevation: false,
-              roadConnectivity: this.calculateRoadConnectivity(point, roadNetwork)
+              isRoad: true,
+              isPath: false,
+              condition: StructureCondition.GOOD
             };
           }
         }
@@ -820,11 +827,9 @@ export class StructuresLayer implements IStructuresLayerService {
           structureType: StructureType.BRIDGE,
           material: bridge.material,
           height: 5,
-          condition: StructureCondition.GOOD,
-          isPassable: true,
-          providesCover: false,
-          providesElevation: false,
-          roadConnectivity: 2 // Bridges connect two directions
+          isRoad: true,  // Bridges are part of the road network
+          isPath: false,
+          condition: StructureCondition.GOOD
         };
       }
     }
@@ -838,11 +843,9 @@ export class StructuresLayer implements IStructuresLayerService {
           material: structure.type === StructureType.WELL ?
                    MaterialType.STONE : MaterialType.WOOD,
           height: structure.type === StructureType.WELL ? 3 : 8,
-          condition: StructureCondition.GOOD,
-          isPassable: false,
-          providesCover: structure.type === StructureType.WELL,
-          providesElevation: false,
-          roadConnectivity: 0
+          isRoad: false,
+          isPath: false,
+          condition: StructureCondition.GOOD
         };
       }
     }

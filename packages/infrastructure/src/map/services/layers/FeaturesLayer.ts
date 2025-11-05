@@ -6,6 +6,8 @@ import {
   Position,
   MapGenerationErrors,
   type ILogger,
+  BuildingType,
+  VegetationType,
   // Import from domain layer service interfaces
   IFeaturesLayerService,
   FeaturesLayerData,
@@ -170,7 +172,7 @@ export class FeaturesLayer implements IFeaturesLayerService {
         }
 
         // Poison plants in dense vegetation
-        if (layers.vegetation.tiles[y][x].vegetationType === 'dense_forest' &&
+        if (layers.vegetation.tiles[y][x].vegetationType === VegetationType.DENSE_TREES &&
             random > 0.95) {
           hazards.push({
             position: new Position(x, y),
@@ -232,7 +234,7 @@ export class FeaturesLayer implements IFeaturesLayerService {
         }
 
         // Berries at forest edges
-        if (layers.vegetation.tiles[y][x].vegetationType === 'sparse_forest' &&
+        if (layers.vegetation.tiles[y][x].vegetationType === VegetationType.SPARSE_TREES &&
             random > 0.85) {
           resources.push({
             position: new Position(x, y),
@@ -289,7 +291,7 @@ export class FeaturesLayer implements IFeaturesLayerService {
     // Ancient trees in old forests
     for (let y = 2; y < this.height - 2; y++) {
       for (let x = 2; x < this.width - 2; x++) {
-        if (layers.vegetation.tiles[y][x].vegetationType === 'dense_forest' &&
+        if (layers.vegetation.tiles[y][x].vegetationType === VegetationType.DENSE_TREES &&
             layers.vegetation.tiles[y][x].canopyHeight > 30 &&
             landmarkNoise.generateAt(x * 0.1, y * 0.1) > 0.95) {
           landmarks.push({
@@ -331,10 +333,11 @@ export class FeaturesLayer implements IFeaturesLayerService {
 
     // Battlefield remains near ruins
     for (const building of layers.structures.buildings) {
-      if (building.type === 'ruin' &&
-          landmarkNoise.generateAt(building.origin.x * 0.1, building.origin.y * 0.1) > 0.7) {
+      const pos = building.getPosition();
+      if (building.isRuin() &&
+          landmarkNoise.generateAt(pos.x * 0.1, pos.y * 0.1) > 0.7) {
         landmarks.push({
-          position: new Position(building.origin.x, building.origin.y),
+          position: new Position(pos.x, pos.y),
           type: FeatureType.BATTLEFIELD_REMAINS,
           significance: 0.5,
           lore: "Rusted weapons and broken shields tell of a forgotten battle"
@@ -411,9 +414,10 @@ export class FeaturesLayer implements IFeaturesLayerService {
 
     // Vantage points on elevated structures
     for (const building of layers.structures.buildings) {
-      if (building.type === 'tower') {
+      if (building.getType() === BuildingType.TOWER) {
+        const pos = building.getPosition();
         features.push({
-          position: new Position(building.origin.x, building.origin.y),
+          position: new Position(pos.x, pos.y),
           type: FeatureType.VANTAGE_POINT,
           controlRadius: 8
         });

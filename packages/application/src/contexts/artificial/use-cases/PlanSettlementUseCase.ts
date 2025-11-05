@@ -1,12 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
 import {
   ISettlementPlanningService,
   SettlementSize,
   HistoricalPeriod,
   SettlementPlan,
-  SuitabilityMap
+  SuitabilityMap,
+  Seed,
+  Position
 } from '@lazy-map/domain';
-import { Seed } from '@lazy-map/domain';
 
 /**
  * Command for planning a settlement
@@ -40,10 +40,8 @@ export class PlanSettlementResult {
  * Use case for planning a settlement layout
  * Orchestrates the settlement planning process
  */
-@Injectable()
 export class PlanSettlementUseCase {
   constructor(
-    @Inject('ISettlementPlanningService')
     private readonly settlementPlanner: ISettlementPlanningService
   ) {}
 
@@ -131,18 +129,18 @@ export class PlanSettlementUseCase {
       },
       {
         type: 'shop',
-        position: Position.create(
-          plan.center.getX() + 20,
-          plan.center.getY()
+        position: new Position(
+          plan.center.x + 20,
+          plan.center.y
         ),
         orientation: 0,
         priority: 2
       },
       {
         type: 'shop',
-        position: Position.create(
-          plan.center.getX() - 20,
-          plan.center.getY()
+        position: new Position(
+          plan.center.x - 20,
+          plan.center.y
         ),
         orientation: 0,
         priority: 2
@@ -161,9 +159,9 @@ export class PlanSettlementUseCase {
   ): void {
     const religiousBuilding = {
       type: period === HistoricalPeriod.ANCIENT ? 'temple' : 'church',
-      position: Position.create(
-        plan.center.getX(),
-        plan.center.getY() + 30
+      position: new Position(
+        plan.center.x,
+        plan.center.y + 30
       ),
       orientation: 0,
       priority: 0 // Build first
@@ -217,7 +215,7 @@ export class PlanSettlementUseCase {
     // Update building plans with shared wall information
     for (const [buildingId, neighbors] of sharedWalls) {
       const building = plan.buildings.find(b =>
-        `${b.type}_${b.position.getX()}_${b.position.getY()}` === buildingId
+        `${b.type}_${b.position.x}_${b.position.y}` === buildingId
       );
       if (building) {
         building.shareWalls = neighbors;
@@ -245,10 +243,10 @@ export class PlanSettlementUseCase {
 
     // Check all buildings are within terrain bounds
     for (const building of plan.buildings) {
-      if (building.position.getX() < 0 ||
-          building.position.getY() < 0 ||
-          building.position.getX() >= command.terrain.width ||
-          building.position.getY() >= command.terrain.height) {
+      if (building.position.x < 0 ||
+          building.position.y < 0 ||
+          building.position.x >= command.terrain.width ||
+          building.position.y >= command.terrain.height) {
         throw new Error('Building placed outside terrain bounds');
       }
     }
@@ -259,8 +257,8 @@ export class PlanSettlementUseCase {
    */
   private calculateTotalRoadLength(plan: SettlementPlan): number {
     return plan.roads.reduce((total, road) => {
-      const dx = road.end.getX() - road.start.getX();
-      const dy = road.end.getY() - road.start.getY();
+      const dx = road.end.x - road.start.x;
+      const dy = road.end.y - road.start.y;
       return total + Math.sqrt(dx * dx + dy * dy);
     }, 0);
   }
@@ -296,10 +294,10 @@ export class PlanSettlementUseCase {
     // Add corner towers and gate towers
     // Simplified - in full implementation would calculate wall corners
     const towerPositions = [
-      Position.create(0, 0),
-      Position.create(plan.center.getX() * 2, 0),
-      Position.create(0, plan.center.getY() * 2),
-      Position.create(plan.center.getX() * 2, plan.center.getY() * 2)
+      new Position(0, 0),
+      new Position(plan.center.x * 2, 0),
+      new Position(0, plan.center.y * 2),
+      new Position(plan.center.x * 2, plan.center.y * 2)
     ];
 
     for (const position of towerPositions) {
@@ -312,6 +310,3 @@ export class PlanSettlementUseCase {
     }
   }
 }
-
-// Need to import Position - it's used but not imported
-import { Position } from '@lazy-map/domain';

@@ -39,7 +39,7 @@ export class Building {
     foundation?: Foundation;
     roof?: RoofStyle;
   }): Building {
-    const id = `building_${params.seed.getValue()}_${params.position.getX()}_${params.position.getY()}`;
+    const id = `building_${params.seed.getValue()}_${params.position.x}_${params.position.y}`;
 
     const footprint = BuildingFootprint.fromRectangle(
       params.position,
@@ -157,7 +157,7 @@ export class Building {
   /**
    * Age the building (deteriorate condition)
    */
-  age(years: number): Building {
+  ageBuilding(years: number): Building {
     const newAge = this.age + years;
     const degradation = this.material.getDegradation(newAge, 0.5);
     const newCondition = Math.max(0, this.condition - degradation);
@@ -231,10 +231,10 @@ export class Building {
   }
 
   /**
-   * Check if building is a ruin
+   * Check if building is a ruin (based on condition only)
    */
   isRuin(): boolean {
-    return this.condition < 0.3 || this.type === BuildingType.RUIN;
+    return this.condition < 0.2; // Less than 20% integrity = ruins
   }
 
   /**

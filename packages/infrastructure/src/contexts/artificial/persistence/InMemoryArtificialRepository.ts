@@ -15,7 +15,7 @@ export class InMemoryArtificialRepository {
 
   // Building operations
   async saveBuilding(building: Building): Promise<void> {
-    this.buildings.set(building.id.value, building);
+    this.buildings.set(building.getId(), building);
   }
 
   async getBuilding(id: FeatureId): Promise<Building | null> {

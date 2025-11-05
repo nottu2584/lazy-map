@@ -26,7 +26,7 @@ export class Room {
     bounds: RoomBounds,
     seed: Seed
   ): Room {
-    const id = `room_${seed.getValue()}_${bounds.origin.getX()}_${bounds.origin.getY()}`;
+    const id = `room_${seed.getValue()}_${bounds.origin.x}_${bounds.origin.y}`;
     return new Room(id, type, bounds, [], []);
   }
 
@@ -39,7 +39,7 @@ export class Room {
     features: RoomFeature[],
     seed: Seed
   ): Room {
-    const id = `room_${seed.getValue()}_${bounds.origin.getX()}_${bounds.origin.getY()}`;
+    const id = `room_${seed.getValue()}_${bounds.origin.x}_${bounds.origin.y}`;
     return new Room(id, type, bounds, [], features);
   }
 
@@ -188,10 +188,10 @@ export class RoomBounds {
   }
 
   contains(position: Position): boolean {
-    return position.getX() >= this.origin.getX() &&
-           position.getX() < this.origin.getX() + this.width &&
-           position.getY() >= this.origin.getY() &&
-           position.getY() < this.origin.getY() + this.height;
+    return position.x >= this.origin.x &&
+           position.x < this.origin.x + this.width &&
+           position.y >= this.origin.y &&
+           position.y < this.origin.y + this.height;
   }
 
   getArea(): number {
@@ -199,9 +199,9 @@ export class RoomBounds {
   }
 
   getCenter(): Position {
-    return Position.create(
-      this.origin.getX() + this.width / 2,
-      this.origin.getY() + this.height / 2
+    return new Position(
+      this.origin.x + this.width / 2,
+      this.origin.y + this.height / 2
     );
   }
 }

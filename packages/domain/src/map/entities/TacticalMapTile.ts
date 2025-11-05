@@ -6,11 +6,12 @@ import {
   PermeabilityLevel,
   TerrainFeature
 } from '../../contexts/relief/value-objects/GeologicalFormation';
+import { MoistureLevel } from '../../contexts/natural/value-objects/MoistureLevel';
 
 /**
- * Cover levels for tactical combat
+ * Tactical cover levels (different from TacticalProperties)
  */
-export enum CoverLevel {
+export enum TacticalCoverLevel {
   NONE = 'none',           // No cover
   LIGHT = 'light',         // 1/4 cover (low wall, bushes)
   PARTIAL = 'partial',     // 1/2 cover (trees, boulders)
@@ -19,15 +20,22 @@ export enum CoverLevel {
 }
 
 /**
- * Concealment levels for stealth
+ * Tactical concealment levels (different from TacticalProperties)
  */
-export enum ConcealmentLevel {
+export enum TacticalConcealmentLevel {
   NONE = 'none',           // Open ground
   LIGHT = 'light',         // Tall grass
   MODERATE = 'moderate',   // Bushes, undergrowth
   HEAVY = 'heavy',         // Dense foliage
   TOTAL = 'total'          // Can't be seen
 }
+
+// Aliases for backward compatibility
+export { TacticalCoverLevel as CoverLevel };
+export { TacticalConcealmentLevel as ConcealmentLevel };
+
+// Re-export imported types for convenience
+export { MoistureLevel };
 
 /**
  * Aspect directions for slope orientation
@@ -42,18 +50,6 @@ export enum AspectDirection {
   WEST = 'west',
   NORTHWEST = 'northwest',
   FLAT = 'flat' // No slope
-}
-
-/**
- * Moisture levels affect vegetation
- */
-export enum MoistureLevel {
-  ARID = 'arid',           // Very dry
-  DRY = 'dry',             // Below average
-  MODERATE = 'moderate',   // Average moisture
-  MOIST = 'moist',         // Above average
-  WET = 'wet',             // Very wet
-  SATURATED = 'saturated' // Waterlogged
 }
 
 /**
@@ -103,8 +99,8 @@ export class TacticalMapTile {
 
   // === Tactical Properties (derived) ===
   private movementCost: number; // multiplier (1 = normal)
-  private coverLevel: CoverLevel;
-  private concealment: ConcealmentLevel;
+  private coverLevel: TacticalCoverLevel;
+  private concealment: TacticalConcealmentLevel;
 
   // === Base Properties ===
   private readonly position: Position;
@@ -134,8 +130,8 @@ export class TacticalMapTile {
 
     // Calculate initial tactical properties
     this.movementCost = 1;
-    this.coverLevel = CoverLevel.NONE;
-    this.concealment = ConcealmentLevel.NONE;
+    this.coverLevel = TacticalCoverLevel.NONE;
+    this.concealment = TacticalConcealmentLevel.NONE;
   }
 
   // === Geological Methods ===
@@ -273,8 +269,8 @@ export class TacticalMapTile {
   /**
    * Get the maximum cover level between two levels
    */
-  private getMaxCoverLevel(a: CoverLevel, b: CoverLevel): CoverLevel {
-    const levels = [CoverLevel.NONE, CoverLevel.LIGHT, CoverLevel.PARTIAL, CoverLevel.HEAVY, CoverLevel.TOTAL];
+  private getMaxCoverLevel(a: TacticalCoverLevel, b: TacticalCoverLevel): TacticalCoverLevel {
+    const levels = [TacticalCoverLevel.NONE, TacticalCoverLevel.LIGHT, TacticalCoverLevel.PARTIAL, TacticalCoverLevel.HEAVY, TacticalCoverLevel.TOTAL];
     const aIndex = levels.indexOf(a);
     const bIndex = levels.indexOf(b);
     return levels[Math.max(aIndex, bIndex)];
@@ -286,8 +282,8 @@ export class TacticalMapTile {
   private updateTacticalProperties(): void {
     // Reset to defaults
     this.movementCost = 1;
-    this.coverLevel = CoverLevel.NONE;
-    this.concealment = ConcealmentLevel.NONE;
+    this.coverLevel = TacticalCoverLevel.NONE;
+    this.concealment = TacticalConcealmentLevel.NONE;
 
     // === Movement Cost Calculation ===
 
@@ -335,29 +331,29 @@ export class TacticalMapTile {
     // Geological features provide cover
     if (this.geologicalFeatures.includes(TerrainFeature.TOWER) ||
         this.geologicalFeatures.includes(TerrainFeature.COLUMN)) {
-      this.coverLevel = CoverLevel.TOTAL;
+      this.coverLevel = TacticalCoverLevel.TOTAL;
     } else if (this.geologicalFeatures.includes(TerrainFeature.CORESTONE) ||
                this.geologicalFeatures.includes(TerrainFeature.FIN)) {
-      this.coverLevel = CoverLevel.HEAVY;
+      this.coverLevel = TacticalCoverLevel.HEAVY;
     } else if (this.geologicalFeatures.includes(TerrainFeature.LEDGE)) {
-      this.coverLevel = CoverLevel.PARTIAL;
+      this.coverLevel = TacticalCoverLevel.PARTIAL;
     }
 
     // Vegetation provides cover
     if (this.vegetationType === VegetationType.DENSE_TREES && this.canopyCover > 75) {
-      this.coverLevel = this.getMaxCoverLevel(this.coverLevel, CoverLevel.HEAVY);
+      this.coverLevel = this.getMaxCoverLevel(this.coverLevel, TacticalCoverLevel.HEAVY);
     } else if (this.vegetationType === VegetationType.SPARSE_TREES) {
-      this.coverLevel = this.getMaxCoverLevel(this.coverLevel, CoverLevel.PARTIAL);
+      this.coverLevel = this.getMaxCoverLevel(this.coverLevel, TacticalCoverLevel.PARTIAL);
     } else if (this.vegetationType === VegetationType.SHRUBS) {
-      this.coverLevel = this.getMaxCoverLevel(this.coverLevel, CoverLevel.LIGHT);
+      this.coverLevel = this.getMaxCoverLevel(this.coverLevel, TacticalCoverLevel.LIGHT);
     }
 
     // Structures provide cover
     if (this.hasStructure) {
       if (this.structureType === 'building') {
-        this.coverLevel = CoverLevel.TOTAL;
+        this.coverLevel = TacticalCoverLevel.TOTAL;
       } else if (this.structureType === 'wall' || this.structureType === 'bridge') {
-        this.coverLevel = CoverLevel.HEAVY;
+        this.coverLevel = TacticalCoverLevel.HEAVY;
       }
     }
 
@@ -365,20 +361,20 @@ export class TacticalMapTile {
 
     // Vegetation provides concealment
     if (this.vegetationType === VegetationType.DENSE_TREES && this.canopyCover > 90) {
-      this.concealment = ConcealmentLevel.TOTAL;
+      this.concealment = TacticalConcealmentLevel.TOTAL;
     } else if (this.vegetationType === VegetationType.DENSE_TREES && this.canopyCover > 75) {
-      this.concealment = ConcealmentLevel.HEAVY;
+      this.concealment = TacticalConcealmentLevel.HEAVY;
     } else if (this.vegetationType === VegetationType.UNDERGROWTH) {
-      this.concealment = ConcealmentLevel.HEAVY;
+      this.concealment = TacticalConcealmentLevel.HEAVY;
     } else if (this.vegetationType === VegetationType.SHRUBS) {
-      this.concealment = ConcealmentLevel.MODERATE;
+      this.concealment = TacticalConcealmentLevel.MODERATE;
     } else if (this.vegetationType === VegetationType.TALL_GRASS) {
-      this.concealment = ConcealmentLevel.LIGHT;
+      this.concealment = TacticalConcealmentLevel.LIGHT;
     }
 
     // Some geological features provide concealment
     if (this.geologicalFeatures.includes(TerrainFeature.CAVE)) {
-      this.concealment = ConcealmentLevel.TOTAL;
+      this.concealment = TacticalConcealmentLevel.TOTAL;
     }
   }
 
@@ -386,11 +382,11 @@ export class TacticalMapTile {
     return this.movementCost;
   }
 
-  getCoverLevel(): CoverLevel {
+  getCoverLevel(): TacticalCoverLevel {
     return this.coverLevel;
   }
 
-  getConcealmentLevel(): ConcealmentLevel {
+  getConcealmentLevel(): TacticalConcealmentLevel {
     return this.concealment;
   }
 
@@ -411,8 +407,8 @@ export class TacticalMapTile {
    * Check if this tile blocks line of sight
    */
   blocksLineOfSight(): boolean {
-    return this.coverLevel === CoverLevel.TOTAL ||
-           this.concealment === ConcealmentLevel.TOTAL ||
+    return this.coverLevel === TacticalCoverLevel.TOTAL ||
+           this.concealment === TacticalConcealmentLevel.TOTAL ||
            this.geologicalFeatures.includes(TerrainFeature.TOWER) ||
            this.geologicalFeatures.includes(TerrainFeature.COLUMN) ||
            (this.hasStructure && this.structureType === 'building');

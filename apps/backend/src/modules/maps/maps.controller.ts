@@ -33,16 +33,13 @@ export class MapsController {
   ) {}
 
   @Post('generate')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Generate a new tactical battlemap' })
   @ApiResponse({ status: 201, description: 'Tactical map generated successfully' })
-  @ApiResponse({ status: 401, description: 'Authentication required' })
   async generateMap(@Body() dto: GenerateMapDto, @Request() req: any): Promise<ApiResponseType<any>> {
     const operationLogger = this.logger.child({
       component: 'MapsController',
       operation: 'generateMap',
-      userId: req.user.userId
+      userId: req.user?.userId || 'anonymous'
     });
 
     try {

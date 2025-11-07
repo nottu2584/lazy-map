@@ -20,7 +20,8 @@ import {
   StructuresLayer,
   FeaturesLayer,
   MapRepositoryAdapter,
-  RandomGeneratorService
+  RandomGeneratorService,
+  StubOAuthService
 } from '@lazy-map/infrastructure';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -78,13 +79,19 @@ const shouldUseDatabase = () => process.env.USE_DATABASE === 'true';
     { provide: 'IArtificialFeatureRepository', useClass: InMemoryArtificialRepository },
     { provide: 'ICulturalFeatureRepository', useClass: InMemoryCulturalRepository },
 
-    // OAuth service
+    // OAuth service - optional, returns stub when not configured
     {
       provide: 'IOAuthService',
       useFactory: (configService: ConfigService) => {
         const clientId = configService.get<string>('GOOGLE_CLIENT_ID', '');
         const jwtSecret = configService.get<string>('JWT_SECRET', 'your-secret-key');
         const logger = new LoggingService('OAuthService');
+
+        // Return stub service if OAuth is not configured
+        if (!clientId) {
+          return new StubOAuthService(logger);
+        }
+
         return createGoogleOAuthService(clientId, jwtSecret, logger);
       },
       inject: [ConfigService],

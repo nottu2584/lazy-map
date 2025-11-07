@@ -51,11 +51,6 @@ export function MapGenerator() {
   const [progress, setProgress] = useState<string>('');
 
   const handleGenerateMap = async (settings: MapSettings) => {
-    if (!user) {
-      setError('Please sign in to generate maps');
-      return;
-    }
-
     setIsGenerating(true);
     setError(null);
     setProgress('Initializing map generation...');
@@ -99,19 +94,6 @@ export function MapGenerator() {
   };
 
   const clearError = () => setError(null);
-
-  if (!user) {
-    return (
-      <div className="max-w-md mx-auto">
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-            Sign In to Generate Maps
-          </h2>
-          <LoginForm />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

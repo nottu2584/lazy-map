@@ -5,7 +5,7 @@ export interface IAuthenticationPort {
   /**
    * Generate a JWT token for a user
    */
-  generateToken(userId: string, email: string): Promise<string>;
+  generateToken(userId: string, email: string, username?: string, role?: string): Promise<string>;
 
   /**
    * Verify and decode a JWT token

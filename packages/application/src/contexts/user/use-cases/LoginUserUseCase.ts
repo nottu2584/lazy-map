@@ -65,7 +65,12 @@ export class LoginUserUseCase {
       await this.userRepository.save(user);
 
       // Generate authentication token
-      const token = await this.authenticationPort.generateToken(user.id.value, user.email.value);
+      const token = await this.authenticationPort.generateToken(
+        user.id.value,
+        user.email.value,
+        user.username.value,
+        user.role?.value || 'USER'
+      );
 
       return {
         success: true,

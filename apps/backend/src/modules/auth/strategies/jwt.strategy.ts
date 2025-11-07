@@ -1,57 +1,41 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ConfigService } from '@nestjs/config';
 
-/**
- * JWT payload structure with role included
- */
 export interface JwtPayload {
-  sub: string;      // User ID
+  sub: string;  // User ID
   email: string;
-  role: string;     // User role (USER or ADMIN)
-  iat: number;      // Issued at
-  exp: number;      // Expiration
+  username: string;
+  role?: string;
+  iat?: number;
+  exp?: number;
 }
 
-/**
- * Validated user object attached to request
- */
-export interface JwtUser {
-  userId: string;
-  email: string;
-  role: string;
-}
-
-/**
- * JWT authentication strategy
- * Validates JWT tokens and extracts user information including role
- */
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService) {
+  constructor(private configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET', 'your-secret-key'),
+      secretOrKey: configService.get<string>('JWT_SECRET') || 'default-secret-change-in-production',
     });
   }
 
-  /**
-   * Validate JWT payload and return user object
-   * This is called automatically by Passport after token verification
-   */
-  async validate(payload: JwtPayload): Promise<JwtUser> {
-    // Validate required fields
+  async validate(payload: JwtPayload) {
+    // The JWT has already been verified at this point
+    // We can do additional validation here if needed
+
     if (!payload.sub || !payload.email) {
       throw new UnauthorizedException('Invalid token payload');
     }
 
-    // Return user object that will be attached to request
+    // Return the user object that will be attached to the request
     return {
       userId: payload.sub,
       email: payload.email,
-      role: payload.role || 'USER', // Default to USER if role not in token (backwards compatibility)
+      username: payload.username,
+      role: payload.role || 'USER',
     };
   }
 }

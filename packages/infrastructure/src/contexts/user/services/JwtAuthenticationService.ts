@@ -5,6 +5,8 @@ import { ILogger } from '@lazy-map/domain';
 interface JwtPayload {
   sub: string; // user ID
   email: string;
+  username?: string;
+  role?: string;
   iat: number;
   exp: number;
 }
@@ -35,10 +37,12 @@ export class JwtAuthenticationService implements IAuthenticationPort {
     }
   }
 
-  async generateToken(userId: string, email: string): Promise<string> {
+  async generateToken(userId: string, email: string, username?: string, role?: string): Promise<string> {
     const payload: Omit<JwtPayload, 'iat' | 'exp'> = {
       sub: userId,
-      email
+      email,
+      username,
+      role
     };
 
     return new Promise((resolve, reject) => {

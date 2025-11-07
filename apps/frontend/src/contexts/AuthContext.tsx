@@ -10,7 +10,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (user: User, token: string) => void;
   logout: () => void;
   isLoading: boolean;
 }
@@ -35,47 +35,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     // Check for existing token on mount
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      // In a real app, you'd validate the token with the server
-      // For now, we'll create a mock user
-      setUser({
-        id: '1',
-        username: 'Demo User',
-        email: 'demo@example.com',
-        role: 'USER'
-      });
+    const token = localStorage.getItem('auth_token');
+    const userStr = localStorage.getItem('user');
+
+    if (token && userStr) {
+      try {
+        const savedUser = JSON.parse(userStr);
+        setUser(savedUser);
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user');
+      }
     }
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    try {
-      // This is a mock implementation
-      // In a real app, you'd make an API call to your authentication endpoint
-      if (email === 'demo@example.com' && password === 'demo') {
-        const mockUser = {
-          id: '1',
-          username: 'Demo User',
-          email: 'demo@example.com',
-          role: 'USER'
-        };
-
-        setUser(mockUser);
-        localStorage.setItem('authToken', 'mock-jwt-token');
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error('Login error:', error);
-      return false;
-    }
+  const login = (user: User, token: string) => {
+    setUser(user);
+    localStorage.setItem('auth_token', token);
+    localStorage.setItem('user', JSON.stringify(user));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
   };
 
   const value = {

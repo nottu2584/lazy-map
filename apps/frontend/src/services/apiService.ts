@@ -1,6 +1,6 @@
-import axios from 'axios';
 import type { ApiResponse } from '@lazy-map/application';
-import type { MapSettings, GeneratedMap } from '../components/MapGenerator';
+import axios from 'axios';
+import type { GeneratedMap, MapSettings } from '../components/MapGenerator';
 
 // API configuration from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3030/api';
@@ -173,14 +173,100 @@ export const apiService = {
     }
   },
 
-  async getMap(_id: string): Promise<GeneratedMap> {
-    // Map retrieval not yet implemented - would require database storage
-    throw new Error('Map persistence not yet implemented. Maps are generated on-demand.');
+  async saveMap(map: GeneratedMap, name?: string, description?: string): Promise<{ success: boolean; mapId?: string; error?: string }> {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('Authentication required to save maps');
+      }
+
+      const response = await apiClient.post<ApiResponse<{ success: boolean; mapId?: string; message?: string }>>(
+        '/maps/save',
+        {
+          id: map.id,
+          width: map.width,
+          height: map.height,
+          seed: map.seed,
+          tiles: map.tiles,
+          name,
+          description,
+          metadata: map.metadata
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Failed to save map');
+      }
+
+      return {
+        success: true,
+        mapId: response.data.data?.mapId
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          throw new Error('Please login to save maps');
+        }
+        if (error.response?.data?.error) {
+          throw new Error(error.response.data.error);
+        }
+      }
+      throw new Error(error instanceof Error ? error.message : 'Failed to save map');
+    }
+  },
+
+  async getMap(id: string): Promise<GeneratedMap> {
+    try {
+      const response = await apiClient.get<ApiResponse<TacticalMapResponse>>(`/maps/${id}`);
+
+      if (!response.data.success || !response.data.data) {
+        throw new Error(response.data.error || 'Map not found');
+      }
+
+      return mapResponseToGeneratedMap(response.data.data);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 404) {
+          throw new Error('Map not found');
+        }
+        if (error.response?.data?.error) {
+          throw new Error(error.response.data.error);
+        }
+      }
+      throw new Error(error instanceof Error ? error.message : 'Failed to retrieve map');
+    }
   },
 
   async getUserMaps(): Promise<GeneratedMap[]> {
-    // User map history not yet implemented - would require database storage
-    return [];
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        return [];
+      }
+
+      const response = await apiClient.get<ApiResponse<TacticalMapResponse[]>>(
+        '/maps/my-maps',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (!response.data.success || !response.data.data) {
+        return [];
+      }
+
+      return response.data.data.map(mapResponseToGeneratedMap);
+    } catch (error) {
+      console.error('Failed to get user maps:', error);
+      return [];
+    }
   },
 
   async checkHealth(): Promise<string> {

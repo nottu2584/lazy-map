@@ -1,5 +1,9 @@
 # Dependabot configuration for lazy-map monorepo
 # Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Note: To use custom labels, create them in GitHub first:
+# Repository Settings > Labels > New label
+# Suggested labels: root, backend, frontend, application-layer, domain-layer, infrastructure-layer, ci
 
 version: 2
 updates:
@@ -22,9 +26,6 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    labels:
-      - "dependencies"
-      - "root"
 
   # Backend application (NestJS)
   - package-ecosystem: "npm"
@@ -50,9 +51,6 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    labels:
-      - "dependencies"
-      - "backend"
 
   # Frontend application (React + Vite)
   - package-ecosystem: "npm"
@@ -80,9 +78,6 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    labels:
-      - "dependencies"
-      - "frontend"
 
   # Application package (business logic)
   - package-ecosystem: "npm"
@@ -92,9 +87,6 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 3
-    labels:
-      - "dependencies"
-      - "application-layer"
 
   # Domain package (core domain logic)
   - package-ecosystem: "npm"
@@ -112,9 +104,6 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    labels:
-      - "dependencies"
-      - "domain-layer"
 
   # Infrastructure package (adapters and implementations)
   - package-ecosystem: "npm"
@@ -124,9 +113,6 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 3
-    labels:
-      - "dependencies"
-      - "infrastructure-layer"
 
   # GitHub Actions workflows
   - package-ecosystem: "github-actions"
@@ -136,6 +122,3 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 2
-    labels:
-      - "dependencies"
-      - "ci"

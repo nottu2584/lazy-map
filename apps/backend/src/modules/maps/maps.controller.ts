@@ -153,8 +153,9 @@ export class MapsController {
         for (let x = 0; x < dto.width; x++) {
           const tileDto = dto.tiles.find(t => t.x === x && t.y === y);
           if (tileDto) {
-            // Create terrain object from the tile's terrain string
-            const terrain = tileDto.terrain ? Terrain[tileDto.terrain]?.() || Terrain.grass() : Terrain.grass();
+            // Create terrain object - for now just use grass as default
+            // TODO: Create proper terrain mapping from string to Terrain objects
+            const terrain = Terrain.grass();
             tiles[y][x] = new MapTile(
               new Position(x, y),
               terrain,
@@ -232,6 +233,38 @@ export class MapsController {
     }
   }
 
+  @Get('my-maps')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current user\'s map history' })
+  @ApiResponse({ status: 200, description: 'Map history retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Authentication required' })
+  async getMyMaps(@Request() req: any): Promise<ApiResponseType<MapGrid[]>> {
+    try {
+      const userId = req.user?.id || req.user?.userId || req.user?.sub;
+      if (!userId) {
+        return {
+          success: false,
+          error: 'User ID not found in token'
+        };
+      }
+      const query = new GetUserMapsQuery(userId);
+      const result = await this.getUserMapsUseCase.execute(query);
+
+      return {
+        success: result.success,
+        data: result.data,
+        message: result.success ? 'Maps retrieved successfully' : undefined,
+        error: result.error,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message || 'Failed to get user maps',
+      };
+    }
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a map by ID' })
   @ApiResponse({ status: 200, description: 'Map found' })
@@ -281,31 +314,6 @@ export class MapsController {
       return {
         success: false,
         error: error.message || 'Failed to get map',
-      };
-    }
-  }
-
-  @Get('my-maps')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current user\'s map history' })
-  @ApiResponse({ status: 200, description: 'Map history retrieved successfully' })
-  @ApiResponse({ status: 401, description: 'Authentication required' })
-  async getMyMaps(@Request() req: any): Promise<ApiResponseType<MapGrid[]>> {
-    try {
-      const query = new GetUserMapsQuery(req.user.userId);
-      const result = await this.getUserMapsUseCase.execute(query);
-      
-      return {
-        success: result.success,
-        data: result.data,
-        message: result.success ? 'Maps retrieved successfully' : undefined,
-        error: result.error,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message || 'Failed to get user maps',
       };
     }
   }

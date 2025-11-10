@@ -14,7 +14,11 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+      timezone: "Europe/Madrid"  # Adjust to your timezone
     open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
     groups:
       # Group development tools together
       dev-dependencies:
@@ -23,6 +27,9 @@ updates:
           - "@turbo/*"
           - "typescript"
           - "@types/*"
+          - "prettier"
+          - "oxlint"
+          - "concurrently"
         update-types:
           - "minor"
           - "patch"
@@ -34,7 +41,12 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+      timezone: "Europe/Madrid"
     open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(backend)"
+      include: "scope"
+    versioning-strategy: increase-if-necessary
     groups:
       # Group NestJS core packages
       nestjs:
@@ -48,6 +60,17 @@ updates:
         patterns:
           - "vitest"
           - "@vitest/*"
+          - "@types/supertest"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group authentication packages
+      auth:
+        patterns:
+          - "passport*"
+          - "bcrypt"
+          - "@types/passport*"
+          - "@types/bcrypt"
         update-types:
           - "minor"
           - "patch"
@@ -59,7 +82,18 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+      timezone: "Europe/Madrid"
     open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(frontend)"
+      include: "scope"
+    versioning-strategy: increase-if-necessary
+    # Ignore major React updates (breaking changes require careful migration)
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
     groups:
       # Group React ecosystem
       react:
@@ -75,6 +109,26 @@ updates:
         patterns:
           - "vite"
           - "@vitejs/*"
+          - "autoprefixer"
+          - "postcss"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group UI/Canvas libraries
+      ui-libs:
+        patterns:
+          - "konva"
+          - "react-konva"
+          - "tailwindcss"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group state management
+      state:
+        patterns:
+          - "zustand"
+          - "@tanstack/react-query"
+          - "axios"
         update-types:
           - "minor"
           - "patch"
@@ -86,7 +140,12 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+      timezone: "Europe/Madrid"
     open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(application)"
+      include: "scope"
+    versioning-strategy: increase-if-necessary
 
   # Domain package (core domain logic)
   - package-ecosystem: "npm"
@@ -95,7 +154,12 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+      timezone: "Europe/Madrid"
     open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(domain)"
+      include: "scope"
+    versioning-strategy: increase-if-necessary
     groups:
       testing:
         patterns:
@@ -112,7 +176,12 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+      timezone: "Europe/Madrid"
     open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(infrastructure)"
+      include: "scope"
+    versioning-strategy: increase-if-necessary
 
   # GitHub Actions workflows
   - package-ecosystem: "github-actions"
@@ -121,4 +190,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+      timezone: "Europe/Madrid"
     open-pull-requests-limit: 2
+    commit-message:
+      prefix: "chore(ci)"

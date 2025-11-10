@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { MapSettingsForm } from './MapSettingsForm';
 import { MapCanvas } from './MapCanvas';
-import { useAuth } from '../contexts/AuthContext';
-import { LoginForm } from './LoginForm';
 import { apiService } from '../services/apiService';
 
 export interface MapSettings {
@@ -34,6 +32,8 @@ export interface GeneratedMap {
   width: number;
   height: number;
   cellSize: number;
+  seed?: string | number;
+  metadata?: Record<string, any>;
   tiles: Array<{
     x: number;
     y: number;
@@ -44,7 +44,6 @@ export interface GeneratedMap {
 }
 
 export function MapGenerator() {
-  const { user } = useAuth();
   const [generatedMap, setGeneratedMap] = useState<GeneratedMap | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);

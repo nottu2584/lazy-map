@@ -103,7 +103,7 @@ function mapSettingsToRequest(settings: MapSettings): GenerateMapRequest {
 }
 
 // Convert backend response to frontend format
-function mapResponseToGeneratedMap(response: TacticalMapResponse): GeneratedMap {
+function mapResponseToGeneratedMap(response: TacticalMapResponse, seed?: string | number): GeneratedMap {
   const tiles = response.map.tiles.map(tile => {
     // Extract features from layers
     const features: string[] = [];
@@ -138,11 +138,35 @@ function mapResponseToGeneratedMap(response: TacticalMapResponse): GeneratedMap 
     width: response.width,
     height: response.height,
     cellSize: 5, // Default cell size for tactical maps
+    seed,
+    metadata: response.map.context,
     tiles,
   };
 }
 
 export const apiService = {
+  async login(email: string, password: string): Promise<ApiResponse<{ user: any; token: string }>> {
+    try {
+      const response = await apiClient.post<ApiResponse<{ user: any; token: string }>>(
+        '/auth/login',
+        { email, password }
+      );
+
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return {
+          success: false,
+          error: error.response?.data?.error || 'Login failed'
+        };
+      }
+      return {
+        success: false,
+        error: 'An unexpected error occurred'
+      };
+    }
+  },
+
   async generateMap(settings: MapSettings): Promise<GeneratedMap> {
     try {
       const request = mapSettingsToRequest(settings);
@@ -156,7 +180,7 @@ export const apiService = {
         throw new Error(response.data.error || 'Failed to generate map');
       }
 
-      return mapResponseToGeneratedMap(response.data.data);
+      return mapResponseToGeneratedMap(response.data.data, request.seed);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.data?.error) {
@@ -186,11 +210,11 @@ export const apiService = {
           id: map.id,
           width: map.width,
           height: map.height,
-          seed: map.seed,
+          seed: String(map.seed || 'default'), // Convert to string as backend expects string
           tiles: map.tiles,
-          name,
+          name: name || map.name,
           description,
-          metadata: map.metadata
+          metadata: map.metadata || {}
         },
         {
           headers: {
@@ -228,7 +252,8 @@ export const apiService = {
         throw new Error(response.data.error || 'Map not found');
       }
 
-      return mapResponseToGeneratedMap(response.data.data);
+      // When retrieving a saved map, we don't have the original seed
+      return mapResponseToGeneratedMap(response.data.data, undefined);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 404) {
@@ -262,7 +287,7 @@ export const apiService = {
         return [];
       }
 
-      return response.data.data.map(mapResponseToGeneratedMap);
+      return response.data.data.map(mapData => mapResponseToGeneratedMap(mapData, undefined));
     } catch (error) {
       console.error('Failed to get user maps:', error);
       return [];

@@ -1,4 +1,5 @@
 import {
+  CheckAdminAccessUseCase,
   ClearAllFeaturesUseCase,
   DeleteUserUseCase,
   GenerateTacticalMapUseCase,
@@ -8,6 +9,7 @@ import {
   GetMapTileUseCase,
   GetMapUseCase,
   GetUserMapsUseCase,
+  GetUserPermissionsUseCase,
   GetUserProfileUseCase,
   GetUserStatsUseCase,
   GoogleSignInUseCase,
@@ -19,12 +21,11 @@ import {
   PromoteUserUseCase,
   ReactivateUserUseCase,
   RegisterUserUseCase,
+  SaveMapUseCase,
   SuspendUserUseCase,
   UpdateUserUseCase,
   ValidateMapSettingsUseCase,
   ValidateSeedUseCase,
-  CheckAdminAccessUseCase,
-  GetUserPermissionsUseCase,
 } from '@lazy-map/application';
 import { Module } from '@nestjs/common';
 import { InfrastructureModule } from './infrastructure.module';
@@ -110,7 +111,13 @@ import { InfrastructureModule } from './infrastructure.module';
       },
       inject: ['IMapPersistencePort'],
     },
-
+    {
+      provide: SaveMapUseCase,
+      useFactory: (mapRepository, logger) => {
+        return new SaveMapUseCase(mapRepository, logger);
+      },
+      inject: ['IMapRepository', 'ILogger'],
+    },
 
     // User use cases
     {
@@ -249,6 +256,7 @@ import { InfrastructureModule } from './infrastructure.module';
     GenerateTacticalMapUseCase,
     GetMapUseCase,
     GetUserMapsUseCase,
+    SaveMapUseCase,
     ValidateSeedUseCase,
     HealthCheckUseCase,
     // Export User Use Cases

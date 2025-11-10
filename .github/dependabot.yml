@@ -1,7 +1,12 @@
 # Dependabot configuration for lazy-map monorepo
 # Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 #
-# Note: To use custom labels, create them in GitHub first:
+# Note: This is a pnpm monorepo, but Dependabot has limited pnpm support.
+# - pnpm workspaces (workspace:*) are not fully supported
+# - Using "npm" ecosystem works for most dependencies
+# - Internal workspace dependencies (workspace:*) will be skipped
+#
+# To use custom labels, create them in GitHub first:
 # Repository Settings > Labels > New label
 # Suggested labels: root, backend, frontend, application-layer, domain-layer, infrastructure-layer, ci
 
@@ -14,11 +19,14 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-      timezone: "Europe/Madrid"  # Adjust to your timezone
+      timezone: "Europe/Madrid"
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
+    # Allow only external dependencies (not workspace packages)
+    allow:
+      - dependency-type: "direct"
     groups:
       # Group development tools together
       dev-dependencies:
@@ -47,6 +55,12 @@ updates:
       prefix: "chore(backend)"
       include: "scope"
     versioning-strategy: increase-if-necessary
+    # Allow only external dependencies (skip workspace:* packages)
+    allow:
+      - dependency-type: "direct"
+    # Ignore workspace packages
+    ignore:
+      - dependency-name: "@lazy-map/*"
     groups:
       # Group NestJS core packages
       nestjs:
@@ -88,8 +102,12 @@ updates:
       prefix: "chore(frontend)"
       include: "scope"
     versioning-strategy: increase-if-necessary
-    # Ignore major React updates (breaking changes require careful migration)
+    # Allow only external dependencies (skip workspace:* packages)
+    allow:
+      - dependency-type: "direct"
+    # Ignore workspace packages and major React updates
     ignore:
+      - dependency-name: "@lazy-map/*"
       - dependency-name: "react"
         update-types: ["version-update:semver-major"]
       - dependency-name: "react-dom"
@@ -146,6 +164,11 @@ updates:
       prefix: "chore(application)"
       include: "scope"
     versioning-strategy: increase-if-necessary
+    # Allow only external dependencies (skip workspace:* packages)
+    allow:
+      - dependency-type: "direct"
+    ignore:
+      - dependency-name: "@lazy-map/*"
 
   # Domain package (core domain logic)
   - package-ecosystem: "npm"
@@ -160,6 +183,11 @@ updates:
       prefix: "chore(domain)"
       include: "scope"
     versioning-strategy: increase-if-necessary
+    # Allow only external dependencies (skip workspace:* packages)
+    allow:
+      - dependency-type: "direct"
+    ignore:
+      - dependency-name: "@lazy-map/*"
     groups:
       testing:
         patterns:
@@ -182,6 +210,11 @@ updates:
       prefix: "chore(infrastructure)"
       include: "scope"
     versioning-strategy: increase-if-necessary
+    # Allow only external dependencies (skip workspace:* packages)
+    allow:
+      - dependency-type: "direct"
+    ignore:
+      - dependency-name: "@lazy-map/*"
 
   # GitHub Actions workflows
   - package-ecosystem: "github-actions"

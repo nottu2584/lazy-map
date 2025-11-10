@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { apiService } from '../services/apiService';
 
 export function LoginForm() {
   const { login } = useAuth();
@@ -13,9 +14,14 @@ export function LoginForm() {
     setIsLoading(true);
     setError(null);
 
-    const success = await login(email, password);
-
-    if (!success) {
+    try {
+      const response = await apiService.login(email, password);
+      if (response.success && response.data) {
+        login(response.data.user, response.data.token);
+      } else {
+        setError(response.error || 'Login failed');
+      }
+    } catch (err) {
       setError('Invalid credentials. Try demo@example.com / demo');
     }
 

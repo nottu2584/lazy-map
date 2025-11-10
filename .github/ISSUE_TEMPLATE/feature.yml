@@ -1,0 +1,73 @@
+name: Feature Implementation
+description: Track a planned feature implementation
+title: "[FEATURE] "
+labels: ["enhancement", "planned"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Implementation Tracking
+        Use this template for planned features from the docs/features/planned directory
+
+  - type: input
+    id: priority
+    attributes:
+      label: Priority
+      description: Critical, High, Medium, or Low
+      placeholder: "e.g., Critical"
+    validations:
+      required: true
+
+  - type: input
+    id: effort
+    attributes:
+      label: Estimated Effort
+      description: Time estimate for implementation
+      placeholder: "e.g., 2 weeks"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: High-level approach to implementation
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Implementation Tasks
+      description: Checklist of tasks to complete
+      value: |
+        - [ ] Task 1
+        - [ ] Task 2
+        - [ ] Task 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: Testing Requirements
+      description: How will this feature be tested?
+    validations:
+      required: false
+
+  - type: input
+    id: doc-link
+    attributes:
+      label: Documentation Link
+      description: Link to the original planning document
+      placeholder: "docs/features/planned/feature-name.md"
+    validations:
+      required: false

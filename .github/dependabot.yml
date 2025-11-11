@@ -23,7 +23,6 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(deps)"
-      include: "scope"
     # Allow only external dependencies (not workspace packages)
     allow:
       - dependency-type: "direct"
@@ -53,7 +52,6 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(backend)"
-      include: "scope"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:
@@ -100,7 +98,6 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(frontend)"
-      include: "scope"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:
@@ -162,7 +159,6 @@ updates:
     open-pull-requests-limit: 3
     commit-message:
       prefix: "chore(application)"
-      include: "scope"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:
@@ -181,7 +177,6 @@ updates:
     open-pull-requests-limit: 3
     commit-message:
       prefix: "chore(domain)"
-      include: "scope"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:
@@ -208,7 +203,6 @@ updates:
     open-pull-requests-limit: 3
     commit-message:
       prefix: "chore(infrastructure)"
-      include: "scope"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:

@@ -21,6 +21,7 @@ updates:
       time: "09:00"
       timezone: "Europe/Madrid"
     open-pull-requests-limit: 5
+    rebase-strategy: auto
     commit-message:
       prefix: "chore(deps)"
     # Allow only external dependencies (not workspace packages)
@@ -50,6 +51,7 @@ updates:
       time: "09:00"
       timezone: "Europe/Madrid"
     open-pull-requests-limit: 5
+    rebase-strategy: auto
     commit-message:
       prefix: "chore(backend)"
     versioning-strategy: increase-if-necessary
@@ -96,6 +98,7 @@ updates:
       time: "09:00"
       timezone: "Europe/Madrid"
     open-pull-requests-limit: 5
+    rebase-strategy: auto
     commit-message:
       prefix: "chore(frontend)"
     versioning-strategy: increase-if-necessary
@@ -157,6 +160,7 @@ updates:
       time: "09:00"
       timezone: "Europe/Madrid"
     open-pull-requests-limit: 3
+    rebase-strategy: auto
     commit-message:
       prefix: "chore(application)"
     versioning-strategy: increase-if-necessary
@@ -175,6 +179,7 @@ updates:
       time: "09:00"
       timezone: "Europe/Madrid"
     open-pull-requests-limit: 3
+    rebase-strategy: auto
     commit-message:
       prefix: "chore(domain)"
     versioning-strategy: increase-if-necessary
@@ -201,6 +206,7 @@ updates:
       time: "09:00"
       timezone: "Europe/Madrid"
     open-pull-requests-limit: 3
+    rebase-strategy: auto
     commit-message:
       prefix: "chore(infrastructure)"
     versioning-strategy: increase-if-necessary
@@ -219,5 +225,6 @@ updates:
       time: "09:00"
       timezone: "Europe/Madrid"
     open-pull-requests-limit: 2
+    rebase-strategy: auto
     commit-message:
       prefix: "chore(ci)"

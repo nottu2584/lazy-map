@@ -24,7 +24,6 @@ updates:
     rebase-strategy: auto
     commit-message:
       prefix: "chore(deps)"
-      include: "scope"
     # Allow only external dependencies (not workspace packages)
     allow:
       - dependency-type: "direct"
@@ -55,7 +54,6 @@ updates:
     rebase-strategy: auto
     commit-message:
       prefix: "chore(backend)"
-      include: "scope"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:
@@ -103,7 +101,6 @@ updates:
     rebase-strategy: auto
     commit-message:
       prefix: "chore(frontend)"
-      include: "scope"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:
@@ -166,7 +163,6 @@ updates:
     rebase-strategy: auto
     commit-message:
       prefix: "chore(application)"
-      include: "scope"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:
@@ -186,7 +182,6 @@ updates:
     rebase-strategy: auto
     commit-message:
       prefix: "chore(domain)"
-      include: "scope"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:
@@ -214,7 +209,6 @@ updates:
     rebase-strategy: auto
     commit-message:
       prefix: "chore(infrastructure)"
-      include: "scope"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:

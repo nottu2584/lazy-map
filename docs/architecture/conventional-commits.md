@@ -57,11 +57,58 @@ refactor(domain): simplify map entity logic
 ## Enforcement
 
 ### GitHub Actions (PR Validation)
-- PRs must have conventional commit titles
-- All commit messages in PR are validated
-- Failed validation blocks merge
+The repository uses automated validation via GitHub Actions:
+
+- **PR Title Validation**: PRs must have conventional commit titles
+  - Action: `amannn/action-semantic-pull-request@v6`
+  - Validates title format before merge
+
+- **Commit Message Validation**: All commit messages in PR are validated
+  - Action: `wagoid/commitlint-github-action@v6`
+  - Uses `commitlint.config.mjs` for rules
+  - Validates every commit in the PR
+
+- **Failed validation blocks merge** (when branch protection is enabled)
+
+### Branch Protection Rules (Recommended)
+
+To **enforce** these validations, configure branch protection in GitHub:
+
+**Repository Settings → Branches → Add branch protection rule**
+
+```yaml
+Branch name pattern: main
+Settings:
+  ✓ Require status checks to pass before merging
+    ✓ Require branches to be up to date before merging
+    Status checks that are required:
+      ✓ Validate PR title
+      ✓ Validate Commit Messages
+  ✓ Require pull request reviews before merging
+    Required approving reviews: 1
+  ✓ Require conversation resolution before merging
+  ✓ Do not allow bypassing the above settings
+```
+
+**This ensures**:
+- No direct pushes to main
+- All PRs must pass validation
+- PRs with incorrect format cannot be merged
+- Dependabot PRs automatically follow the format
+
+### Dependabot Configuration
+
+Dependabot PRs are automatically formatted correctly via `.github/dependabot.yml`:
+
+```yaml
+commit-message:
+  prefix: "chore(backend)"  # Uses conventional format
+  include: "scope"
+rebase-strategy: auto        # Auto-updates with main
+```
 
 ### Local Development (Optional)
+
 Install commitlint + husky for pre-commit validation:
 
 ```bash

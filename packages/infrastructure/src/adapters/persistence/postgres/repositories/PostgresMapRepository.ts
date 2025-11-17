@@ -8,7 +8,8 @@ import {
   MapGrid,
   MapId,
   SpatialBounds,
-  UserId
+  UserId,
+  ILogger
 } from '@lazy-map/domain';
 import { MapEntity } from '../entities/MapEntity';
 import { MapMapper } from '../mappers/MapMapper';
@@ -24,7 +25,9 @@ export class PostgresMapRepository implements IMapRepository {
     @InjectRepository(MapEntity)
     private readonly repository: Repository<MapEntity>,
     @Inject('IMapGenerationService')
-    private readonly mapGenerationService: any // Would be the actual generation service
+    private readonly mapGenerationService: any, // Would be the actual generation service
+    @Inject('ILogger')
+    private readonly logger?: ILogger
   ) {}
 
   async save(map: MapGrid): Promise<void> {
@@ -259,7 +262,11 @@ export class PostgresMapRepository implements IMapRepository {
 
       return map;
     } catch (error) {
-      console.error(`Failed to regenerate map ${entity.id}:`, error);
+      this.logger?.error(`Failed to regenerate map ${entity.id}`, {
+        component: 'PostgresMapRepository',
+        operation: 'regenerateMapFromEntity',
+        metadata: { mapId: entity.id, error }
+      });
       return null;
     }
   }

@@ -7,7 +7,6 @@ import {
   StructureType
 } from './layers';
 import { VegetationType, MoistureLevel } from '../entities/TacticalMapTile';
-import { ValidationError } from '../../common/errors/types';
 
 /**
  * Validates that generated map layers comply with natural laws

@@ -53,7 +53,8 @@ updates:
     open-pull-requests-limit: 5
     rebase-strategy: auto
     commit-message:
-      prefix: "chore(backend)"
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps)"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:
@@ -100,7 +101,8 @@ updates:
     open-pull-requests-limit: 5
     rebase-strategy: auto
     commit-message:
-      prefix: "chore(frontend)"
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps)"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:
@@ -162,7 +164,8 @@ updates:
     open-pull-requests-limit: 3
     rebase-strategy: auto
     commit-message:
-      prefix: "chore(application)"
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps)"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:
@@ -181,7 +184,8 @@ updates:
     open-pull-requests-limit: 3
     rebase-strategy: auto
     commit-message:
-      prefix: "chore(domain)"
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps)"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:
@@ -208,7 +212,8 @@ updates:
     open-pull-requests-limit: 3
     rebase-strategy: auto
     commit-message:
-      prefix: "chore(infrastructure)"
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps)"
     versioning-strategy: increase-if-necessary
     # Allow only external dependencies (skip workspace:* packages)
     allow:

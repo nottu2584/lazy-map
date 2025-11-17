@@ -114,8 +114,8 @@ import { Building } from '@lazy-map/domain/contexts/artificial/entities/Building
 **Format**: `type(scope): subject`
 - Subject must be **ALL lowercase** (including filenames, acronyms)
 - No period at end of subject
-- **Max 100 characters** for entire header
-- **Body lines max 100 characters** each
+- **Max 100 characters** for entire header (type + scope + subject)
+- Body lines can be any length (URLs, links are allowed)
 
 **Valid Types**:
 - `feat` - New feature

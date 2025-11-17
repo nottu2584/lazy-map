@@ -9,11 +9,11 @@ import {
 } from '@lazy-map/domain';
 
 /**
- * NestJS-based logging service implementation
+ * Backend logging service implementation for Node.js/NestJS
  * Integrates with NestJS built-in Logger while providing structured logging
  */
 @Injectable()
-export class LoggingService implements ILogger {
+export class BackLoggingService implements ILogger {
   private readonly nestLogger: NestLogger;
   private readonly baseContext: Partial<ErrorContext>;
   private readonly loggerContext: string;
@@ -192,7 +192,7 @@ export class LoggingService implements ILogger {
    * Create a child logger with additional context
    */
   child(context: Partial<ErrorContext>): ILogger {
-    return new LoggingService(
+    return new BackLoggingService(
       this.loggerContext,
       { ...this.baseContext, ...context }
     );
@@ -202,6 +202,6 @@ export class LoggingService implements ILogger {
    * Create a logger with correlation ID for request tracing
    */
   withCorrelationId(correlationId: string): ILogger {
-    return new LoggingService(this.loggerContext, this.baseContext, correlationId);
+    return new BackLoggingService(this.loggerContext, this.baseContext, correlationId);
   }
 }

@@ -1,5 +1,4 @@
 import { Position } from '../../common/value-objects/Position';
-import { MapFeature } from '../../common/entities/MapFeature';
 import { FeatureId } from '../../common/value-objects/FeatureId';
 import {
   RockType,

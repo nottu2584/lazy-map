@@ -10,7 +10,6 @@
 // ============================================================================
 
 // Generic utils with scattered functionality (EXAMPLE - DON'T USE)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class SeedUtils {
   static generateFromString(input: string): number {
     // Business logic scattered in static methods
@@ -28,7 +27,6 @@ class SeedUtils {
 }
 
 // Mathematical utils dump (EXAMPLE - DON'T USE)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class MathUtils {
   static clamp(value: number, min: number, max: number): number {
     return Math.min(Math.max(value, min), max);
@@ -40,7 +38,6 @@ class MathUtils {
 }
 
 // ID generation utils (EXAMPLE - DON'T USE)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class IdUtils {
   static generateFeatureId(type: string, seed: number): string {
     return `${type}-${seed}-${Math.random()}`;

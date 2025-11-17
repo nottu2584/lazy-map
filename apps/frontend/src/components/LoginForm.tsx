@@ -21,7 +21,7 @@ export function LoginForm() {
       } else {
         setError(response.error || 'Login failed');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Invalid credentials. Try demo@example.com / demo');
     }
 

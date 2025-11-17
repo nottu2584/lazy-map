@@ -43,6 +43,12 @@ pnpm test
 
 # Build all packages
 pnpm build
+
+# Lint code with OxLint
+pnpm lint
+
+# Lint and auto-fix issues
+pnpm lint:fix
 ```
 
 ## Next Steps

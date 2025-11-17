@@ -15,9 +15,7 @@ import {
   ReactivateUserCommand,
   PromoteUserCommand,
   DeleteUserCommand,
-  GetUserStatsQuery,
-  CheckAdminAccessCommand,
-  GetUserPermissionsQuery
+  GetUserStatsQuery
 } from '@lazy-map/application';
 
 @Injectable()

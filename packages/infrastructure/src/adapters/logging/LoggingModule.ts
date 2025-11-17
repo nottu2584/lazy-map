@@ -1,5 +1,5 @@
 import { Module, Global } from '@nestjs/common';
-import { LoggingService } from './LoggingService';
+import { BackLoggingService } from './BackLoggingService';
 
 /**
  * Token for injecting the ILogger interface
@@ -7,8 +7,8 @@ import { LoggingService } from './LoggingService';
 export const LOGGER_TOKEN = 'ILogger';
 
 /**
- * Global logging module that provides the ILogger interface
- * This module makes logging available throughout the application
+ * Global logging module that provides the ILogger interface (backend)
+ * This module makes logging available throughout the backend application
  */
 @Global()
 @Module({
@@ -16,7 +16,7 @@ export const LOGGER_TOKEN = 'ILogger';
     {
       provide: LOGGER_TOKEN,
       useFactory: () => {
-        return new LoggingService('LazyMapApp');
+        return new BackLoggingService('LazyMapApp');
       }
     }
   ],

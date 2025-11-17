@@ -2,6 +2,8 @@
  * Service for managing seed history in localStorage
  */
 
+import { logger } from './logger';
+
 export interface SeedHistoryEntry {
   id: string;
   seed: string | number;
@@ -60,7 +62,7 @@ export class SeedHistoryService {
 
       return parsed.filter(this.isValidEntry);
     } catch (error) {
-      console.warn('Failed to load seed history:', error);
+      logger.warn('Failed to load seed history', { component: 'SeedHistoryService', operation: 'getHistory' }, { error });
       return [];
     }
   }
@@ -123,7 +125,7 @@ export class SeedHistoryService {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
     } catch (error) {
-      console.warn('Failed to save seed history:', error);
+      logger.warn('Failed to save seed history', { component: 'SeedHistoryService', operation: 'saveToStorage' }, { error });
     }
   }
 

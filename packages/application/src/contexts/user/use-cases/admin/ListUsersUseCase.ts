@@ -1,4 +1,4 @@
-import { IUserRepository, User, UserRole, UserStatus, UserId } from '@lazy-map/domain';
+import { IUserRepository, UserRole, UserStatus, UserId } from '@lazy-map/domain';
 
 export class ListUsersQuery {
   constructor(

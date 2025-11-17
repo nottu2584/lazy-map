@@ -1,6 +1,4 @@
 import {
-  ErrorCategory,
-  ErrorSeverity,
   ValidationError,
   DomainRuleError,
   InfrastructureError

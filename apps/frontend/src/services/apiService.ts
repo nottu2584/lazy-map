@@ -1,6 +1,7 @@
 import type { ApiResponse } from '@lazy-map/application';
 import axios from 'axios';
 import type { GeneratedMap, MapSettings } from '../components/MapGenerator';
+import { logger } from './logger';
 
 // API configuration from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3030/api';
@@ -289,7 +290,7 @@ export const apiService = {
 
       return response.data.data.map(mapData => mapResponseToGeneratedMap(mapData, undefined));
     } catch (error) {
-      console.error('Failed to get user maps:', error);
+      logger.error('Failed to get user maps', { component: 'ApiService', operation: 'getUserMaps' }, { error });
       return [];
     }
   },

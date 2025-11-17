@@ -1,4 +1,4 @@
-import { MapGrid, MapId, MapTile } from '@lazy-map/domain';
+import { MapGrid, MapTile } from '@lazy-map/domain';
 
 /**
  * Query for retrieving a specific map

@@ -282,7 +282,7 @@ export class VegetationErrors {
         canRetry: true,
         compensationAction: async () => {
           // Placeholder for flow correction
-          console.log('Attempting to correct water flow...');
+          // TODO: Implement water flow correction algorithm
         }
       }
     );

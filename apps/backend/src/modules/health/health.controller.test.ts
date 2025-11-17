@@ -21,14 +21,14 @@ describe('HealthController', () => {
       controllers: [HealthController],
       providers: [
         {
-          provide: 'HealthCheckUseCase',
+          provide: HealthCheckUseCase,
           useValue: mockHealthCheckUseCase
         }
       ],
     }).compile();
 
     controller = module.get<HealthController>(HealthController);
-    healthCheckUseCase = module.get('HealthCheckUseCase');
+    healthCheckUseCase = module.get(HealthCheckUseCase);
   });
 
   it('should be defined', () => {

@@ -1,5 +1,5 @@
-import { FrontLoggingService } from '@lazy-map/infrastructure';
-import { ILogger } from '@lazy-map/domain';
+import type { ILogger } from '@lazy-map/domain';
+import { FrontLoggingService } from './FrontLoggingService';
 
 /**
  * Frontend logger singleton

@@ -64,6 +64,7 @@ export enum StructureCondition {
 export interface RoadNetwork {
   segments: RoadSegment[];
   intersections: { x: number; y: number }[];
+  totalLength: number;
 }
 
 /**

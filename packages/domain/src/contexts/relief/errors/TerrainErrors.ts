@@ -250,7 +250,7 @@ export class TerrainErrors {
         canRetry: true,
         compensationAction: async () => {
           // Placeholder for terrain smoothing compensation
-          console.log('Applying terrain smoothing compensation...');
+          // TODO: Implement terrain smoothing algorithm
         }
       }
     );

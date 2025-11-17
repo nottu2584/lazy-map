@@ -63,6 +63,10 @@ async function bootstrap() {
   // Start server
   const port = configService.get<number>('PORT', 3000);
   await app.listen(port);
-  console.log(`🚀 Application is running on: http://localhost:${port}/${apiPrefix}`);
+  logger.info(`Application is running on: http://localhost:${port}/${apiPrefix}`, {
+    component: 'Bootstrap',
+    operation: 'startup',
+    metadata: { port, apiPrefix, nodeEnv }
+  });
 }
 bootstrap();

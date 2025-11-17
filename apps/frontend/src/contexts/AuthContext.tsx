@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { logger } from '../services/logger';
 
 interface User {
   id: string;
@@ -43,7 +44,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const savedUser = JSON.parse(userStr);
         setUser(savedUser);
       } catch (error) {
-        console.error('Error parsing saved user:', error);
+        logger.error('Error parsing saved user', { component: 'AuthContext', operation: 'initialize' }, { error });
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
       }

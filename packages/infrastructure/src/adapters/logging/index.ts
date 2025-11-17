@@ -1,2 +1,3 @@
-export * from './LoggingService';
+export * from './BackLoggingService';
+export * from './FrontLoggingService';
 export * from './LoggingModule';

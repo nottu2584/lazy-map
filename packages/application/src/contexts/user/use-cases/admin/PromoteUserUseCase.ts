@@ -1,4 +1,4 @@
-import { IUserRepository, User, UserId, UserRole } from '@lazy-map/domain';
+import { IUserRepository, UserId, UserRole } from '@lazy-map/domain';
 
 export class PromoteUserCommand {
   constructor(

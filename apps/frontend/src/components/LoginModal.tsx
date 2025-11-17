@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { logger } from '../services/logger';
 
 interface LoginModalProps {
   onClose: () => void;
@@ -74,7 +75,7 @@ export function LoginModal({ onClose }: LoginModalProps) {
 
   const handleOAuthLogin = (provider: 'google' | 'discord') => {
     // These will be implemented when OAuth is set up on the backend
-    console.log(`OAuth login with ${provider}`);
+    logger.info(`OAuth login attempted with ${provider}`, { component: 'LoginModal', operation: 'handleOAuthLogin' });
     setError(`${provider} login coming soon!`);
   };
 

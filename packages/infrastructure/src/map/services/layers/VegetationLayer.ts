@@ -14,7 +14,6 @@ import {
   SubTilePosition,
   PlantProperties,
   PlantGrowthForm,
-  MapGenerationErrors,
   type ILogger,
   // Import from domain layer service interfaces
   IVegetationLayerService,

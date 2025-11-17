@@ -1,7 +1,6 @@
 import { FeatureCategory, MapFeature } from '../../../common/entities/MapFeature';
 import { FeatureId } from '../../../common/value-objects';
 import { SpatialBounds } from '../../../common/value-objects/SpatialBounds';
-import { Position } from '../../../common/value-objects/Position';
 import { FlowDirection } from '../value-objects/FlowDirection';
 import { WaterQuality } from '../value-objects/WaterQuality';
 

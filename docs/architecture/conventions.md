@@ -40,6 +40,44 @@ Remove legacy code immediately. No deprecated methods.
 ### Determinism
 No `Math.random()`. Use seeded random generators.
 
+## Linting
+
+This project uses **OxLint** (not ESLint) for fast, consistent code linting.
+
+### Running the Linter
+
+```bash
+# Lint all packages
+pnpm lint
+
+# Auto-fix issues where possible
+pnpm lint:fix
+```
+
+### VS Code Integration
+
+Install the recommended extension: **oxc-project.oxc-vscode**
+
+The extension will:
+- Lint files on save
+- Show inline errors and warnings
+- Support quick fixes
+
+### Configuration
+
+Each app/package has its own `oxlint.json` configuration:
+- Rules are set to "warn" by default
+- Correctness and suspicious patterns are errors
+- Complexity checks are disabled
+
+### CI/CD
+
+OxLint runs automatically on:
+- Every push to `main`
+- All pull requests
+
+PRs with linting errors will be blocked from merging.
+
 ## Code Style
 
 ### TypeScript

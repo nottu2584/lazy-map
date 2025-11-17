@@ -1,4 +1,3 @@
-import { Position } from '../../../common/value-objects';
 import { TerrainType } from '../value-objects';
 import { MapTile } from '../../../map/entities';
 

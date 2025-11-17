@@ -7,8 +7,6 @@ import {
   Building,
   BuildingType,
   BuildingMaterial,
-  BuildingFootprint,
-  Floor,
   Room,
   RoomType,
   RoomBounds,

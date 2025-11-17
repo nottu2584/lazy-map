@@ -12,4 +12,13 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
+  optimizeDeps: {
+    include: ['@lazy-map/domain', '@lazy-map/application'],
+    exclude: ['@lazy-map/infrastructure'],
+  },
+  build: {
+    commonjsOptions: {
+      include: [/@lazy-map\/(domain|application)/, /node_modules/],
+    },
+  },
 })

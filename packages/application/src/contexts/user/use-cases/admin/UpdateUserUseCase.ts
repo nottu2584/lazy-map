@@ -1,4 +1,4 @@
-import { IUserRepository, User, UserId, Email, Username } from '@lazy-map/domain';
+import { IUserRepository, UserId, Email, Username } from '@lazy-map/domain';
 
 export class UpdateUserCommand {
   constructor(

@@ -1,4 +1,4 @@
-import { IUserRepository, User, UserId } from '@lazy-map/domain';
+import { IUserRepository, UserId } from '@lazy-map/domain';
 
 export class GetUserStatsQuery {
   constructor(

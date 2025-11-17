@@ -1,4 +1,4 @@
-import { SeedService, Seed } from '@lazy-map/domain';
+import { SeedService } from '@lazy-map/domain';
 
 export interface ValidateSeedResult {
   valid: boolean;

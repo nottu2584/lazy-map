@@ -33,18 +33,14 @@ export class BcryptPasswordService implements IPasswordService {
       return await bcrypt.compare(plainPassword.value, hashedPassword.value);
     } catch (error) {
       // Log error in production
-      if (this.logger) {
-        this.logger.warn('Password verification failed', {
-          component: 'BcryptPasswordService',
-          operation: 'verify'
-        });
-        this.logger.logError(error, {
-          component: 'BcryptPasswordService',
-          operation: 'verify'
-        });
-      } else {
-        console.warn('Password verification failed:', error);
-      }
+      this.logger?.warn('Password verification failed', {
+        component: 'BcryptPasswordService',
+        operation: 'verify'
+      });
+      this.logger?.logError(error, {
+        component: 'BcryptPasswordService',
+        operation: 'verify'
+      });
       return false;
     }
   }

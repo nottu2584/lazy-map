@@ -202,7 +202,7 @@ export class CulturalErrors {
         canRetry: true,
         compensationAction: async () => {
           // Placeholder for automatic boundary adjustment
-          console.log('Attempting to adjust territory boundaries...');
+          // TODO: Implement territory boundary adjustment algorithm
         }
       }
     );

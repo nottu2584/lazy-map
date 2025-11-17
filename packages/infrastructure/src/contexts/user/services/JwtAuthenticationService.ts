@@ -23,17 +23,13 @@ export class JwtAuthenticationService implements IAuthenticationPort {
     this.secret = secret || process.env.JWT_SECRET || 'your-secret-key';
     
     if (this.secret === 'your-secret-key') {
-      if (this.logger) {
-        this.logger.warn('Using default JWT secret', {
-          component: 'JwtAuthenticationService',
-          operation: 'constructor',
-          metadata: {
-            message: 'This should only be used in development!'
-          }
-        });
-      } else {
-        console.warn('Using default JWT secret. This should only be used in development!');
-      }
+      this.logger?.warn('Using default JWT secret', {
+        component: 'JwtAuthenticationService',
+        operation: 'constructor',
+        metadata: {
+          message: 'This should only be used in development!'
+        }
+      });
     }
   }
 

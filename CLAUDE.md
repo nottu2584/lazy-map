@@ -107,6 +107,52 @@ import { Building } from '@lazy-map/domain/contexts/artificial/entities/Building
 5. **Documentation**: Update /docs when changing features
 6. **Testing**: Ensure deterministic generation
 
+## Commit & PR Conventions
+
+**CRITICAL**: Always follow Conventional Commits format with strict validation.
+
+**Format**: `type(scope): subject`
+- Subject must be **ALL lowercase** (including filenames, acronyms)
+- No period at end of subject
+- **Max 100 characters** for entire header
+- **Body lines max 100 characters** each
+
+**Valid Types**:
+- `feat` - New feature
+- `fix` - Bug fix
+- `refactor` - Code restructuring
+- `docs` - Documentation
+- `test` - Tests
+- `chore` - Maintenance
+- `style` - Code style (formatting)
+- `perf` - Performance improvements
+- `ci` - CI/CD changes
+- `build` - Build system changes
+- `revert` - Revert previous commit
+
+**Valid Scopes** (MUST use one of these):
+- `deps` - Dependency updates
+- `backend` - Backend app
+- `frontend` - Frontend app
+- `application` - Application layer
+- `domain` - Domain layer
+- `infrastructure` - Infrastructure layer
+- `ci` - CI/CD
+- `release` - Release-related
+
+**Examples**:
+```
+✅ feat(domain): add new plant species for vegetation layer
+✅ fix(backend): resolve jwt authentication token validation
+✅ refactor(infrastructure): remove console.log statements
+✅ docs: add commit conventions reference to claude.md
+
+❌ feat(logging): add new logger (invalid scope)
+❌ Feat(domain): Add Plant Species (uppercase in subject)
+❌ docs: Update CLAUDE.md file (uppercase letters in subject)
+❌ fix(backend): this line exceeds the 100 character limit
+```
+
 ## Dependency Injection Pattern
 
 **ALWAYS use class-based injection in NestJS controllers/services:**

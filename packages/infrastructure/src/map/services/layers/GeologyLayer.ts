@@ -11,8 +11,7 @@ import {
   IGeologyLayerService,
   GeologyLayerData,
   GeologyTileData,
-  TerrainFeature,
-  PermeabilityLevel
+  TerrainFeature
 } from '@lazy-map/domain';
 import {
   LIMESTONE_KARST,

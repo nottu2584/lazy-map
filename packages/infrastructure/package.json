@@ -8,7 +8,8 @@
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "oxlint src/",
+    "lint": "oxlint src --config ../oxlint.json",
+    "lint:fix": "oxlint src --config ../oxlint.json --fix",
     "clean": "rm -rf dist"
   },
   "dependencies": {

@@ -1,0 +1,43 @@
+# CodeQL Configuration for lazy-map monorepo
+# Documentation: https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning
+
+name: "lazy-map CodeQL Config"
+
+# Paths to analyze
+paths:
+  - apps/backend/src
+  - apps/frontend/src
+  - packages/domain/src
+  - packages/application/src
+  - packages/infrastructure/src
+
+# Paths to exclude from analysis
+paths-ignore:
+  - '**/*.test.ts'
+  - '**/*.spec.ts'
+  - '**/__tests__/**'
+  - '**/__mocks__/**'
+  - '**/node_modules/**'
+  - '**/dist/**'
+  - '**/build/**'
+  - '**/coverage/**'
+  - '**/*.d.ts'
+
+# Query suites to run
+# Options: default, security-extended, security-and-quality
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+
+# Disable default queries that may have false positives in this codebase
+disable-default-queries: false
+
+# Query filters to customize analysis
+query-filters:
+  # Exclude specific queries if needed
+  # - exclude:
+  #     id: js/unused-local-variable
+
+# Additional packs to include
+packs:
+  - codeql/javascript-queries

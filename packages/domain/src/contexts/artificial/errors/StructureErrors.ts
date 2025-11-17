@@ -228,7 +228,7 @@ export class StructureErrors {
         canRetry: true,
         compensationAction: async () => {
           // Placeholder for auto-connect logic
-          console.log('Attempting to auto-connect road segments...');
+          // TODO: Implement automatic road connection algorithm
         }
       }
     );

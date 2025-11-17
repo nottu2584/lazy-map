@@ -12,7 +12,7 @@ import {
   InMemoryCulturalRepository,
   JwtAuthenticationService,
   LoggingModule,
-  LoggingService,
+  BackLoggingService,
   GeologyLayer,
   TopographyLayer,
   HydrologyLayer,
@@ -85,7 +85,7 @@ const shouldUseDatabase = () => process.env.USE_DATABASE === 'true';
       useFactory: (configService: ConfigService) => {
         const clientId = configService.get<string>('GOOGLE_CLIENT_ID', '');
         const jwtSecret = configService.get<string>('JWT_SECRET', 'your-secret-key');
-        const logger = new LoggingService('OAuthService');
+        const logger = new BackLoggingService('OAuthService');
 
         // Return stub service if OAuth is not configured
         if (!clientId) {

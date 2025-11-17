@@ -50,5 +50,8 @@ export default {
 
     // Header (type + scope + subject) max length
     'header-max-length': [2, 'always', 100],
+
+    // Disable body line length check (URLs and links can be long)
+    'body-max-line-length': [0, 'always', Infinity],
   },
 };

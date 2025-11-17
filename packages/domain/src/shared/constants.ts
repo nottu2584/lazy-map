@@ -1,5 +1,3 @@
-import { Dimensions } from './types';
-
 // Grid cell size options
 export const CELL_SIZE_OPTIONS = [16, 24, 32, 48, 64, 96, 128];
 

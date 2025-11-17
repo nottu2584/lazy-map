@@ -491,7 +491,7 @@ export class StructuresLayer implements IStructuresLayerService {
 
     // No roads in wilderness
     if (context.development === DevelopmentLevel.WILDERNESS) {
-      return { segments, intersections };
+      return { segments, intersections, totalLength: 0 };
     }
 
     // Connect buildings with roads
@@ -575,7 +575,7 @@ export class StructuresLayer implements IStructuresLayerService {
       }
     }
 
-    return { segments, intersections };
+    return { segments, intersections, totalLength };
   }
 
   /**

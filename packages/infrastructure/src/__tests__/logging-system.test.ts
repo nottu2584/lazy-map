@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { LoggingService } from '../adapters/logging/LoggingService';
+import { BackLoggingService } from '../adapters/logging/BackLoggingService';
 import { SeedErrors, isDomainError } from '@lazy-map/domain';
 
 describe('Logging System Integration', () => {
-  let logger: LoggingService;
+  let logger: BackLoggingService;
 
   beforeEach(() => {
-    logger = new LoggingService('TestLogger');
+    logger = new BackLoggingService('TestLogger');
   });
 
   describe('Basic logging functionality', () => {

@@ -20,7 +20,6 @@ import {
   StructuresLayer,
   FeaturesLayer,
   MapRepositoryAdapter,
-  RandomGeneratorService,
   StubOAuthService
 } from '@lazy-map/infrastructure';
 import { Module } from '@nestjs/common';
@@ -44,7 +43,6 @@ const shouldUseDatabase = () => process.env.USE_DATABASE === 'true';
     { provide: 'IVegetationLayerService', useClass: VegetationLayer },
     { provide: 'IStructuresLayerService', useClass: StructuresLayer },
     { provide: 'IFeaturesLayerService', useClass: FeaturesLayer },
-    { provide: 'IRandomGeneratorService', useClass: RandomGeneratorService },
 
     // Output port implementations
     { provide: 'IMapPersistencePort', useClass: InMemoryMapPersistence },
@@ -104,7 +102,6 @@ const shouldUseDatabase = () => process.env.USE_DATABASE === 'true';
     'IVegetationLayerService',
     'IStructuresLayerService',
     'IFeaturesLayerService',
-    'IRandomGeneratorService',
     'IMapPersistencePort',
     'IMapRepository',
     'INotificationPort',

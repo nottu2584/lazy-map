@@ -1,5 +1,4 @@
 import { useRef, useEffect, useState } from 'react';
-import { Stage, Layer, Rect, Text } from 'react-konva';
 import type { GeneratedMap } from './MapGenerator';
 
 interface MapCanvasProps {
@@ -23,9 +22,11 @@ const TERRAIN_COLORS = {
 };
 
 export function MapCanvas({ map }: MapCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
+  // Update dimensions on resize
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
@@ -42,90 +43,19 @@ export function MapCanvas({ map }: MapCanvasProps) {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
+  // Calculate cell size
   const cellWidth = dimensions.width / map.width;
   const cellHeight = dimensions.height / map.height;
   const cellSize = Math.min(cellWidth, cellHeight);
+  const canvasWidth = map.width * cellSize;
+  const canvasHeight = map.height * cellSize;
 
+  // Helper to get terrain color
   const getTerrainColor = (terrain: string): string => {
     return TERRAIN_COLORS[terrain as keyof typeof TERRAIN_COLORS] || TERRAIN_COLORS.default;
   };
 
-  const renderTile = (tile: GeneratedMap['tiles'][0], index: number) => {
-    const x = tile.x * cellSize;
-    const y = tile.y * cellSize;
-    const color = getTerrainColor(tile.terrain);
-
-    return (
-      <Rect
-        key={index}
-        x={x}
-        y={y}
-        width={cellSize}
-        height={cellSize}
-        fill={color}
-        stroke="#333"
-        strokeWidth={0.5}
-        opacity={0.8}
-      />
-    );
-  };
-
-  const renderGridLines = () => {
-    const lines = [];
-
-    // Vertical lines
-    for (let i = 0; i <= map.width; i++) {
-      lines.push(
-        <Rect
-          key={`v-${i}`}
-          x={i * cellSize}
-          y={0}
-          width={1}
-          height={map.height * cellSize}
-          fill="#666"
-          opacity={0.3}
-        />
-      );
-    }
-
-    // Horizontal lines
-    for (let i = 0; i <= map.height; i++) {
-      lines.push(
-        <Rect
-          key={`h-${i}`}
-          x={0}
-          y={i * cellSize}
-          width={map.width * cellSize}
-          height={1}
-          fill="#666"
-          opacity={0.3}
-        />
-      );
-    }
-
-    return lines;
-  };
-
-  const renderFeatures = () => {
-    return map.tiles.map((tile, index) => {
-      if (tile.features.length === 0) return null;
-
-      const x = tile.x * cellSize + cellSize / 2;
-      const y = tile.y * cellSize + cellSize / 2;
-
-      return tile.features.map((feature, featureIndex) => (
-        <Text
-          key={`${index}-${featureIndex}`}
-          x={x - 5}
-          y={y - 5}
-          text={getFeatureSymbol(feature)}
-          fontSize={Math.min(cellSize * 0.6, 16)}
-          fill="#333"
-        />
-      ));
-    });
-  };
-
+  // Helper to get feature symbol
   const getFeatureSymbol = (feature: string): string => {
     // Vegetation features
     if (feature.includes('dense_trees')) return '🌲';
@@ -150,6 +80,104 @@ export function MapCanvas({ map }: MapCanvasProps) {
       case 'road': return '🛤️';
       default: return '•';
     }
+  };
+
+  // Draw the map on canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+    // Draw terrain tiles
+    map.tiles.forEach((tile) => {
+      const x = tile.x * cellSize;
+      const y = tile.y * cellSize;
+      const color = getTerrainColor(tile.terrain);
+
+      // Fill tile
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.8;
+      ctx.fillRect(x, y, cellSize, cellSize);
+      ctx.globalAlpha = 1.0;
+
+      // Draw tile border
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(x, y, cellSize, cellSize);
+    });
+
+    // Draw grid lines
+    ctx.strokeStyle = '#666';
+    ctx.globalAlpha = 0.3;
+    ctx.lineWidth = 1;
+
+    // Vertical lines
+    for (let i = 0; i <= map.width; i++) {
+      const x = i * cellSize;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvasHeight);
+      ctx.stroke();
+    }
+
+    // Horizontal lines
+    for (let i = 0; i <= map.height; i++) {
+      const y = i * cellSize;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvasWidth, y);
+      ctx.stroke();
+    }
+
+    ctx.globalAlpha = 1.0;
+
+    // Draw features
+    ctx.fillStyle = '#333';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const fontSize = Math.min(cellSize * 0.6, 16);
+    ctx.font = `${fontSize}px Arial`;
+
+    map.tiles.forEach((tile) => {
+      if (tile.features.length === 0) return;
+
+      const centerX = tile.x * cellSize + cellSize / 2;
+      const centerY = tile.y * cellSize + cellSize / 2;
+
+      tile.features.forEach((feature) => {
+        const symbol = getFeatureSymbol(feature);
+        ctx.fillText(symbol, centerX, centerY);
+      });
+    });
+  }, [map, cellSize, canvasWidth, canvasHeight, getTerrainColor, getFeatureSymbol]);
+
+  // Export canvas as PNG
+  const handleExportPNG = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = `${map.name || 'map'}.png`;
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+  };
+
+  // Export canvas as data URL for PDF or other uses
+  const handleExportPDF = () => {
+    // Placeholder for future PDF export implementation
+    // Will use jsPDF or similar library
+    alert('PDF export functionality will be implemented in a future update');
   };
 
   return (
@@ -185,35 +213,25 @@ export function MapCanvas({ map }: MapCanvasProps) {
         className="border border-gray-300 rounded-lg overflow-hidden bg-white"
         style={{ height: '500px' }}
       >
-        <Stage width={map.width * cellSize} height={map.height * cellSize}>
-          <Layer>
-            {/* Terrain tiles */}
-            {map.tiles.map(renderTile)}
-
-            {/* Grid lines */}
-            {renderGridLines()}
-
-            {/* Features */}
-            {renderFeatures()}
-          </Layer>
-        </Stage>
+        <canvas
+          ref={canvasRef}
+          width={canvasWidth}
+          height={canvasHeight}
+          className="mx-auto"
+          style={{ display: 'block' }}
+        />
       </div>
 
       {/* Export Options */}
       <div className="flex gap-4">
         <button
-          onClick={() => {
-            // In a real implementation, this would generate and download the image
-            alert('Export functionality will be implemented with the real API integration');
-          }}
+          onClick={handleExportPNG}
           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
         >
           Export PNG
         </button>
         <button
-          onClick={() => {
-            alert('PDF export functionality will be implemented with the real API integration');
-          }}
+          onClick={handleExportPDF}
           className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
         >
           Export PDF

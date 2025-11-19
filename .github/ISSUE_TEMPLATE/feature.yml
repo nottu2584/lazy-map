@@ -1,53 +1,64 @@
 name: Feature Implementation
 description: Track a planned feature implementation
-title: "[FEATURE] "
+title: ""
 labels: ["enhancement", "planned"]
 body:
   - type: markdown
     attributes:
       value: |
         ## Feature Implementation Tracking
-        Use this template for planned features from the docs/features/planned directory
+        Create a new feature issue following the project's standard format.
 
-  - type: input
+  - type: dropdown
     id: priority
     attributes:
       label: Priority
-      description: Critical, High, Medium, or Low
-      placeholder: "e.g., Critical"
-    validations:
-      required: true
-
-  - type: input
-    id: effort
-    attributes:
-      label: Estimated Effort
-      description: Time estimate for implementation
-      placeholder: "e.g., 2 weeks"
+      description: Select priority level (use ALL CAPS in issue body)
+      options:
+        - CRITICAL
+        - HIGH
+        - MEDIUM
+        - LOW
     validations:
       required: true
 
   - type: textarea
-    id: problem
+    id: current-state
     attributes:
-      label: Problem Statement
-      description: What problem does this feature solve?
+      label: Current State
+      description: What's the current implementation status? Use emoji checkboxes (✅ ❌ ⚠️)
+      placeholder: |
+        - ❌ Feature not implemented
+        - ✅ Related feature exists
+        - ⚠️ Partially implemented
+      value: |
+        - ❌
+        - ✅
     validations:
       required: true
 
   - type: textarea
-    id: solution
+    id: description
     attributes:
-      label: Proposed Solution
-      description: High-level approach to implementation
+      label: Description
+      description: Describe the feature, requirements, rationale, or technical approach. Use custom section headers (##) as needed.
+      placeholder: |
+        ## Rationale
+        Why this feature is needed...
+
+        ## Implementation Approach
+        Technical details...
+
+        ## Files to Create
+        - path/to/file.ts
     validations:
       required: true
 
   - type: textarea
     id: tasks
     attributes:
-      label: Implementation Tasks
-      description: Checklist of tasks to complete
+      label: Tasks
+      description: Checklist of implementation tasks
       value: |
         - [ ] Task 1
         - [ ] Task 2
@@ -56,18 +67,12 @@ body:
       required: true
 
   - type: textarea
-    id: testing
+    id: notes
     attributes:
-      label: Testing Requirements
-      description: How will this feature be tested?
-    validations:
-      required: false
-
-  - type: input
-    id: doc-link
-    attributes:
-      label: Documentation Link
-      description: Link to the original planning document
-      placeholder: "docs/features/planned/feature-name.md"
+      label: Additional Notes
+      description: Optional notes, migration info, or references
+      placeholder: |
+        ---
+        *Migrated from: docs/features/planned/feature-name.md*
     validations:
       required: false

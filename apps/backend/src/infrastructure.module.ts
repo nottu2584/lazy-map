@@ -2,6 +2,8 @@ import {
   BcryptPasswordService,
   ConsoleNotificationService,
   createGoogleOAuthService,
+  createDiscordOAuthService,
+  CompositeOAuthService,
   DatabaseModule,
   InMemoryMapHistoryRepository,
   InMemoryMapPersistence,
@@ -77,20 +79,32 @@ const shouldUseDatabase = () => process.env.USE_DATABASE === 'true';
     { provide: 'IArtificialFeatureRepository', useClass: InMemoryArtificialRepository },
     { provide: 'ICulturalFeatureRepository', useClass: InMemoryCulturalRepository },
 
-    // OAuth service - optional, returns stub when not configured
+    // OAuth service - supports both Google and Discord OAuth
     {
       provide: 'IOAuthService',
       useFactory: (configService: ConfigService) => {
-        const clientId = configService.get<string>('GOOGLE_CLIENT_ID', '');
+        const googleClientId = configService.get<string>('GOOGLE_CLIENT_ID', '');
+        const discordClientId = configService.get<string>('DISCORD_CLIENT_ID', '');
+        const discordClientSecret = configService.get<string>('DISCORD_CLIENT_SECRET', '');
         const jwtSecret = configService.get<string>('JWT_SECRET', 'your-secret-key');
         const logger = new BackLoggingService('OAuthService');
 
-        // Return stub service if OAuth is not configured
-        if (!clientId) {
+        // Return stub service if no OAuth providers are configured
+        if (!googleClientId && !discordClientId) {
           return new StubOAuthService(logger);
         }
 
-        return createGoogleOAuthService(clientId, jwtSecret, logger);
+        // Create provider-specific services
+        const googleService = googleClientId
+          ? createGoogleOAuthService(googleClientId, jwtSecret, logger)
+          : null;
+
+        const discordService = discordClientId && discordClientSecret
+          ? createDiscordOAuthService(discordClientId, discordClientSecret, jwtSecret, logger)
+          : null;
+
+        // Return composite service that supports both providers
+        return new CompositeOAuthService(googleService, discordService, logger);
       },
       inject: [ConfigService],
     },

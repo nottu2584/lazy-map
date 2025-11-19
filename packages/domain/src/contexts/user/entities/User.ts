@@ -15,6 +15,7 @@ export class User {
   private _suspensionReason: string | null;
   private _authProvider: string;
   private _googleId?: string;
+  private _discordId?: string;
   private _profilePicture?: string;
   private _emailVerified: boolean;
 
@@ -33,6 +34,7 @@ export class User {
     suspensionReason?: string | null,
     authProvider?: string,
     googleId?: string,
+    discordId?: string,
     profilePicture?: string,
     emailVerified?: boolean
   ) {
@@ -52,6 +54,7 @@ export class User {
     this._suspensionReason = suspensionReason || null;
     this._authProvider = authProvider || 'local';
     this._googleId = googleId;
+    this._discordId = discordId;
     this._profilePicture = profilePicture;
     this._emailVerified = emailVerified || false;
   }
@@ -71,6 +74,7 @@ export class User {
   get suspensionReason(): string | null { return this._suspensionReason; }
   get authProvider(): string { return this._authProvider; }
   get googleId(): string | undefined { return this._googleId; }
+  get discordId(): string | undefined { return this._discordId; }
   get profilePicture(): string | undefined { return this._profilePicture; }
   get emailVerified(): boolean { return this._emailVerified; }
 
@@ -117,8 +121,38 @@ export class User {
       null,
       'google',
       googleId,
+      undefined, // No discordId
       profilePicture,
       true // Google emails are pre-verified
+    );
+  }
+
+  static createFromDiscord(
+    discordId: string,
+    email: Email,
+    username: Username,
+    createdAt: Date,
+    profilePicture?: string
+  ): User {
+    const id = UserId.generate();
+    return new User(
+      id,
+      email,
+      null, // No password for OAuth users
+      username,
+      UserRole.user(),
+      UserStatus.active(),
+      createdAt,
+      createdAt,
+      null,
+      null,
+      null,
+      null,
+      'discord',
+      undefined, // No googleId
+      discordId,
+      profilePicture,
+      true // Discord emails are pre-verified
     );
   }
 
@@ -137,6 +171,7 @@ export class User {
     suspensionReason: string | null = null,
     authProvider: string = 'local',
     googleId?: string,
+    discordId?: string,
     profilePicture?: string,
     emailVerified: boolean = false
   ): User {
@@ -155,6 +190,7 @@ export class User {
       suspensionReason,
       authProvider,
       googleId,
+      discordId,
       profilePicture,
       emailVerified
     );
@@ -262,12 +298,28 @@ export class User {
     return this._googleId !== undefined;
   }
 
+  hasDiscordAccount(): boolean {
+    return this._discordId !== undefined;
+  }
+
   linkGoogleAccount(googleId: string, updatedAt: Date, profilePicture?: string): void {
     if (this._googleId) {
       throw new Error('User already has a Google account linked');
     }
     this._googleId = googleId;
     this._profilePicture = profilePicture;
+    this._emailVerified = true;
+    this.markUpdated(updatedAt);
+  }
+
+  linkDiscordAccount(discordId: string, updatedAt: Date, profilePicture?: string): void {
+    if (this._discordId) {
+      throw new Error('User already has a Discord account linked');
+    }
+    this._discordId = discordId;
+    if (profilePicture) {
+      this._profilePicture = profilePicture;
+    }
     this._emailVerified = true;
     this.markUpdated(updatedAt);
   }

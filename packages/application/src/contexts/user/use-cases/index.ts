@@ -5,5 +5,6 @@ export * from './GetUserProfileUseCase';
 export * from './GoogleSignInUseCase';
 export * from './DiscordSignInUseCase';
 export * from './LinkGoogleAccountUseCase';
+export * from './LinkDiscordAccountUseCase';
 export * from './CheckAdminAccessUseCase';
 export * from './GetUserPermissionsUseCase';

@@ -10,6 +10,11 @@ export interface IOAuthService {
   validateGoogleToken(idToken: string): Promise<GoogleUserInfo>;
 
   /**
+   * Validates a Discord access token and returns user information
+   */
+  validateDiscordToken(accessToken: string): Promise<DiscordUserInfo>;
+
+  /**
    * Generates a JWT token for the authenticated user
    */
   generateAuthToken(user: User): string;
@@ -31,6 +36,19 @@ export interface GoogleUserInfo {
   picture?: string;
   givenName?: string;
   familyName?: string;
+}
+
+/**
+ * Discord user information from validated access token
+ */
+export interface DiscordUserInfo {
+  discordId: string;
+  email: string;
+  emailVerified: boolean;
+  username: string;
+  discriminator: string;
+  avatar?: string;
+  globalName?: string;
 }
 
 /**

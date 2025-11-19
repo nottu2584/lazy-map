@@ -3,8 +3,12 @@ import {
   GetUserProfileUseCase,
   GoogleSignInCommand,
   GoogleSignInUseCase,
+  DiscordSignInCommand,
+  DiscordSignInUseCase,
   LinkGoogleAccountCommand,
   LinkGoogleAccountUseCase,
+  LinkDiscordAccountCommand,
+  LinkDiscordAccountUseCase,
   LoginUserCommand,
   LoginUserUseCase,
   RegisterUserCommand,
@@ -29,7 +33,9 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import {
   AuthResponseDto,
   GoogleSignInDto,
+  DiscordSignInDto,
   LinkGoogleAccountDto,
+  LinkDiscordAccountDto,
   LoginUserDto,
   RegisterUserDto,
   UserProfileDto
@@ -44,7 +50,9 @@ export class AuthController {
     private readonly loginUserUseCase: LoginUserUseCase,
     private readonly getUserProfileUseCase: GetUserProfileUseCase,
     private readonly googleSignInUseCase: GoogleSignInUseCase,
+    private readonly discordSignInUseCase: DiscordSignInUseCase,
     private readonly linkGoogleAccountUseCase: LinkGoogleAccountUseCase,
+    private readonly linkDiscordAccountUseCase: LinkDiscordAccountUseCase,
     @Inject(LOGGER_TOKEN) private readonly logger: ILogger,
   ) {}
 
@@ -373,6 +381,124 @@ export class AuthController {
         throw error;
       }
       throw new BadRequestException('Failed to link Google account: ' + error.message);
+    }
+  }
+
+  @Post('discord')
+  @ApiOperation({ summary: 'Sign in with Discord' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Successfully authenticated with Discord',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid Discord token',
+  })
+  async discordSignIn(@Body() discordSignInDto: DiscordSignInDto): Promise<AuthResponseDto> {
+    const operationLogger = this.logger.child({
+      component: 'AuthController',
+      operation: 'discordSignIn'
+    });
+
+    try {
+      operationLogger.info('Discord sign-in attempt');
+
+      const command = new DiscordSignInCommand(
+        discordSignInDto.accessToken
+      );
+
+      const result = await this.discordSignInUseCase.execute(command);
+
+      if (!result.success) {
+        operationLogger.warn('Discord sign-in failed', {
+          metadata: { errors: result.errors }
+        });
+        throw new BadRequestException(result.errors.join(', '));
+      }
+
+      operationLogger.info('Discord sign-in successful', {
+        metadata: {
+          userId: result.user!.id.value,
+          email: result.user!.email.value,
+          username: result.user!.username.value
+        }
+      });
+
+      return {
+        accessToken: result.token!,
+        user: {
+          id: result.user!.id.value,
+          email: result.user!.email.value,
+          username: result.user!.username.value,
+        },
+      };
+    } catch (error) {
+      operationLogger.logError(error);
+
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Discord sign-in failed: ' + error.message);
+    }
+  }
+
+  @Post('link-discord')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Link Discord account to existing user' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Discord account linked successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Failed to link Discord account',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
+  })
+  async linkDiscordAccount(
+    @Request() req: any,
+    @Body() linkDiscordDto: LinkDiscordAccountDto
+  ): Promise<{ success: boolean; message: string }> {
+    const operationLogger = this.logger.child({
+      component: 'AuthController',
+      operation: 'linkDiscordAccount',
+      userId: req.user.userId
+    });
+
+    try {
+      operationLogger.info('Attempting to link Discord account');
+
+      const command = new LinkDiscordAccountCommand(
+        req.user.userId,
+        linkDiscordDto.accessToken
+      );
+
+      const result = await this.linkDiscordAccountUseCase.execute(command);
+
+      if (!result.success) {
+        operationLogger.warn('Failed to link Discord account', {
+          metadata: { errors: result.errors }
+        });
+        throw new BadRequestException(result.errors.join(', '));
+      }
+
+      operationLogger.info('Discord account linked successfully');
+
+      return {
+        success: true,
+        message: 'Discord account linked successfully'
+      };
+    } catch (error) {
+      operationLogger.logError(error);
+
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to link Discord account: ' + error.message);
     }
   }
 }

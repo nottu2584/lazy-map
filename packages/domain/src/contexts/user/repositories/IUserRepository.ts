@@ -1,5 +1,5 @@
 import { User } from '../entities/User';
-import { UserId, Email, Username, UserRole, UserStatus, GoogleId } from '../value-objects';
+import { UserId, Email, Username, UserRole, UserStatus, GoogleId, DiscordId } from '../value-objects';
 
 /**
  * Repository interface for User aggregate
@@ -29,6 +29,11 @@ export interface IUserRepository {
    * Find a user by their Google ID
    */
   findByGoogleId(googleId: GoogleId): Promise<User | null>;
+
+  /**
+   * Find a user by their Discord ID
+   */
+  findByDiscordId(discordId: DiscordId): Promise<User | null>;
 
   /**
    * Check if an email already exists in the system

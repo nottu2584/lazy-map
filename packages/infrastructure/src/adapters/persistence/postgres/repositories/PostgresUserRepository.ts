@@ -9,7 +9,8 @@ import {
   Username,
   UserRole,
   UserStatus,
-  GoogleId
+  GoogleId,
+  DiscordId
 } from '@lazy-map/domain';
 import { UserEntity } from '../entities/UserEntity';
 import { UserMapper } from '../mappers/UserMapper';
@@ -53,6 +54,13 @@ export class PostgresUserRepository implements IUserRepository {
   async findByGoogleId(googleId: GoogleId): Promise<User | null> {
     const entity = await this.repository.findOne({
       where: { googleId: googleId.getValue() }
+    });
+    return entity ? UserMapper.toDomain(entity) : null;
+  }
+
+  async findByDiscordId(discordId: DiscordId): Promise<User | null> {
+    const entity = await this.repository.findOne({
+      where: { discordId: discordId.getValue() }
     });
     return entity ? UserMapper.toDomain(entity) : null;
   }

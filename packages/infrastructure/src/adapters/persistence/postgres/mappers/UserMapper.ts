@@ -32,6 +32,7 @@ export class UserMapper {
       entity.suspensionReason || null,
       entity.authProvider || 'local',
       entity.googleId || undefined,
+      entity.discordId || undefined,
       entity.profilePicture || undefined,
       entity.emailVerified || false
     );
@@ -50,6 +51,7 @@ export class UserMapper {
       status: user.status.value,
       authProvider: user.authProvider,
       googleId: user.googleId || null,
+      discordId: user.discordId || null,
       profilePicture: user.profilePicture || null,
       emailVerified: user.emailVerified,
       createdAt: user.createdAt,

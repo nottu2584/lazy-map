@@ -3,11 +3,13 @@ import {
   ConsoleNotificationService,
   createGoogleOAuthService,
   createDiscordOAuthService,
-  CompositeOAuthService,
+  AesTokenEncryptionService,
+  HtmlTemplateService,
   DatabaseModule,
   InMemoryMapHistoryRepository,
   InMemoryMapPersistence,
   InMemoryUserRepository,
+  InMemoryOAuthTokenRepository,
   InMemoryReliefRepository,
   InMemoryNaturalRepository,
   InMemoryArtificialRepository,
@@ -22,13 +24,16 @@ import {
   StructuresLayer,
   FeaturesLayer,
   MapRepositoryAdapter,
-  StubOAuthService
 } from '@lazy-map/infrastructure';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // Create a function to determine if database should be used
-const shouldUseDatabase = () => process.env.USE_DATABASE === 'true';
+const shouldUseDatabase = () => {
+  const useDb = process.env.USE_DATABASE === 'true';
+  console.log('[InfrastructureModule] USE_DATABASE:', process.env.USE_DATABASE, '-> shouldUseDatabase:', useDb);
+  return useDb;
+};
 
 @Module({
   imports: [
@@ -52,7 +57,74 @@ const shouldUseDatabase = () => process.env.USE_DATABASE === 'true';
 
     // User infrastructure services
     { provide: 'IPasswordService', useClass: BcryptPasswordService },
-    { provide: 'IAuthenticationPort', useClass: JwtAuthenticationService },
+
+    // JWT Authentication Service
+    {
+      provide: 'IAuthenticationPort',
+      useFactory: (configService: ConfigService) => {
+        const jwtSecret = configService.get<string>('JWT_SECRET', 'your-secret-key');
+        const logger = new BackLoggingService('JwtAuthenticationService');
+        return new JwtAuthenticationService(jwtSecret, logger);
+      },
+      inject: [ConfigService],
+    },
+
+    // Token Encryption Service
+    {
+      provide: 'ITokenEncryptionPort',
+      useFactory: (configService: ConfigService) => {
+        const encryptionKey = configService.get<string>('OAUTH_TOKEN_ENCRYPTION_KEY');
+        const logger = new BackLoggingService('TokenEncryptionService');
+        return new AesTokenEncryptionService(encryptionKey, logger);
+      },
+      inject: [ConfigService],
+    },
+
+    // HTML Template Service
+    {
+      provide: 'ITemplatePort',
+      useFactory: () => {
+        // Templates are located in apps/backend/src/templates
+        const templatesPath = require('path').join(__dirname, 'templates');
+        return new HtmlTemplateService(templatesPath);
+      },
+    },
+
+    // Google OAuth Service
+    {
+      provide: 'IGoogleOAuthPort',
+      useFactory: (configService: ConfigService) => {
+        const clientId = configService.get<string>('GOOGLE_CLIENT_ID', '');
+        const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET');
+        const logger = new BackLoggingService('GoogleOAuthService');
+
+        if (!clientId) {
+          logger.warn('Google OAuth not configured - GOOGLE_CLIENT_ID is missing');
+          return null;
+        }
+
+        return createGoogleOAuthService(clientId, clientSecret || null, logger);
+      },
+      inject: [ConfigService],
+    },
+
+    // Discord OAuth Service
+    {
+      provide: 'IDiscordOAuthPort',
+      useFactory: (configService: ConfigService) => {
+        const clientId = configService.get<string>('DISCORD_CLIENT_ID', '');
+        const clientSecret = configService.get<string>('DISCORD_CLIENT_SECRET', '');
+        const logger = new BackLoggingService('DiscordOAuthService');
+
+        if (!clientId || !clientSecret) {
+          logger.warn('Discord OAuth not configured - DISCORD_CLIENT_ID or DISCORD_CLIENT_SECRET is missing');
+          return null;
+        }
+
+        return createDiscordOAuthService(clientId, clientSecret, logger);
+      },
+      inject: [ConfigService],
+    },
 
     // Repository implementations
     // When USE_DATABASE=true, DatabaseModule will provide these via its exports
@@ -61,6 +133,7 @@ const shouldUseDatabase = () => process.env.USE_DATABASE === 'true';
       ? []
       : [
           { provide: 'IUserRepository', useClass: InMemoryUserRepository },
+          { provide: 'IOAuthTokenRepository', useClass: InMemoryOAuthTokenRepository },
         ]),
 
     // Map Repository Adapter - bridges IMapRepository (domain) with IMapPersistencePort (application)
@@ -78,36 +151,6 @@ const shouldUseDatabase = () => process.env.USE_DATABASE === 'true';
     { provide: 'INaturalFeatureRepository', useClass: InMemoryNaturalRepository },
     { provide: 'IArtificialFeatureRepository', useClass: InMemoryArtificialRepository },
     { provide: 'ICulturalFeatureRepository', useClass: InMemoryCulturalRepository },
-
-    // OAuth service - supports both Google and Discord OAuth
-    {
-      provide: 'IOAuthService',
-      useFactory: (configService: ConfigService) => {
-        const googleClientId = configService.get<string>('GOOGLE_CLIENT_ID', '');
-        const discordClientId = configService.get<string>('DISCORD_CLIENT_ID', '');
-        const discordClientSecret = configService.get<string>('DISCORD_CLIENT_SECRET', '');
-        const jwtSecret = configService.get<string>('JWT_SECRET', 'your-secret-key');
-        const logger = new BackLoggingService('OAuthService');
-
-        // Return stub service if no OAuth providers are configured
-        if (!googleClientId && !discordClientId) {
-          return new StubOAuthService(logger);
-        }
-
-        // Create provider-specific services
-        const googleService = googleClientId
-          ? createGoogleOAuthService(googleClientId, jwtSecret, logger)
-          : null;
-
-        const discordService = discordClientId && discordClientSecret
-          ? createDiscordOAuthService(discordClientId, discordClientSecret, jwtSecret, logger)
-          : null;
-
-        // Return composite service that supports both providers
-        return new CompositeOAuthService(googleService, discordService, logger);
-      },
-      inject: [ConfigService],
-    },
   ],
   exports: [
     'IGeologyLayerService',
@@ -121,14 +164,20 @@ const shouldUseDatabase = () => process.env.USE_DATABASE === 'true';
     'INotificationPort',
     'IPasswordService',
     'IAuthenticationPort',
-    'IUserRepository',
+    'ITokenEncryptionPort',
+    'ITemplatePort',
+    'IGoogleOAuthPort',
+    'IDiscordOAuthPort',
+    // IUserRepository & IOAuthTokenRepository - exported from DatabaseModule or in-memory implementations depending on USE_DATABASE
+    ...(shouldUseDatabase() ? [] : ['IUserRepository', 'IOAuthTokenRepository']),
     'IMapHistoryRepository',
-    'IOAuthService',
     // Feature repositories
     'IReliefFeatureRepository',
     'INaturalFeatureRepository',
     'IArtificialFeatureRepository',
     'ICulturalFeatureRepository',
+    // Re-export DatabaseModule when enabled (provides IUserRepository, IMapRepository, IOAuthTokenRepository)
+    ...(shouldUseDatabase() ? [DatabaseModule] : []),
   ],
 })
 export class InfrastructureModule {}

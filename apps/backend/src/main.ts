@@ -1,3 +1,6 @@
+// Load environment variables before anything else (using require to avoid import hoisting)
+require('dotenv').config({ path: require('path').join(process.cwd(), 'apps/backend/.env') });
+
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';

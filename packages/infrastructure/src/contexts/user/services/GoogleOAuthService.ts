@@ -1,37 +1,209 @@
 import { OAuth2Client } from 'google-auth-library';
-import * as jwt from 'jsonwebtoken';
 import {
-  IOAuthService,
+  IGoogleOAuthPort,
   GoogleUserInfo,
-  TokenPayload,
-  User,
-  ILogger
-} from '@lazy-map/domain';
+  OAuthTokens,
+  OAuthUserInfo
+} from '@lazy-map/application';
+import { ILogger } from '@lazy-map/domain';
 
 /**
  * Google OAuth service implementation
- * Handles Google Sign-In token validation and JWT generation
+ * Handles Google Sign-In token validation and OAuth flow
  */
-export class GoogleOAuthService implements IOAuthService {
+export class GoogleOAuthService implements IGoogleOAuthPort {
   private readonly client: OAuth2Client;
-  private readonly jwtSecret: string;
-  private readonly jwtExpiresIn: string;
 
   constructor(
     private readonly clientId: string,
-    jwtSecret: string,
-    private readonly logger: ILogger,
-    jwtExpiresIn: string = '7d'
+    private readonly clientSecret: string | null,
+    private readonly logger: ILogger
   ) {
-    this.client = new OAuth2Client(clientId);
-    this.jwtSecret = jwtSecret;
-    this.jwtExpiresIn = jwtExpiresIn;
+    this.client = new OAuth2Client(clientId, clientSecret || undefined);
+  }
+
+  /**
+   * Generate Google OAuth authorization URL
+   */
+  getAuthorizationUrl(redirectUri: string, state?: string): string {
+    const scopes = [
+      'openid',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile'
+    ];
+
+    const authUrl = this.client.generateAuthUrl({
+      access_type: 'offline',
+      scope: scopes,
+      redirect_uri: redirectUri,
+      state: state,
+      prompt: 'consent' // Force consent to get refresh token
+    });
+
+    this.logger.debug('Generated Google OAuth URL', {
+      metadata: { redirectUri, hasState: !!state }
+    });
+
+    return authUrl;
+  }
+
+  /**
+   * Exchange authorization code for tokens
+   */
+  async exchangeCodeForTokens(code: string, redirectUri: string): Promise<OAuthTokens> {
+    try {
+      const { tokens } = await this.client.getToken({
+        code,
+        redirect_uri: redirectUri
+      });
+
+      if (!tokens.access_token) {
+        throw new Error('No access token received from Google');
+      }
+
+      this.logger.debug('Exchanged Google authorization code for tokens', {
+        metadata: {
+          hasRefreshToken: !!tokens.refresh_token,
+          expiresIn: tokens.expiry_date
+        }
+      });
+
+      return {
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token || undefined,
+        expiresIn: tokens.expiry_date
+          ? Math.floor((tokens.expiry_date - Date.now()) / 1000)
+          : 3600,
+        tokenType: tokens.token_type || 'Bearer',
+        scope: tokens.scope
+      };
+    } catch (error) {
+      this.logger.logError(error as Error, {
+        metadata: { operation: 'exchangeCodeForTokens' }
+      });
+
+      if (error instanceof Error) {
+        throw new Error(`Failed to exchange Google code for tokens: ${error.message}`);
+      }
+      throw new Error('Failed to exchange Google code for tokens');
+    }
+  }
+
+  /**
+   * Get user information from Google using access token
+   */
+  async getUserInfo(accessToken: string): Promise<OAuthUserInfo> {
+    try {
+      this.client.setCredentials({ access_token: accessToken });
+
+      const ticket = await this.client.verifyIdToken({
+        idToken: accessToken,
+        audience: this.clientId
+      });
+
+      const payload = ticket.getPayload();
+
+      if (!payload) {
+        throw new Error('Invalid Google access token: no payload');
+      }
+
+      this.logger.debug('Retrieved Google user info', {
+        metadata: {
+          email: payload.email,
+          sub: payload.sub
+        }
+      });
+
+      return {
+        providerId: payload.sub,
+        email: payload.email || '',
+        emailVerified: payload.email_verified || false,
+        username: payload.given_name,
+        displayName: payload.name,
+        picture: payload.picture,
+        provider: 'google'
+      };
+    } catch (error) {
+      this.logger.logError(error as Error, {
+        metadata: { operation: 'getUserInfo' }
+      });
+
+      if (error instanceof Error) {
+        throw new Error(`Failed to get Google user info: ${error.message}`);
+      }
+      throw new Error('Failed to get Google user info');
+    }
+  }
+
+  /**
+   * Refresh Google access token
+   */
+  async refreshAccessToken(refreshToken: string): Promise<OAuthTokens> {
+    try {
+      this.client.setCredentials({ refresh_token: refreshToken });
+
+      const { credentials } = await this.client.refreshAccessToken();
+
+      if (!credentials.access_token) {
+        throw new Error('No access token received from Google refresh');
+      }
+
+      this.logger.debug('Refreshed Google access token', {
+        metadata: {
+          hasRefreshToken: !!credentials.refresh_token,
+          expiresIn: credentials.expiry_date
+        }
+      });
+
+      return {
+        accessToken: credentials.access_token,
+        refreshToken: credentials.refresh_token || undefined,
+        expiresIn: credentials.expiry_date
+          ? Math.floor((credentials.expiry_date - Date.now()) / 1000)
+          : 3600,
+        tokenType: credentials.token_type || 'Bearer',
+        scope: credentials.scope
+      };
+    } catch (error) {
+      this.logger.logError(error as Error, {
+        metadata: { operation: 'refreshAccessToken' }
+      });
+
+      if (error instanceof Error) {
+        throw new Error(`Failed to refresh Google token: ${error.message}`);
+      }
+      throw new Error('Failed to refresh Google token');
+    }
+  }
+
+  /**
+   * Revoke Google OAuth token
+   */
+  async revokeToken(token: string): Promise<void> {
+    try {
+      await this.client.revokeToken(token);
+
+      this.logger.debug('Revoked Google token', {
+        metadata: { operation: 'revokeToken' }
+      });
+    } catch (error) {
+      this.logger.logError(error as Error, {
+        metadata: { operation: 'revokeToken' }
+      });
+
+      if (error instanceof Error) {
+        throw new Error(`Failed to revoke Google token: ${error.message}`);
+      }
+      throw new Error('Failed to revoke Google token');
+    }
   }
 
   /**
    * Validates a Google ID token and returns user information
+   * @deprecated Use getUserInfo with server-side OAuth flow instead
+   * This method is kept for backward compatibility with client-side flow
    */
-  async validateGoogleToken(idToken: string): Promise<GoogleUserInfo> {
+  async validateGoogleIdToken(idToken: string): Promise<GoogleUserInfo> {
     try {
       const ticket = await this.client.verifyIdToken({
         idToken,
@@ -55,7 +227,7 @@ export class GoogleOAuthService implements IOAuthService {
         throw new Error('Google ID token has expired');
       }
 
-      this.logger.debug('Google token validated successfully', {
+      this.logger.debug('Google ID token validated successfully', {
         metadata: {
           email: payload.email,
           sub: payload.sub
@@ -63,18 +235,20 @@ export class GoogleOAuthService implements IOAuthService {
       });
 
       return {
-        googleId: payload.sub,
+        providerId: payload.sub,
         email: payload.email || '',
         emailVerified: payload.email_verified || false,
-        name: payload.name,
+        username: payload.given_name,
+        displayName: payload.name,
         picture: payload.picture,
+        provider: 'google',
         givenName: payload.given_name,
         familyName: payload.family_name
       };
     } catch (error) {
       this.logger.logError(error as Error, {
         metadata: {
-          operation: 'validateGoogleToken'
+          operation: 'validateGoogleIdToken'
         }
       });
 
@@ -84,54 +258,6 @@ export class GoogleOAuthService implements IOAuthService {
       throw new Error('Google token validation failed');
     }
   }
-
-  /**
-   * Generates a JWT token for the authenticated user
-   */
-  generateAuthToken(user: User): string {
-    const payload = {
-      userId: user.id.value,
-      email: user.email.value,
-      role: user.role.value,
-      sub: user.id.value,
-      iss: 'lazy-map'
-    };
-
-    const token = jwt.sign(payload, this.jwtSecret, {
-      expiresIn: this.jwtExpiresIn
-    } as jwt.SignOptions);
-
-    this.logger.debug('JWT token generated', {
-      metadata: {
-        userId: user.id.value,
-        email: user.email.value
-      }
-    });
-
-    return token;
-  }
-
-  /**
-   * Verifies and decodes a JWT token
-   */
-  async verifyAuthToken(token: string): Promise<TokenPayload> {
-    try {
-      const decoded = jwt.verify(token, this.jwtSecret) as TokenPayload;
-
-      return decoded;
-    } catch (error) {
-      this.logger.logError(error as Error, {
-        metadata: {
-          operation: 'verifyAuthToken'
-        }
-      });
-
-      if (error instanceof Error) {
-        throw new Error(`Token verification failed: ${error.message}`);
-      }
-      throw new Error('Token verification failed');
-    }
-  }
 }
 
 /**
@@ -139,17 +265,12 @@ export class GoogleOAuthService implements IOAuthService {
  */
 export function createGoogleOAuthService(
   clientId: string,
-  jwtSecret: string,
-  logger: ILogger,
-  jwtExpiresIn?: string
+  clientSecret: string | null,
+  logger: ILogger
 ): GoogleOAuthService {
   if (!clientId) {
     throw new Error('Google Client ID is required');
   }
 
-  if (!jwtSecret) {
-    throw new Error('JWT secret is required');
-  }
-
-  return new GoogleOAuthService(clientId, jwtSecret, logger, jwtExpiresIn);
+  return new GoogleOAuthService(clientId, clientSecret, logger);
 }

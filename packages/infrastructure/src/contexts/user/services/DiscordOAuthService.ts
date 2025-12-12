@@ -1,53 +1,108 @@
-import * as jwt from 'jsonwebtoken';
 import {
-  IOAuthService,
+  IDiscordOAuthPort,
   DiscordUserInfo,
-  TokenPayload,
-  GoogleUserInfo,
-  User,
-  ILogger
-} from '@lazy-map/domain';
+  OAuthTokens,
+  OAuthUserInfo
+} from '@lazy-map/application';
+import { ILogger } from '@lazy-map/domain';
 
 /**
  * Discord OAuth service implementation
- * Handles Discord OAuth token validation and JWT generation
+ * Handles Discord OAuth token validation and OAuth flow
  */
-export class DiscordOAuthService implements IOAuthService {
-  private readonly clientId: string;
-  private readonly clientSecret: string;
-  private readonly jwtSecret: string;
-  private readonly jwtExpiresIn: string;
+export class DiscordOAuthService implements IDiscordOAuthPort {
+  private readonly apiBase = 'https://discord.com/api/v10';
+  private readonly authBase = 'https://discord.com/api/oauth2';
 
   constructor(
-    clientId: string,
-    clientSecret: string,
-    jwtSecret: string,
-    private readonly logger: ILogger,
-    jwtExpiresIn: string = '7d'
-  ) {
-    this.clientId = clientId;
-    this.clientSecret = clientSecret;
-    this.jwtSecret = jwtSecret;
-    this.jwtExpiresIn = jwtExpiresIn;
+    private readonly clientId: string,
+    private readonly clientSecret: string,
+    private readonly logger: ILogger
+  ) {}
+
+  /**
+   * Generate Discord OAuth authorization URL
+   */
+  getAuthorizationUrl(redirectUri: string, state?: string): string {
+    const scopes = ['identify', 'email'];
+    const params = new URLSearchParams({
+      client_id: this.clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: scopes.join(' '),
+      ...(state && { state })
+    });
+
+    const authUrl = `${this.authBase}/authorize?${params.toString()}`;
+
+    this.logger.debug('Generated Discord OAuth URL', {
+      metadata: { redirectUri, hasState: !!state }
+    });
+
+    return authUrl;
   }
 
   /**
-   * Validates a Google ID token (not implemented for Discord service)
+   * Exchange authorization code for tokens
    */
-  async validateGoogleToken(idToken: string): Promise<GoogleUserInfo> {
-    throw new Error('Google OAuth not supported by Discord OAuth service');
-  }
-
-  /**
-   * Validates a Discord access token and returns user information
-   */
-  async validateDiscordToken(accessToken: string): Promise<DiscordUserInfo> {
+  async exchangeCodeForTokens(code: string, redirectUri: string): Promise<OAuthTokens> {
     try {
-      // Fetch user info from Discord API
-      const response = await fetch('https://discord.com/api/users/@me', {
+      const response = await fetch(`${this.authBase}/token`, {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
         },
+        body: new URLSearchParams({
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: redirectUri
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Discord API error: ${response.statusText} - ${error}`);
+      }
+
+      const data = await response.json();
+
+      this.logger.debug('Exchanged Discord authorization code for tokens', {
+        metadata: {
+          hasRefreshToken: !!data.refresh_token,
+          expiresIn: data.expires_in
+        }
+      });
+
+      return {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+        expiresIn: data.expires_in,
+        tokenType: data.token_type,
+        scope: data.scope
+      };
+    } catch (error) {
+      this.logger.logError(error as Error, {
+        metadata: { operation: 'exchangeCodeForTokens' }
+      });
+
+      if (error instanceof Error) {
+        throw new Error(`Failed to exchange Discord code for tokens: ${error.message}`);
+      }
+      throw new Error('Failed to exchange Discord code for tokens');
+    }
+  }
+
+  /**
+   * Get user information from Discord using access token
+   */
+  async getUserInfo(accessToken: string): Promise<OAuthUserInfo> {
+    try {
+      const response = await fetch(`${this.apiBase}/users/@me`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
       });
 
       if (!response.ok) {
@@ -56,12 +111,11 @@ export class DiscordOAuthService implements IOAuthService {
 
       const data = await response.json();
 
-      // Validate that we have required fields
       if (!data.id || !data.email || !data.username) {
         throw new Error('Invalid Discord user data: missing required fields');
       }
 
-      this.logger.debug('Discord token validated successfully', {
+      this.logger.debug('Retrieved Discord user info', {
         metadata: {
           email: data.email,
           id: data.id,
@@ -70,73 +124,153 @@ export class DiscordOAuthService implements IOAuthService {
       });
 
       return {
-        discordId: data.id,
+        providerId: data.id,
         email: data.email,
         emailVerified: data.verified || false,
         username: data.username,
-        discriminator: data.discriminator || '0',
-        avatar: data.avatar,
-        globalName: data.global_name
+        displayName: data.global_name || data.username,
+        picture: data.avatar
+          ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png`
+          : undefined,
+        provider: 'discord'
       };
     } catch (error) {
       this.logger.logError(error as Error, {
-        metadata: {
-          operation: 'validateDiscordToken'
-        }
+        metadata: { operation: 'getUserInfo' }
       });
 
       if (error instanceof Error) {
-        throw new Error(`Discord token validation failed: ${error.message}`);
+        throw new Error(`Failed to get Discord user info: ${error.message}`);
       }
-      throw new Error('Discord token validation failed');
+      throw new Error('Failed to get Discord user info');
     }
   }
 
   /**
-   * Generates a JWT token for the authenticated user
+   * Refresh Discord access token
    */
-  generateAuthToken(user: User): string {
-    const payload = {
-      userId: user.id.value,
-      email: user.email.value,
-      role: user.role.value,
-      sub: user.id.value,
-      iss: 'lazy-map'
-    };
-
-    const token = jwt.sign(payload, this.jwtSecret, {
-      expiresIn: this.jwtExpiresIn
-    } as jwt.SignOptions);
-
-    this.logger.debug('JWT token generated', {
-      metadata: {
-        userId: user.id.value,
-        email: user.email.value
-      }
-    });
-
-    return token;
-  }
-
-  /**
-   * Verifies and decodes a JWT token
-   */
-  async verifyAuthToken(token: string): Promise<TokenPayload> {
+  async refreshAccessToken(refreshToken: string): Promise<OAuthTokens> {
     try {
-      const decoded = jwt.verify(token, this.jwtSecret) as TokenPayload;
-      return decoded;
+      const response = await fetch(`${this.authBase}/token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Discord API error: ${response.statusText} - ${error}`);
+      }
+
+      const data = await response.json();
+
+      this.logger.debug('Refreshed Discord access token', {
+        metadata: {
+          hasRefreshToken: !!data.refresh_token,
+          expiresIn: data.expires_in
+        }
+      });
+
+      return {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+        expiresIn: data.expires_in,
+        tokenType: data.token_type,
+        scope: data.scope
+      };
     } catch (error) {
       this.logger.logError(error as Error, {
-        metadata: {
-          operation: 'verifyAuthToken'
-        }
+        metadata: { operation: 'refreshAccessToken' }
       });
 
       if (error instanceof Error) {
-        throw new Error(`Token verification failed: ${error.message}`);
+        throw new Error(`Failed to refresh Discord token: ${error.message}`);
       }
-      throw new Error('Token verification failed');
+      throw new Error('Failed to refresh Discord token');
     }
+  }
+
+  /**
+   * Revoke Discord OAuth token
+   */
+  async revokeToken(token: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.authBase}/token/revoke`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          token
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Discord API error: ${response.statusText}`);
+      }
+
+      this.logger.debug('Revoked Discord token', {
+        metadata: { operation: 'revokeToken' }
+      });
+    } catch (error) {
+      this.logger.logError(error as Error, {
+        metadata: { operation: 'revokeToken' }
+      });
+
+      if (error instanceof Error) {
+        throw new Error(`Failed to revoke Discord token: ${error.message}`);
+      }
+      throw new Error('Failed to revoke Discord token');
+    }
+  }
+
+  /**
+   * Validates a Discord access token and returns user information
+   * This is a helper method that uses getUserInfo
+   * @deprecated Use getUserInfo directly instead
+   */
+  async validateDiscordToken(accessToken: string): Promise<DiscordUserInfo> {
+    const userInfo = await this.getUserInfo(accessToken);
+
+    // Fetch additional Discord-specific data
+    try {
+      const response = await fetch(`${this.apiBase}/users/@me`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          ...userInfo,
+          provider: 'discord',
+          discriminator: data.discriminator || '0',
+          globalName: data.global_name,
+          avatar: data.avatar
+        };
+      }
+    } catch (error) {
+      this.logger.warn('Failed to fetch Discord-specific user data', {
+        metadata: { error }
+      });
+    }
+
+    // Fallback to basic user info
+    return {
+      ...userInfo,
+      provider: 'discord',
+      discriminator: '0'
+    };
   }
 }
 
@@ -146,9 +280,7 @@ export class DiscordOAuthService implements IOAuthService {
 export function createDiscordOAuthService(
   clientId: string,
   clientSecret: string,
-  jwtSecret: string,
-  logger: ILogger,
-  jwtExpiresIn?: string
+  logger: ILogger
 ): DiscordOAuthService {
   if (!clientId) {
     throw new Error('Discord Client ID is required');
@@ -158,9 +290,5 @@ export function createDiscordOAuthService(
     throw new Error('Discord Client Secret is required');
   }
 
-  if (!jwtSecret) {
-    throw new Error('JWT secret is required');
-  }
-
-  return new DiscordOAuthService(clientId, clientSecret, jwtSecret, logger, jwtExpiresIn);
+  return new DiscordOAuthService(clientId, clientSecret, logger);
 }

@@ -4,11 +4,10 @@ import {
   Username,
   DiscordId,
   IUserRepository,
-  IOAuthService,
-  DiscordUserInfo
+  ILogger
 } from '@lazy-map/domain';
+import { IDiscordOAuthPort, IAuthenticationPort } from '../ports';
 import { DiscordSignInCommand } from '../commands/DiscordSignInCommand';
-import { ILogger } from '@lazy-map/domain';
 
 /**
  * Use case for Discord Sign-In authentication
@@ -17,24 +16,25 @@ import { ILogger } from '@lazy-map/domain';
 export class DiscordSignInUseCase {
   constructor(
     private readonly userRepository: IUserRepository,
-    private readonly oauthService: IOAuthService,
+    private readonly discordOAuthService: IDiscordOAuthPort,
+    private readonly authenticationService: IAuthenticationPort,
     private readonly logger: ILogger
   ) {}
 
   async execute(command: DiscordSignInCommand): Promise<DiscordSignInResult> {
     try {
       // 1. Validate the Discord access token
-      const discordUserInfo = await this.oauthService.validateDiscordToken(command.accessToken);
+      const discordUserInfo = await this.discordOAuthService.validateDiscordToken(command.accessToken);
 
       this.logger.info('Discord token validated successfully', {
         metadata: {
           email: discordUserInfo.email,
-          discordId: discordUserInfo.discordId
+          discordId: discordUserInfo.providerId
         }
       });
 
       // 2. Check if user exists by Discord ID
-      const discordId = DiscordId.create(discordUserInfo.discordId);
+      const discordId = DiscordId.create(discordUserInfo.providerId);
       let user = await this.userRepository.findByDiscordId(discordId);
 
       if (user) {
@@ -61,8 +61,7 @@ export class DiscordSignInUseCase {
               }
             });
 
-            const profilePicture = this.buildDiscordAvatarUrl(discordUserInfo);
-            user.linkDiscordAccount(discordUserInfo.discordId, command.timestamp, profilePicture);
+            user.linkDiscordAccount(discordUserInfo.providerId, command.timestamp, discordUserInfo.picture);
             await this.userRepository.save(user);
           } else {
             // User has a different OAuth provider
@@ -85,14 +84,12 @@ export class DiscordSignInUseCase {
             counter++;
           }
 
-          const profilePicture = this.buildDiscordAvatarUrl(discordUserInfo);
-
           user = User.createFromDiscord(
-            discordUserInfo.discordId,
+            discordUserInfo.providerId,
             email,
             uniqueUsername,
             command.timestamp,
-            profilePicture
+            discordUserInfo.picture
           );
 
           await this.userRepository.save(user);
@@ -112,7 +109,7 @@ export class DiscordSignInUseCase {
       await this.userRepository.save(user);
 
       // 6. Generate JWT token
-      const token = this.oauthService.generateAuthToken(user);
+      const token = await this.authenticationService.generateTokenFromUser(user);
 
       return {
         success: true,
@@ -139,16 +136,18 @@ export class DiscordSignInUseCase {
   /**
    * Generate a username from Discord user info
    */
-  private generateUsernameFromDiscord(discordUserInfo: DiscordUserInfo): Username {
-    // Try to use global name first, then username
-    const nameToUse = discordUserInfo.globalName || discordUserInfo.username;
+  private generateUsernameFromDiscord(discordUserInfo: { username?: string; displayName?: string; email: string }): Username {
+    // Try to use display name first, then username
+    const nameToUse = discordUserInfo.displayName || discordUserInfo.username;
 
-    const cleanName = nameToUse
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '');
+    if (nameToUse) {
+      const cleanName = nameToUse
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
 
-    if (cleanName.length >= 3) {
-      return Username.fromString(cleanName.substring(0, 20)); // Limit length
+      if (cleanName.length >= 3) {
+        return Username.fromString(cleanName.substring(0, 20)); // Limit length
+      }
     }
 
     // Fall back to email prefix if username is too short
@@ -159,18 +158,6 @@ export class DiscordSignInUseCase {
       .substring(0, 20); // Limit length
 
     return Username.fromString(cleanPrefix || 'user');
-  }
-
-  /**
-   * Build Discord avatar URL from user info
-   */
-  private buildDiscordAvatarUrl(discordUserInfo: DiscordUserInfo): string | undefined {
-    if (!discordUserInfo.avatar) {
-      return undefined;
-    }
-
-    // Discord CDN avatar URL format
-    return `https://cdn.discordapp.com/avatars/${discordUserInfo.discordId}/${discordUserInfo.avatar}.png`;
   }
 }
 

@@ -1,10 +1,10 @@
 import {
   UserId,
   IUserRepository,
-  IOAuthService,
-  DiscordId
+  DiscordId,
+  ILogger
 } from '@lazy-map/domain';
-import { ILogger } from '@lazy-map/domain';
+import { IDiscordOAuthPort } from '../ports';
 
 /**
  * Command for linking a Discord account to an existing user
@@ -23,7 +23,7 @@ export class LinkDiscordAccountCommand {
 export class LinkDiscordAccountUseCase {
   constructor(
     private readonly userRepository: IUserRepository,
-    private readonly oauthService: IOAuthService,
+    private readonly discordOAuthService: IDiscordOAuthPort,
     private readonly logger: ILogger
   ) {}
 
@@ -49,10 +49,10 @@ export class LinkDiscordAccountUseCase {
       }
 
       // 3. Validate the Discord access token
-      const discordUserInfo = await this.oauthService.validateDiscordToken(command.accessToken);
+      const discordUserInfo = await this.discordOAuthService.validateDiscordToken(command.accessToken);
 
       // 4. Check if this Discord ID is already linked to another user
-      const discordId = DiscordId.create(discordUserInfo.discordId);
+      const discordId = DiscordId.create(discordUserInfo.providerId);
       const existingDiscordUser = await this.userRepository.findByDiscordId(discordId);
 
       if (existingDiscordUser) {
@@ -78,19 +78,14 @@ export class LinkDiscordAccountUseCase {
         // };
       }
 
-      // 6. Build Discord avatar URL if avatar exists
-      const profilePicture = discordUserInfo.avatar
-        ? `https://cdn.discordapp.com/avatars/${discordUserInfo.discordId}/${discordUserInfo.avatar}.png`
-        : undefined;
-
-      // 7. Link the Discord account
-      user.linkDiscordAccount(discordUserInfo.discordId, command.linkedAt, profilePicture);
+      // 6. Link the Discord account
+      user.linkDiscordAccount(discordUserInfo.providerId, command.linkedAt, discordUserInfo.picture);
       await this.userRepository.save(user);
 
       this.logger.info('Discord account linked successfully', {
         metadata: {
           userId: user.id.value,
-          discordId: discordUserInfo.discordId
+          discordId: discordUserInfo.providerId
         }
       });
 

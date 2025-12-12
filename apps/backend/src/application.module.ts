@@ -1,7 +1,10 @@
 import {
   CheckAdminAccessUseCase,
   ClearAllFeaturesUseCase,
+  CompleteDiscordSignInUseCase,
+  CompleteGoogleSignInUseCase,
   DeleteUserUseCase,
+  DiscordSignInUseCase,
   GenerateTacticalMapUseCase,
   GetAllFeaturesUseCase,
   GetFeatureByIdUseCase,
@@ -14,6 +17,9 @@ import {
   GetUserStatsUseCase,
   GoogleSignInUseCase,
   HealthCheckUseCase,
+  InitiateDiscordSignInUseCase,
+  InitiateGoogleSignInUseCase,
+  LinkDiscordAccountUseCase,
   LinkGoogleAccountUseCase,
   ListMapsUseCase,
   ListUsersUseCase,
@@ -143,17 +149,59 @@ import { InfrastructureModule } from './infrastructure.module';
     },
     {
       provide: GoogleSignInUseCase,
-      useFactory: (userRepository, oauthService, logger) => {
-        return new GoogleSignInUseCase(userRepository, oauthService, logger);
+      useFactory: (userRepository, googleOAuthService, authenticationService, logger) => {
+        return new GoogleSignInUseCase(userRepository, googleOAuthService, authenticationService, logger);
       },
-      inject: ['IUserRepository', 'IOAuthService', 'ILogger'],
+      inject: ['IUserRepository', 'IGoogleOAuthPort', 'IAuthenticationPort', 'ILogger'],
+    },
+    {
+      provide: DiscordSignInUseCase,
+      useFactory: (userRepository, discordOAuthService, authenticationService, logger) => {
+        return new DiscordSignInUseCase(userRepository, discordOAuthService, authenticationService, logger);
+      },
+      inject: ['IUserRepository', 'IDiscordOAuthPort', 'IAuthenticationPort', 'ILogger'],
     },
     {
       provide: LinkGoogleAccountUseCase,
-      useFactory: (userRepository, oauthService, logger) => {
-        return new LinkGoogleAccountUseCase(userRepository, oauthService, logger);
+      useFactory: (userRepository, googleOAuthService, logger) => {
+        return new LinkGoogleAccountUseCase(userRepository, googleOAuthService, logger);
       },
-      inject: ['IUserRepository', 'IOAuthService', 'ILogger'],
+      inject: ['IUserRepository', 'IGoogleOAuthPort', 'ILogger'],
+    },
+    {
+      provide: LinkDiscordAccountUseCase,
+      useFactory: (userRepository, discordOAuthService, logger) => {
+        return new LinkDiscordAccountUseCase(userRepository, discordOAuthService, logger);
+      },
+      inject: ['IUserRepository', 'IDiscordOAuthPort', 'ILogger'],
+    },
+    {
+      provide: InitiateGoogleSignInUseCase,
+      useFactory: (googleOAuthService, logger) => {
+        return new InitiateGoogleSignInUseCase(googleOAuthService, logger);
+      },
+      inject: ['IGoogleOAuthPort', 'ILogger'],
+    },
+    {
+      provide: CompleteGoogleSignInUseCase,
+      useFactory: (userRepository, oauthTokenRepository, googleOAuthService, authenticationService, tokenEncryptionService, logger) => {
+        return new CompleteGoogleSignInUseCase(userRepository, oauthTokenRepository, googleOAuthService, authenticationService, tokenEncryptionService, logger);
+      },
+      inject: ['IUserRepository', 'IOAuthTokenRepository', 'IGoogleOAuthPort', 'IAuthenticationPort', 'ITokenEncryptionPort', 'ILogger'],
+    },
+    {
+      provide: InitiateDiscordSignInUseCase,
+      useFactory: (discordOAuthService, logger) => {
+        return new InitiateDiscordSignInUseCase(discordOAuthService, logger);
+      },
+      inject: ['IDiscordOAuthPort', 'ILogger'],
+    },
+    {
+      provide: CompleteDiscordSignInUseCase,
+      useFactory: (userRepository, oauthTokenRepository, discordOAuthService, authenticationService, tokenEncryptionService, logger) => {
+        return new CompleteDiscordSignInUseCase(userRepository, oauthTokenRepository, discordOAuthService, authenticationService, tokenEncryptionService, logger);
+      },
+      inject: ['IUserRepository', 'IOAuthTokenRepository', 'IDiscordOAuthPort', 'IAuthenticationPort', 'ITokenEncryptionPort', 'ILogger'],
     },
 
     // Admin use cases
@@ -264,7 +312,13 @@ import { InfrastructureModule } from './infrastructure.module';
     LoginUserUseCase,
     GetUserProfileUseCase,
     GoogleSignInUseCase,
+    DiscordSignInUseCase,
     LinkGoogleAccountUseCase,
+    LinkDiscordAccountUseCase,
+    InitiateGoogleSignInUseCase,
+    CompleteGoogleSignInUseCase,
+    InitiateDiscordSignInUseCase,
+    CompleteDiscordSignInUseCase,
     // Export Admin Use Cases
     CheckAdminAccessUseCase,
     GetUserPermissionsUseCase,

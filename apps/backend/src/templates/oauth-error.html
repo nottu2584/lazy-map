@@ -42,11 +42,18 @@
 
       if (window.opener) {
         try {
-          window.opener.postMessage({
+          const allowedOrigins = {{ ALLOWED_ORIGINS }
+        };
+        const message = {
             type: 'oauth-error',
             provider: '{{PROVIDER}}',
             error: '{{ERROR_MESSAGE}}'
-          }, '*');
+        };
+
+        // Send message to each allowed origin
+        allowedOrigins.forEach(function (origin) {
+          window.opener.postMessage(message, origin);
+        });
 
           // Close window after a short delay to ensure message is received
           setTimeout(function() {

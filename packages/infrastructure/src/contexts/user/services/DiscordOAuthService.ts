@@ -17,6 +17,7 @@ export class DiscordOAuthService implements IDiscordOAuthPort {
   constructor(
     private readonly clientId: string,
     private readonly clientSecret: string,
+    private readonly redirectUri: string,
     private readonly logger: ILogger
   ) {}
 
@@ -24,10 +25,11 @@ export class DiscordOAuthService implements IDiscordOAuthPort {
    * Generate Discord OAuth authorization URL
    */
   getAuthorizationUrl(redirectUri: string, state?: string): string {
+    // Use configured redirect URI, ignore user input
     const scopes = ['identify', 'email'];
     const params = new URLSearchParams({
       client_id: this.clientId,
-      redirect_uri: redirectUri,
+      redirect_uri: this.redirectUri,
       response_type: 'code',
       scope: scopes.join(' '),
       ...(state && { state })
@@ -36,7 +38,7 @@ export class DiscordOAuthService implements IDiscordOAuthPort {
     const authUrl = `${this.authBase}/authorize?${params.toString()}`;
 
     this.logger.debug('Generated Discord OAuth URL', {
-      metadata: { redirectUri, hasState: !!state }
+      metadata: { redirectUri: this.redirectUri, hasState: !!state }
     });
 
     return authUrl;
@@ -46,6 +48,7 @@ export class DiscordOAuthService implements IDiscordOAuthPort {
    * Exchange authorization code for tokens
    */
   async exchangeCodeForTokens(code: string, redirectUri: string): Promise<OAuthTokens> {
+    // Use configured redirect URI, ignore user input
     try {
       const response = await fetch(`${this.authBase}/token`, {
         method: 'POST',
@@ -57,7 +60,7 @@ export class DiscordOAuthService implements IDiscordOAuthPort {
           client_secret: this.clientSecret,
           grant_type: 'authorization_code',
           code,
-          redirect_uri: redirectUri
+          redirect_uri: this.redirectUri
         })
       });
 
@@ -280,6 +283,7 @@ export class DiscordOAuthService implements IDiscordOAuthPort {
 export function createDiscordOAuthService(
   clientId: string,
   clientSecret: string,
+  redirectUri: string,
   logger: ILogger
 ): DiscordOAuthService {
   if (!clientId) {
@@ -290,5 +294,9 @@ export function createDiscordOAuthService(
     throw new Error('Discord Client Secret is required');
   }
 
-  return new DiscordOAuthService(clientId, clientSecret, logger);
+  if (!redirectUri) {
+    throw new Error('Discord OAuth Redirect URI is required');
+  }
+
+  return new DiscordOAuthService(clientId, clientSecret, redirectUri, logger);
 }

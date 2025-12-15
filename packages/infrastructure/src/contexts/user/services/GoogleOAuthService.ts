@@ -17,15 +17,17 @@ export class GoogleOAuthService implements IGoogleOAuthPort {
   constructor(
     private readonly clientId: string,
     private readonly clientSecret: string | null,
+    private readonly redirectUri: string,
     private readonly logger: ILogger
   ) {
-    this.client = new OAuth2Client(clientId, clientSecret || undefined);
+    this.client = new OAuth2Client(this.clientId, this.clientSecret || undefined);
   }
 
   /**
    * Generate Google OAuth authorization URL
    */
   getAuthorizationUrl(redirectUri: string, state?: string): string {
+    // Use configured redirect URI, ignore user input
     const scopes = [
       'openid',
       'https://www.googleapis.com/auth/userinfo.email',
@@ -35,13 +37,13 @@ export class GoogleOAuthService implements IGoogleOAuthPort {
     const authUrl = this.client.generateAuthUrl({
       access_type: 'offline',
       scope: scopes,
-      redirect_uri: redirectUri,
+      redirect_uri: this.redirectUri,
       state: state,
       prompt: 'consent' // Force consent to get refresh token
     });
 
     this.logger.debug('Generated Google OAuth URL', {
-      metadata: { redirectUri, hasState: !!state }
+      metadata: { redirectUri: this.redirectUri, hasState: !!state }
     });
 
     return authUrl;
@@ -51,10 +53,11 @@ export class GoogleOAuthService implements IGoogleOAuthPort {
    * Exchange authorization code for tokens
    */
   async exchangeCodeForTokens(code: string, redirectUri: string): Promise<OAuthTokens> {
+    // Use configured redirect URI, ignore user input
     try {
       const { tokens } = await this.client.getToken({
         code,
-        redirect_uri: redirectUri
+        redirect_uri: this.redirectUri
       });
 
       if (!tokens.access_token) {
@@ -266,11 +269,16 @@ export class GoogleOAuthService implements IGoogleOAuthPort {
 export function createGoogleOAuthService(
   clientId: string,
   clientSecret: string | null,
+  redirectUri: string,
   logger: ILogger
 ): GoogleOAuthService {
   if (!clientId) {
     throw new Error('Google Client ID is required');
   }
 
-  return new GoogleOAuthService(clientId, clientSecret, logger);
+  if (!redirectUri) {
+    throw new Error('Google OAuth Redirect URI is required');
+  }
+
+  return new GoogleOAuthService(clientId, clientSecret, redirectUri, logger);
 }

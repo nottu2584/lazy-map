@@ -96,6 +96,7 @@ const shouldUseDatabase = () => {
       useFactory: (configService: ConfigService) => {
         const clientId = configService.get<string>('GOOGLE_CLIENT_ID', '');
         const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET');
+        const redirectUri = configService.get<string>('GOOGLE_OAUTH_REDIRECT_URI', '');
         const logger = new BackLoggingService('GoogleOAuthService');
 
         if (!clientId) {
@@ -103,7 +104,12 @@ const shouldUseDatabase = () => {
           return null;
         }
 
-        return createGoogleOAuthService(clientId, clientSecret || null, logger);
+        if (!redirectUri) {
+          logger.warn('Google OAuth not configured - GOOGLE_OAUTH_REDIRECT_URI is missing');
+          return null;
+        }
+
+        return createGoogleOAuthService(clientId, clientSecret || null, redirectUri, logger);
       },
       inject: [ConfigService],
     },
@@ -114,6 +120,7 @@ const shouldUseDatabase = () => {
       useFactory: (configService: ConfigService) => {
         const clientId = configService.get<string>('DISCORD_CLIENT_ID', '');
         const clientSecret = configService.get<string>('DISCORD_CLIENT_SECRET', '');
+        const redirectUri = configService.get<string>('DISCORD_OAUTH_REDIRECT_URI', '');
         const logger = new BackLoggingService('DiscordOAuthService');
 
         if (!clientId || !clientSecret) {
@@ -121,7 +128,12 @@ const shouldUseDatabase = () => {
           return null;
         }
 
-        return createDiscordOAuthService(clientId, clientSecret, logger);
+        if (!redirectUri) {
+          logger.warn('Discord OAuth not configured - DISCORD_OAUTH_REDIRECT_URI is missing');
+          return null;
+        }
+
+        return createDiscordOAuthService(clientId, clientSecret, redirectUri, logger);
       },
       inject: [ConfigService],
     },

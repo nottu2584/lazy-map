@@ -536,7 +536,6 @@ export class AuthController {
     description: 'Failed to generate authorization URL',
   })
   async initiateGoogleSignIn(
-    @Query('redirectUri') redirectUri: string,
     @Query('state') state?: string
   ): Promise<{ authorizationUrl: string }> {
     const operationLogger = this.logger.child({
@@ -545,15 +544,12 @@ export class AuthController {
     });
 
     try {
-      if (!redirectUri) {
-        throw new BadRequestException('redirectUri query parameter is required');
-      }
-
       operationLogger.info('Initiating Google OAuth sign-in', {
-        metadata: { redirectUri, hasState: !!state }
+        metadata: { hasState: !!state }
       });
 
-      const command = new InitiateGoogleSignInCommand(redirectUri, state);
+      // redirectUri is now handled internally by the OAuth service
+      const command = new InitiateGoogleSignInCommand('', state);
       const result = await this.initiateGoogleSignInUseCase.execute(command);
 
       if (!result.success) {
@@ -590,7 +586,6 @@ export class AuthController {
   })
   async completeGoogleSignIn(
     @Query('code') code: string,
-    @Query('redirectUri') redirectUri: string,
     @Query('state') state: string | undefined,
     @Res() res: Response
   ): Promise<void> {
@@ -600,15 +595,16 @@ export class AuthController {
     });
 
     try {
-      if (!code || !redirectUri) {
-        throw new BadRequestException('code and redirectUri query parameters are required');
+      if (!code) {
+        throw new BadRequestException('code query parameter is required');
       }
 
       operationLogger.info('Completing Google OAuth sign-in', {
-        metadata: { redirectUri, hasState: !!state }
+        metadata: { hasState: !!state }
       });
 
-      const command = new CompleteGoogleSignInCommand(code, redirectUri, state);
+      // redirectUri is now handled internally by the OAuth service
+      const command = new CompleteGoogleSignInCommand(code, '', state);
       const result = await this.completeGoogleSignInUseCase.execute(command);
 
       if (!result.success) {
@@ -676,7 +672,6 @@ export class AuthController {
     description: 'Failed to generate authorization URL',
   })
   async initiateDiscordSignIn(
-    @Query('redirectUri') redirectUri: string,
     @Query('state') state?: string
   ): Promise<{ authorizationUrl: string }> {
     const operationLogger = this.logger.child({
@@ -685,15 +680,12 @@ export class AuthController {
     });
 
     try {
-      if (!redirectUri) {
-        throw new BadRequestException('redirectUri query parameter is required');
-      }
-
       operationLogger.info('Initiating Discord OAuth sign-in', {
-        metadata: { redirectUri, hasState: !!state }
+        metadata: { hasState: !!state }
       });
 
-      const command = new InitiateDiscordSignInCommand(redirectUri, state);
+      // redirectUri is now handled internally by the OAuth service
+      const command = new InitiateDiscordSignInCommand('', state);
       const result = await this.initiateDiscordSignInUseCase.execute(command);
 
       if (!result.success) {
@@ -730,7 +722,6 @@ export class AuthController {
   })
   async completeDiscordSignIn(
     @Query('code') code: string,
-    @Query('redirectUri') redirectUri: string,
     @Query('state') state: string | undefined,
     @Res() res: Response
   ): Promise<void> {
@@ -740,15 +731,16 @@ export class AuthController {
     });
 
     try {
-      if (!code || !redirectUri) {
-        throw new BadRequestException('code and redirectUri query parameters are required');
+      if (!code) {
+        throw new BadRequestException('code query parameter is required');
       }
 
       operationLogger.info('Completing Discord OAuth sign-in', {
-        metadata: { redirectUri, hasState: !!state }
+        metadata: { hasState: !!state }
       });
 
-      const command = new CompleteDiscordSignInCommand(code, redirectUri, state);
+      // redirectUri is now handled internally by the OAuth service
+      const command = new CompleteDiscordSignInCommand(code, '', state);
       const result = await this.completeDiscordSignInUseCase.execute(command);
 
       if (!result.success) {

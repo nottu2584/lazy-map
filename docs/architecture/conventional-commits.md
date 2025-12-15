@@ -41,8 +41,14 @@ This repository enforces [Conventional Commits](https://www.conventionalcommits.
 # Feature with scope
 feat(backend): add JWT authentication
 
+# Feature with emoji (optional)
+feat(backend): ✨ add JWT authentication
+
 # Bug fix without scope
 fix: resolve map generation race condition
+
+# Bug fix with emoji
+fix: 🐛 resolve map generation race condition
 
 # Chore with scope (Dependabot style)
 chore(deps): bump @nestjs/core from 11.0.1 to 11.0.2
@@ -55,6 +61,14 @@ refactor(domain): simplify map entity logic
 ```
 
 ## Enforcement
+
+### Local Git Hooks (Husky)
+Commit messages are validated **before** they're created:
+
+- **Pre-commit validation**: Runs commitlint on every commit
+- **Hook location**: `.husky/commit-msg`
+- **Setup**: Automatic via `pnpm install` (prepare script)
+- **Bypass**: Not recommended, but possible with `--no-verify`
 
 ### GitHub Actions (PR Validation)
 The repository uses automated validation via GitHub Actions:
@@ -117,6 +131,24 @@ pnpm exec husky init
 echo 'pnpm commitlint --edit $1' > .husky/commit-msg
 chmod +x .husky/commit-msg
 ```
+
+**Already configured in this project** - just run `pnpm install`.
+
+## Emoji Support
+
+Emojis are **optional** but supported in commit messages:
+
+```bash
+feat(backend): ✨ add discord oauth authentication
+fix(api): 🐛 resolve token expiration
+docs: 📝 update oauth guide
+```
+
+**Rules for emojis:**
+- Place after the colon, before description
+- Text must still be lowercase
+- Emojis don't count as uppercase letters
+- See [docs/guides/emoji-commits.md](../guides/emoji-commits.md) for full guide
 
 ## Why Conventional Commits?
 

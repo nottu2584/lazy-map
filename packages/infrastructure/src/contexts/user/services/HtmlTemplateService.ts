@@ -8,11 +8,13 @@ import * as path from 'path';
  */
 export class HtmlTemplateService implements ITemplatePort {
   private readonly templatesPath: string;
+  private readonly allowedOrigins: string[];
   private templateCache: Map<string, string>;
 
-  constructor(templatesPath?: string) {
+  constructor(templatesPath?: string, allowedOrigins?: string[]) {
     // Default to backend/src/templates directory
     this.templatesPath = templatesPath || path.join(__dirname, '../../../templates');
+    this.allowedOrigins = allowedOrigins || ['http://localhost:5173'];
     this.templateCache = new Map();
   }
 
@@ -27,7 +29,8 @@ export class HtmlTemplateService implements ITemplatePort {
       .replace(/{{TOKEN}}/g, this.escapeHtml(data.token))
       .replace(/{{USER_ID}}/g, this.escapeHtml(data.user.id))
       .replace(/{{USER_EMAIL}}/g, this.escapeHtml(data.user.email))
-      .replace(/{{USER_USERNAME}}/g, this.escapeHtml(data.user.username));
+      .replace(/{{USER_USERNAME}}/g, this.escapeHtml(data.user.username))
+      .replace(/{{ALLOWED_ORIGINS}}/g, JSON.stringify(this.allowedOrigins));
   }
 
   /**
@@ -38,7 +41,8 @@ export class HtmlTemplateService implements ITemplatePort {
 
     return template
       .replace(/{{PROVIDER}}/g, this.escapeHtml(data.provider))
-      .replace(/{{ERROR_MESSAGE}}/g, this.escapeHtml(data.errorMessage));
+      .replace(/{{ERROR_MESSAGE}}/g, this.escapeHtml(data.errorMessage))
+      .replace(/{{ALLOWED_ORIGINS}}/g, JSON.stringify(this.allowedOrigins));
   }
 
   /**

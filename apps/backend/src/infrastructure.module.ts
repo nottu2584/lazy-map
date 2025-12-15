@@ -83,11 +83,17 @@ const shouldUseDatabase = () => {
     // HTML Template Service
     {
       provide: 'ITemplatePort',
-      useFactory: () => {
+      useFactory: (configService: ConfigService) => {
         // Templates are located in apps/backend/src/templates
         const templatesPath = require('path').join(__dirname, 'templates');
-        return new HtmlTemplateService(templatesPath);
+        
+        // Get allowed frontend URLs from environment
+        const allowedUrlsStr = configService.get<string>('ALLOWED_FRONTEND_URLS', 'http://localhost:5173');
+        const allowedOrigins = allowedUrlsStr.split(',').map(url => url.trim());
+        
+        return new HtmlTemplateService(templatesPath, allowedOrigins);
       },
+      inject: [ConfigService],
     },
 
     // Google OAuth Service

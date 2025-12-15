@@ -50,6 +50,11 @@ fix: resolve map generation race condition
 # Bug fix with emoji
 fix: 🐛 resolve map generation race condition
 
+# With acronyms and proper nouns (allowed)
+feat(api): integrate OAuth2 with Discord API
+fix(domain): correct MapGrid validation logic
+refactor(backend): optimize PostgreSQL queries
+
 # Chore with scope (Dependabot style)
 chore(deps): bump @nestjs/core from 11.0.1 to 11.0.2
 
@@ -139,15 +144,16 @@ chmod +x .husky/commit-msg
 Emojis are **optional** but supported in commit messages:
 
 ```bash
-feat(backend): ✨ add discord oauth authentication
+feat(backend): ✨ add Discord OAuth authentication
 fix(api): 🐛 resolve token expiration
-docs: 📝 update oauth guide
+docs: 📝 update OAuth guide
 ```
 
-**Rules for emojis:**
-- Place after the colon, before description
-- Text must still be lowercase
-- Emojis don't count as uppercase letters
+**Rules for commit subjects:**
+- Place emoji after the colon, before description (if using)
+- Subject must start with lowercase letter or emoji
+- Uppercase words are allowed: acronyms (JWT, API, OAuth), proper nouns (Discord, PostgreSQL), class names (MapGrid)
+- Subject should not start with uppercase letter (unless it's an acronym at the very start)
 - See [docs/guides/emoji-commits.md](../guides/emoji-commits.md) for full guide
 
 ## Why Conventional Commits?

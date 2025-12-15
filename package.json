@@ -17,7 +17,7 @@
     "lint:fix": "turbo lint:fix",
     "format": "turbo format",
     "setup": "pnpm install && turbo build --filter='@lazy-map/*'",
-    "prepare": "husky"
+    "prepare": "node -e \"if (process.env.CI !== 'true') { require('child_process').execSync('husky', { stdio: 'inherit' }) }\""
   },
   "engines": {
     "node": ">=20.11.0",

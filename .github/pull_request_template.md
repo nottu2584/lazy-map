@@ -9,7 +9,9 @@ type(scope): description in lowercase
 ### Examples:
 ```bash
 ✓ feat(backend): add user authentication service
+✓ feat(backend): ✨ add user authentication service
 ✓ fix(frontend): resolve map rendering issue
+✓ fix(frontend): 🐛 resolve map rendering issue
 ✓ chore(deps): update dependencies
 ✗ Bugfix/solve issue          # Missing type
 ✗ Add new feature             # Missing type, uppercase

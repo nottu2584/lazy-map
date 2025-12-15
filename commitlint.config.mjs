@@ -45,8 +45,16 @@ export default {
     // Subject should not end with period
     'subject-full-stop': [2, 'never', '.'],
 
-    // Subject should be lowercase
-    'subject-case': [2, 'always', 'lower-case'],
+    // Subject should be lowercase (allows emojis at start)
+    // Using 'lower-case' with [2, 'always'] allows non-alphabetic characters like emojis
+    'subject-case': [
+      2,
+      'always',
+      'lower-case'
+    ],
+
+    // Allow leading emojis in subject
+    'subject-empty': [2, 'never'],
 
     // Header (type + scope + subject) max length
     'header-max-length': [2, 'always', 100],

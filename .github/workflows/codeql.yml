@@ -48,6 +48,8 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
+        env:
+          HUSKY: 0
 
       - name: Build packages
         run: |

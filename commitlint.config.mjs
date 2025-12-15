@@ -45,12 +45,12 @@ export default {
     // Subject should not end with period
     'subject-full-stop': [2, 'never', '.'],
 
-    // Subject should be lowercase (allows emojis at start)
-    // Using 'lower-case' with [2, 'always'] allows non-alphabetic characters like emojis
+    // Subject should be sentence-case (lowercase start, allows uppercase words like JWT, API, etc.)
+    // This allows: emojis, acronyms, proper nouns, class names
     'subject-case': [
       2,
       'always',
-      'lower-case'
+      'sentence-case'
     ],
 
     // Allow leading emojis in subject

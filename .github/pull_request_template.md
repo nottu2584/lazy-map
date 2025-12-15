@@ -10,12 +10,14 @@ type(scope): description in lowercase
 ```bash
 ✓ feat(backend): add user authentication service
 ✓ feat(backend): ✨ add user authentication service
+✓ feat(backend): add JWT and OAuth2 support
 ✓ fix(frontend): resolve map rendering issue
 ✓ fix(frontend): 🐛 resolve map rendering issue
+✓ fix(domain): correct MapGrid validation
 ✓ chore(deps): update dependencies
 ✗ Bugfix/solve issue          # Missing type
-✗ Add new feature             # Missing type, uppercase
-✗ feat: Add feature           # Uppercase subject
+✗ Add new feature             # Missing type, starts with uppercase
+✗ feat: Add feature           # Starts with uppercase letter
 ```
 
 ### Available Types:

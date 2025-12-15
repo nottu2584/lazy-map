@@ -27,18 +27,23 @@ Emojis are now **allowed** in commit messages while maintaining conventional com
 ### ✅ Allowed
 ```bash
 feat(backend): ✨ add new feature
+feat(backend): add JWT authentication
+feat(api): integrate OAuth2 with Discord
 fix(frontend): 🐛 resolve map rendering issue
+fix(domain): correct MapGrid validation
 chore(deps): ⬆️ update dependencies
-docs: 📝 update readme
-refactor(domain): ♻️ restructure user entity
-perf(api): ⚡️ optimize query performance
+chore(deps): bump NestJS to v10
+docs: 📝 update README
+refactor(domain): ♻️ restructure User entity
+perf(api): ⚡️ optimize PostgreSQL queries
 ```
 
 ### ❌ Not Allowed
 ```bash
-feat(backend): ✨ Add new feature          # Uppercase after emoji
-feat(backend): ADD new feature             # All uppercase
-Feat(backend): ✨ add new feature          # Uppercase type
+feat(backend): ✨ Add new feature          # Starts with uppercase
+feat(backend): ADD new feature             # Starts with uppercase
+Feat(backend): ✨ add new feature          # Type is uppercase
+feat(Backend): add new feature             # Scope is uppercase
 ```
 
 ## Recommended Emojis (Gitmoji Style)
@@ -61,10 +66,11 @@ Feat(backend): ✨ add new feature          # Uppercase type
 
 ## Rules Summary
 
-1. **Emoji placement**: After the colon, before the description
-2. **Text case**: Must be lowercase (except proper nouns)
-3. **Optional**: Emojis are optional, traditional format still works
-4. **Consistency**: If using emojis, consider using them consistently
+1. **Emoji placement**: After the colon, before the description (optional)
+2. **Subject start**: Must start with lowercase letter or emoji (not uppercase letter)
+3. **Uppercase words**: Allowed for acronyms (JWT, API, OAuth), proper nouns (Discord, PostgreSQL), class names (MapGrid)
+4. **Optional**: Emojis are optional, traditional format still works
+5. **Consistency**: If using emojis, consider using them consistently
 
 ## Examples by Type
 

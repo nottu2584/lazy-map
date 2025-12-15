@@ -11,6 +11,7 @@ type(scope): description in lowercase
 ✓ feat(backend): add user authentication service
 ✓ feat(backend): ✨ add user authentication service
 ✓ feat(backend): add JWT and OAuth2 support
+✓ feat(backend): add jwt and oauth2 support      # also valid
 ✓ fix(frontend): resolve map rendering issue
 ✓ fix(frontend): 🐛 resolve map rendering issue
 ✓ fix(domain): correct MapGrid validation

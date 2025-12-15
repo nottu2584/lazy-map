@@ -50,9 +50,11 @@ fix: resolve map generation race condition
 # Bug fix with emoji
 fix: 🐛 resolve map generation race condition
 
-# With acronyms and proper nouns (allowed)
+# With acronyms and proper nouns (flexible capitalization)
 feat(api): integrate OAuth2 with Discord API
+feat(api): integrate oauth2 with discord api     # also valid
 fix(domain): correct MapGrid validation logic
+fix(domain): correct mapgrid validation logic    # also valid
 refactor(backend): optimize PostgreSQL queries
 
 # Chore with scope (Dependabot style)
@@ -150,10 +152,10 @@ docs: 📝 update OAuth guide
 ```
 
 **Rules for commit subjects:**
-- Place emoji after the colon, before description (if using)
-- Subject must start with lowercase letter or emoji
-- Uppercase words are allowed: acronyms (JWT, API, OAuth), proper nouns (Discord, PostgreSQL), class names (MapGrid)
-- Subject should not start with uppercase letter (unless it's an acronym at the very start)
+- Subject **must** start with lowercase letter or emoji
+- Acronyms **should** be capitalized (JWT, API, OAuth, HTTP)
+- Proper nouns and other words **can** be capitalized or lowercase (your choice)
+- Examples: "add Discord OAuth" or "add discord oauth" both work
 - See [docs/guides/emoji-commits.md](../guides/emoji-commits.md) for full guide
 
 ## Why Conventional Commits?

@@ -28,9 +28,12 @@ Emojis are now **allowed** in commit messages while maintaining conventional com
 ```bash
 feat(backend): ✨ add new feature
 feat(backend): add JWT authentication
+feat(backend): add jwt authentication      # Flexible on acronyms
 feat(api): integrate OAuth2 with Discord
+feat(api): integrate oauth with discord    # Also valid
 fix(frontend): 🐛 resolve map rendering issue
 fix(domain): correct MapGrid validation
+fix(domain): correct mapgrid validation    # Also valid
 chore(deps): ⬆️ update dependencies
 chore(deps): bump NestJS to v10
 docs: 📝 update README
@@ -40,8 +43,8 @@ perf(api): ⚡️ optimize PostgreSQL queries
 
 ### ❌ Not Allowed
 ```bash
-feat(backend): ✨ Add new feature          # Starts with uppercase
-feat(backend): ADD new feature             # Starts with uppercase
+feat(backend): ✨ Add new feature          # Starts with uppercase letter
+feat(backend): ADD new feature             # Starts with uppercase letter
 Feat(backend): ✨ add new feature          # Type is uppercase
 feat(Backend): add new feature             # Scope is uppercase
 ```
@@ -66,11 +69,11 @@ feat(Backend): add new feature             # Scope is uppercase
 
 ## Rules Summary
 
-1. **Emoji placement**: After the colon, before the description (optional)
-2. **Subject start**: Must start with lowercase letter or emoji (not uppercase letter)
-3. **Uppercase words**: Allowed for acronyms (JWT, API, OAuth), proper nouns (Discord, PostgreSQL), class names (MapGrid)
-4. **Optional**: Emojis are optional, traditional format still works
-5. **Consistency**: If using emojis, consider using them consistently
+1. **Subject start**: **MUST** start with lowercase letter or emoji (never uppercase letter)
+2. **Acronyms**: **SHOULD** be capitalized (JWT, API, OAuth) but not enforced
+3. **Proper nouns & words**: **CAN** be capitalized or lowercase (your choice)
+4. **Emoji placement**: After the colon, before description (optional)
+5. **Consistency**: Choose a style and stick to it within your commits
 
 ## Examples by Type
 

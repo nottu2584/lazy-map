@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAuth Flow Tester - Lazy Map</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 3px solid #4CAF50;
+      padding-bottom: 0.5rem;
+    }
+    .section {
+      background: white;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 0.5rem 0.5rem 0.5rem 0;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button.discord {
+      background: #5865F2;
+    }
+    button.discord:hover {
+      background: #4752C4;
+    }
+    .log {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 1rem;
+      margin-top: 1rem;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+    .log-entry {
+      margin: 0.25rem 0;
+      padding: 0.25rem;
+    }
+    .log-entry.success {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .log-entry.error {
+      color: #f44336;
+      font-weight: bold;
+    }
+    .log-entry.info {
+      color: #2196F3;
+    }
+    pre {
+      background: #272822;
+      color: #f8f8f2;
+      padding: 1rem;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 0.5rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🗺️ Lazy Map - OAuth Flow Tester</h1>
+
+  <div class="section">
+    <h2>Test OAuth Sign-In Flow</h2>
+    <p>Click a button below to test the OAuth flow with real authentication:</p>
+    <button onclick="testGoogleOAuth()">Test Google OAuth</button>
+    <button class="discord" onclick="testDiscordOAuth()">Test Discord OAuth</button>
+    <button onclick="clearLog()" style="background: #9E9E9E;">Clear Log</button>
+  </div>
+
+  <div class="section">
+    <h2>Activity Log</h2>
+    <div id="log" class="log">
+      <div class="log-entry info">Ready to test OAuth flows...</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>How It Works</h2>
+    <ol>
+      <li>Click "Test Google OAuth" or "Test Discord OAuth"</li>
+      <li>A popup window will open with the OAuth provider's login page</li>
+      <li>Sign in with your account</li>
+      <li>The popup will receive the JWT token and close automatically</li>
+      <li>You'll see the result in the activity log below</li>
+    </ol>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3030/api';
+    const REDIRECT_URI = 'http://localhost:3030/api/auth/google/callback'; // Backend handles callback
+    let oauthPopup = null;
+
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function clearLog() {
+      const logDiv = document.getElementById('log');
+      logDiv.innerHTML = '<div class="log-entry info">Log cleared. Ready to test...</div>';
+    }
+
+    async function testGoogleOAuth() {
+      try {
+        log('Initiating Google OAuth flow...', 'info');
+
+        // Get authorization URL from backend
+        const response = await fetch(`${API_BASE}/auth/google/login?redirectUri=${REDIRECT_URI}&state=test-${Date.now()}`);
+        const data = await response.json();
+
+        log(`Opening Google OAuth popup...`, 'info');
+
+        // Open OAuth URL in popup
+        const popup = window.open(
+          data.authorizationUrl,
+          'Google OAuth',
+          'width=500,height=600,left=100,top=100'
+        );
+
+        if (!popup) {
+          log('Popup blocked! Please allow popups for this site.', 'error');
+          return;
+        }
+
+        // Listen for postMessage from the callback page
+        window.addEventListener('message', handleOAuthMessage);
+
+        // Check if popup was closed manually
+        const checkClosed = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(checkClosed);
+            log('Popup was closed', 'info');
+          }
+        }, 500);
+
+      } catch (error) {
+        log(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function testDiscordOAuth() {
+      try {
+        log('Initiating Discord OAuth flow...', 'info');
+
+        // Get authorization URL from backend
+        const response = await fetch(`${API_BASE}/auth/discord/login?redirectUri=${REDIRECT_URI}&state=test-${Date.now()}`);
+        const data = await response.json();
+
+        log(`Opening Discord OAuth popup...`, 'info');
+
+        // Open OAuth URL in popup
+        const popup = window.open(
+          data.authorizationUrl,
+          'Discord OAuth',
+          'width=500,height=600,left=100,top=100'
+        );
+
+        if (!popup) {
+          log('Popup blocked! Please allow popups for this site.', 'error');
+          return;
+        }
+
+        // Listen for postMessage from the callback page
+        window.addEventListener('message', handleOAuthMessage);
+
+        // Check if popup was closed manually
+        const checkClosed = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(checkClosed);
+            log('Popup was closed', 'info');
+          }
+        }, 500);
+
+      } catch (error) {
+        log(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    function handleOAuthMessage(event) {
+      // In production, verify event.origin
+      if (event.data.type === 'oauth-success') {
+        log(`✓ OAuth Success!`, 'success');
+        log(`Provider: ${event.data.provider}`, 'success');
+        log(`User ID: ${event.data.user.id}`, 'info');
+        log(`Email: ${event.data.user.email}`, 'info');
+        log(`Username: ${event.data.user.username}`, 'info');
+        log(`JWT Token: ${event.data.token.substring(0, 50)}...`, 'info');
+
+        // Display formatted user data
+        const userDataDiv = document.createElement('div');
+        userDataDiv.className = 'log-entry success';
+        userDataDiv.innerHTML = `<pre>${JSON.stringify(event.data.user, null, 2)}</pre>`;
+        document.getElementById('log').appendChild(userDataDiv);
+
+      } else if (event.data.type === 'oauth-error') {
+        log(`✗ OAuth Error!`, 'error');
+        log(`Provider: ${event.data.provider}`, 'error');
+        log(`Error: ${event.data.error}`, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

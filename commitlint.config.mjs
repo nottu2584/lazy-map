@@ -31,14 +31,16 @@ export default {
       1, // warning, not error
       'always',
       [
-        'deps',           // Dependency updates
-        'backend',        // Backend app
-        'frontend',       // Frontend app
         'application',    // Application layer
+        'backend',        // Backend app
+        'ci',             // CI/CD
+        'deps',           // Dependency updates
+        'docs',           // Documentation
         'domain',         // Domain layer
+        'frontend',       // Frontend app
         'infrastructure', // Infrastructure layer
-        'ci',            // CI/CD
-        'release',       // Release-related
+        'release',        // Release-related
+        'security',       // Security fixes
       ],
     ],
 

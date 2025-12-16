@@ -45,13 +45,9 @@ export default {
     // Subject should not end with period
     'subject-full-stop': [2, 'never', '.'],
 
-    // Subject should be sentence-case (lowercase start, allows uppercase words like JWT, API, etc.)
-    // This allows: emojis, acronyms, proper nouns, class names
-    'subject-case': [
-      2,
-      'always',
-      'sentence-case'
-    ],
+    // Subject should start lowercase, but may contain capitals (Discord, OAuth, JWT, API, etc.)
+    // We disable the case rule since commitlint doesn't support "lowercase start with capitals inside"
+    'subject-case': [0],
 
     // Allow leading emojis in subject
     'subject-empty': [2, 'never'],

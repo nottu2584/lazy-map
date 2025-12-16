@@ -6,3 +6,5 @@ export * from './UserRole';
 export * from './UserStatus';
 export * from './AuthProvider';
 export * from './GoogleId';
+export * from './DiscordId';
+export * from './OAuthToken';

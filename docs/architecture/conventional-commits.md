@@ -41,8 +41,21 @@ This repository enforces [Conventional Commits](https://www.conventionalcommits.
 # Feature with scope
 feat(backend): add JWT authentication
 
+# Feature with emoji (optional)
+feat(backend): ✨ add JWT authentication
+
 # Bug fix without scope
 fix: resolve map generation race condition
+
+# Bug fix with emoji
+fix: 🐛 resolve map generation race condition
+
+# With acronyms and proper nouns (flexible capitalization)
+feat(api): integrate OAuth2 with Discord API
+feat(api): integrate oauth2 with discord api     # also valid
+fix(domain): correct MapGrid validation logic
+fix(domain): correct mapgrid validation logic    # also valid
+refactor(backend): optimize PostgreSQL queries
 
 # Chore with scope (Dependabot style)
 chore(deps): bump @nestjs/core from 11.0.1 to 11.0.2
@@ -55,6 +68,14 @@ refactor(domain): simplify map entity logic
 ```
 
 ## Enforcement
+
+### Local Git Hooks (Husky)
+Commit messages are validated **before** they're created:
+
+- **Pre-commit validation**: Runs commitlint on every commit
+- **Hook location**: `.husky/commit-msg`
+- **Setup**: Automatic via `pnpm install` (prepare script)
+- **Bypass**: Not recommended, but possible with `--no-verify`
 
 ### GitHub Actions (PR Validation)
 The repository uses automated validation via GitHub Actions:
@@ -117,6 +138,25 @@ pnpm exec husky init
 echo 'pnpm commitlint --edit $1' > .husky/commit-msg
 chmod +x .husky/commit-msg
 ```
+
+**Already configured in this project** - just run `pnpm install`.
+
+## Emoji Support
+
+Emojis are **optional** but supported in commit messages:
+
+```bash
+feat(backend): ✨ add Discord OAuth authentication
+fix(api): 🐛 resolve token expiration
+docs: 📝 update OAuth guide
+```
+
+**Rules for commit subjects:**
+- Subject **must** start with lowercase letter or emoji
+- Acronyms **should** be capitalized (JWT, API, OAuth, HTTP)
+- Proper nouns and other words **can** be capitalized or lowercase (your choice)
+- Examples: "add Discord OAuth" or "add discord oauth" both work
+- See [docs/guides/emoji-commits.md](../guides/emoji-commits.md) for full guide
 
 ## Why Conventional Commits?
 

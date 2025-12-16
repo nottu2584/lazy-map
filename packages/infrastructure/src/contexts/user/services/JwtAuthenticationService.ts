@@ -1,6 +1,6 @@
 import * as jwt from 'jsonwebtoken';
 import { IAuthenticationPort } from '@lazy-map/application';
-import { ILogger } from '@lazy-map/domain';
+import { ILogger, User } from '@lazy-map/domain';
 
 interface JwtPayload {
   sub: string; // user ID
@@ -58,6 +58,15 @@ export class JwtAuthenticationService implements IAuthenticationPort {
         }
       );
     });
+  }
+
+  async generateTokenFromUser(user: User): Promise<string> {
+    return this.generateToken(
+      user.id.value,
+      user.email.value,
+      user.username.value,
+      user.role.value
+    );
   }
 
   async verifyToken(token: string): Promise<{ userId: string; email: string } | null> {

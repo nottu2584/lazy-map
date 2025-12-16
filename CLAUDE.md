@@ -112,7 +112,7 @@ import { Building } from '@lazy-map/domain/contexts/artificial/entities/Building
 **CRITICAL**: Always follow Conventional Commits format with strict validation.
 
 **Format**: `type(scope): subject`
-- Subject must be **ALL lowercase** (including filenames, acronyms)
+- Subject must **start with lowercase**, but may contain capitals for proper nouns and acronyms (Discord, OAuth, JWT, API, etc.)
 - No period at end of subject
 - **Max 100 characters** for entire header (type + scope + subject)
 - Body lines can be any length (URLs, links are allowed)
@@ -142,15 +142,15 @@ import { Building } from '@lazy-map/domain/contexts/artificial/entities/Building
 
 **Examples**:
 ```
-✅ feat(domain): add new plant species for vegetation layer
-✅ fix(backend): resolve jwt authentication token validation
+✅ feat(domain): add Discord OAuth support to user entity
+✅ fix(backend): resolve JWT authentication token validation
 ✅ refactor(infrastructure): remove console.log statements
-✅ docs: add commit conventions reference to claude.md
+✅ docs: add commit conventions reference to CLAUDE.md
 
 ❌ feat(logging): add new logger (invalid scope)
-❌ Feat(domain): Add Plant Species (uppercase in subject)
-❌ docs: Update CLAUDE.md file (uppercase letters in subject)
-❌ fix(backend): this line exceeds the 100 character limit
+❌ Feat(domain): Add Plant Species (uppercase start - must start lowercase)
+❌ fix(backend): This line starts with capital letter
+❌ fix(backend): this line exceeds the 100 character limit for the entire header length
 ```
 
 ## Dependency Injection Pattern

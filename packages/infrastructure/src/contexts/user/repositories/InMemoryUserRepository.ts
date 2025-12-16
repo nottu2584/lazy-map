@@ -1,4 +1,4 @@
-import { IUserRepository, User, UserId, Email, Username, UserRole, UserStatus, GoogleId } from '@lazy-map/domain';
+import { IUserRepository, User, UserId, Email, Username, UserRole, UserStatus, GoogleId, DiscordId } from '@lazy-map/domain';
 
 /**
  * In-memory implementation of user repository (for testing and development)
@@ -35,6 +35,15 @@ export class InMemoryUserRepository implements IUserRepository {
   async findByGoogleId(googleId: GoogleId): Promise<User | null> {
     for (const user of this.users.values()) {
       if (user.googleId === googleId.getValue()) {
+        return user;
+      }
+    }
+    return null;
+  }
+
+  async findByDiscordId(discordId: DiscordId): Promise<User | null> {
+    for (const user of this.users.values()) {
+      if (user.discordId === discordId.getValue()) {
         return user;
       }
     }

@@ -4,11 +4,10 @@ import {
   Username,
   GoogleId,
   IUserRepository,
-  IOAuthService,
-  GoogleUserInfo
+  ILogger
 } from '@lazy-map/domain';
+import { IGoogleOAuthPort, IAuthenticationPort } from '../ports';
 import { GoogleSignInCommand } from '../commands/GoogleSignInCommand';
-import { ILogger } from '@lazy-map/domain';
 
 /**
  * Use case for Google Sign-In authentication
@@ -17,24 +16,25 @@ import { ILogger } from '@lazy-map/domain';
 export class GoogleSignInUseCase {
   constructor(
     private readonly userRepository: IUserRepository,
-    private readonly oauthService: IOAuthService,
+    private readonly googleOAuthService: IGoogleOAuthPort,
+    private readonly authenticationService: IAuthenticationPort,
     private readonly logger: ILogger
   ) {}
 
   async execute(command: GoogleSignInCommand): Promise<GoogleSignInResult> {
     try {
       // 1. Validate the Google ID token
-      const googleUserInfo = await this.oauthService.validateGoogleToken(command.idToken);
+      const googleUserInfo = await this.googleOAuthService.validateGoogleIdToken(command.idToken);
 
       this.logger.info('Google token validated successfully', {
         metadata: {
           email: googleUserInfo.email,
-          googleId: googleUserInfo.googleId
+          googleId: googleUserInfo.providerId
         }
       });
 
       // 2. Check if user exists by Google ID
-      const googleId = GoogleId.create(googleUserInfo.googleId);
+      const googleId = GoogleId.create(googleUserInfo.providerId);
       let user = await this.userRepository.findByGoogleId(googleId);
 
       if (user) {
@@ -61,7 +61,7 @@ export class GoogleSignInUseCase {
               }
             });
 
-            user.linkGoogleAccount(googleUserInfo.googleId, command.timestamp, googleUserInfo.picture);
+            user.linkGoogleAccount(googleUserInfo.providerId, command.timestamp, googleUserInfo.picture);
             await this.userRepository.save(user);
           } else {
             // User has a different OAuth provider
@@ -85,7 +85,7 @@ export class GoogleSignInUseCase {
           }
 
           user = User.createFromGoogle(
-            googleUserInfo.googleId,
+            googleUserInfo.providerId,
             email,
             uniqueUsername,
             command.timestamp,
@@ -109,7 +109,7 @@ export class GoogleSignInUseCase {
       await this.userRepository.save(user);
 
       // 6. Generate JWT token
-      const token = this.oauthService.generateAuthToken(user);
+      const token = await this.authenticationService.generateTokenFromUser(user);
 
       return {
         success: true,
@@ -136,7 +136,7 @@ export class GoogleSignInUseCase {
   /**
    * Generate a username from Google user info
    */
-  private generateUsernameFromGoogle(googleUserInfo: GoogleUserInfo): Username {
+  private generateUsernameFromGoogle(googleUserInfo: { username?: string; email: string; givenName?: string }): Username {
     // Try to use given name, or fall back to email prefix
     if (googleUserInfo.givenName) {
       const cleanName = googleUserInfo.givenName

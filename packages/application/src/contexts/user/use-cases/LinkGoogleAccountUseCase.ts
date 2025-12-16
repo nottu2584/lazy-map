@@ -1,10 +1,10 @@
 import {
   UserId,
   IUserRepository,
-  IOAuthService,
-  GoogleId
+  GoogleId,
+  ILogger
 } from '@lazy-map/domain';
-import { ILogger } from '@lazy-map/domain';
+import { IGoogleOAuthPort } from '../ports';
 
 /**
  * Command for linking a Google account to an existing user
@@ -23,7 +23,7 @@ export class LinkGoogleAccountCommand {
 export class LinkGoogleAccountUseCase {
   constructor(
     private readonly userRepository: IUserRepository,
-    private readonly oauthService: IOAuthService,
+    private readonly googleOAuthService: IGoogleOAuthPort,
     private readonly logger: ILogger
   ) {}
 
@@ -49,10 +49,10 @@ export class LinkGoogleAccountUseCase {
       }
 
       // 3. Validate the Google ID token
-      const googleUserInfo = await this.oauthService.validateGoogleToken(command.idToken);
+      const googleUserInfo = await this.googleOAuthService.validateGoogleIdToken(command.idToken);
 
       // 4. Check if this Google ID is already linked to another user
-      const googleId = GoogleId.create(googleUserInfo.googleId);
+      const googleId = GoogleId.create(googleUserInfo.providerId);
       const existingGoogleUser = await this.userRepository.findByGoogleId(googleId);
 
       if (existingGoogleUser) {
@@ -79,13 +79,13 @@ export class LinkGoogleAccountUseCase {
       }
 
       // 6. Link the Google account
-      user.linkGoogleAccount(googleUserInfo.googleId, command.linkedAt, googleUserInfo.picture);
+      user.linkGoogleAccount(googleUserInfo.providerId, command.linkedAt, googleUserInfo.picture);
       await this.userRepository.save(user);
 
       this.logger.info('Google account linked successfully', {
         metadata: {
           userId: user.id.value,
-          googleId: googleUserInfo.googleId
+          googleId: googleUserInfo.providerId
         }
       });
 

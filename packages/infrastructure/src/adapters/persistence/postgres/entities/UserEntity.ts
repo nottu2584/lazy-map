@@ -34,6 +34,10 @@ export class UserEntity {
   @Index()
   googleId?: string | null;
 
+  @Column({ type: 'varchar', length: 255, nullable: true, unique: true })
+  @Index()
+  discordId?: string | null;
+
   @Column({ type: 'text', nullable: true })
   profilePicture?: string | null;
 

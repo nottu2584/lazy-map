@@ -31,22 +31,28 @@ export default {
       1, // warning, not error
       'always',
       [
-        'deps',           // Dependency updates
-        'backend',        // Backend app
-        'frontend',       // Frontend app
         'application',    // Application layer
+        'backend',        // Backend app
+        'ci',             // CI/CD
+        'deps',           // Dependency updates
+        'docs',           // Documentation
         'domain',         // Domain layer
+        'frontend',       // Frontend app
         'infrastructure', // Infrastructure layer
-        'ci',            // CI/CD
-        'release',       // Release-related
+        'release',        // Release-related
+        'security',       // Security fixes
       ],
     ],
 
     // Subject should not end with period
     'subject-full-stop': [2, 'never', '.'],
 
-    // Subject should be lowercase
-    'subject-case': [2, 'always', 'lower-case'],
+    // Subject should start lowercase, but may contain capitals (Discord, OAuth, JWT, API, etc.)
+    // We disable the case rule since commitlint doesn't support "lowercase start with capitals inside"
+    'subject-case': [0],
+
+    // Allow leading emojis in subject
+    'subject-empty': [2, 'never'],
 
     // Header (type + scope + subject) max length
     'header-max-length': [2, 'always', 100],

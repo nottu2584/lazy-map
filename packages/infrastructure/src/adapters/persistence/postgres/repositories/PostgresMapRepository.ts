@@ -9,8 +9,12 @@ import {
   MapId,
   SpatialBounds,
   UserId,
-  ILogger
+  ILogger,
+  Seed,
+  TacticalMapContext,
+  Dimensions
 } from '@lazy-map/domain';
+import { GenerateTacticalMapUseCase } from '@lazy-map/application';
 import { MapEntity } from '../entities/MapEntity';
 import { MapMapper } from '../mappers/MapMapper';
 
@@ -24,8 +28,8 @@ export class PostgresMapRepository implements IMapRepository {
   constructor(
     @InjectRepository(MapEntity)
     private readonly repository: Repository<MapEntity>,
-    @Inject('IMapGenerationService')
-    private readonly mapGenerationService: any, // Would be the actual generation service
+    @Inject(GenerateTacticalMapUseCase)
+    private readonly generateMapUseCase: GenerateTacticalMapUseCase,
     @Inject('ILogger')
     private readonly logger?: ILogger
   ) {}
@@ -36,6 +40,17 @@ export class PostgresMapRepository implements IMapRepository {
     const userId = map.ownerId?.value || 'anonymous';
 
     const entity = MapMapper.toPersistence(map, userId, seed);
+
+    // Hybrid approach: use provided description or auto-generate
+    if (!entity.description || entity.description.trim() === '') {
+      entity.description = MapMapper.generateDescription(entity);
+      this.logger?.debug('Auto-generated map description', {
+        component: 'PostgresMapRepository',
+        operation: 'save',
+        metadata: { mapId: entity.id, description: entity.description }
+      });
+    }
+
     await this.repository.save(entity);
   }
 
@@ -167,6 +182,16 @@ export class PostgresMapRepository implements IMapRepository {
       tags: map.metadata.tags
     });
 
+    // Hybrid approach: use provided description or auto-generate
+    if (!entity.description || entity.description.trim() === '') {
+      entity.description = MapMapper.generateDescription(entity);
+      this.logger?.debug('Auto-generated map description on update', {
+        component: 'PostgresMapRepository',
+        operation: 'update',
+        metadata: { mapId: entity.id, description: entity.description }
+      });
+    }
+
     await this.repository.save(entity);
   }
 
@@ -233,39 +258,64 @@ export class PostgresMapRepository implements IMapRepository {
 
   /**
    * Helper method to regenerate a MapGrid from stored parameters
-   * In a real implementation, this would use the MapGenerationService
+   * Uses GenerateTacticalMapUseCase to deterministically regenerate from seed
    */
   private async regenerateMapFromEntity(entity: MapEntity): Promise<MapGrid | null> {
     try {
-      const request = MapMapper.toGenerationRequest(entity);
+      // Parse seed and dimensions from stored entity
+      const seed = Seed.fromString(entity.seed);
+      const width = entity.settings.dimensions.width;
+      const height = entity.settings.dimensions.height;
 
-      // This would actually call the map generation service
-      // For now, we'll create a stub map
+      // Create context from seed (deterministic based on seed)
+      const context = TacticalMapContext.fromSeed(seed);
+
+      this.logger?.debug(`Regenerating map ${entity.id} from seed`, {
+        component: 'PostgresMapRepository',
+        operation: 'regenerateMapFromEntity',
+        metadata: { mapId: entity.id, seed: entity.seed, dimensions: { width, height } }
+      });
+
+      // Regenerate the map using the use case
+      const result = await this.generateMapUseCase.execute(width, height, context, seed);
+
+      // Convert the tactical map result to MapGrid
+      // For now, create empty map with proper metadata
+      // TODO: Implement full conversion from TacticalMapGenerationResult to MapGrid
+      const dimensions = new Dimensions(
+        entity.settings.dimensions.width,
+        entity.settings.dimensions.height
+      );
       const map = MapGrid.createEmpty(
-        request.name,
-        request.dimensions,
-        request.seed || 'default-seed', // seedValue
-        new Date(request.metadata.createdAt), // createdAt
-        32, // default cell size
-        request.metadata.author,
-        request.ownerId
+        entity.name,
+        dimensions,
+        entity.seed,
+        entity.createdAt,
+        32, // cell size
+        entity.user?.username,
+        entity.userId ? new UserId(entity.userId) : undefined
       );
 
       // Override the generated ID with the stored one
-      (map as any).id = new MapId(request.id);
-      (map as any).metadata = request.metadata;
+      (map as any).id = new MapId(entity.id);
 
-      // Update access timestamp
+      // Update access timestamp and view count
       entity.lastAccessedAt = new Date();
       entity.viewCount++;
       await this.repository.save(entity);
+
+      this.logger?.info(`Successfully regenerated map ${entity.id}`, {
+        component: 'PostgresMapRepository',
+        operation: 'regenerateMapFromEntity',
+        metadata: { mapId: entity.id, generationTime: result.generationTime }
+      });
 
       return map;
     } catch (error) {
       this.logger?.error(`Failed to regenerate map ${entity.id}`, {
         component: 'PostgresMapRepository',
         operation: 'regenerateMapFromEntity',
-        metadata: { mapId: entity.id, error }
+        metadata: { mapId: entity.id, error: (error as Error).message }
       });
       return null;
     }

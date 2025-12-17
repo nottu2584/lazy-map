@@ -12,7 +12,7 @@ export class MapHistoryEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column()
   @Index()
   userId!: string;
 
@@ -20,7 +20,7 @@ export class MapHistoryEntity {
   @JoinColumn({ name: 'userId' })
   user?: UserEntity;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column()
   @Index()
   mapId!: string;
 

@@ -1,6 +1,6 @@
 // Database module and configuration
 export { DatabaseModule } from './database.module';
-export { getDatabaseConfig, dataSourceOptions } from './database.config';
+export { getDatabaseConfig } from './database.config';
 
 // Entities
 export * from './entities';

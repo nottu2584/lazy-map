@@ -2,11 +2,14 @@ import { Module, Global } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getDatabaseConfig } from './database.config';
 import { UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity } from './entities';
-import { PostgresUserRepository, PostgresMapRepository, PostgresOAuthTokenRepository } from './repositories';
+import { PostgresUserRepository, PostgresOAuthTokenRepository } from './repositories';
 
 /**
  * Database module for PostgreSQL integration
  * Provides TypeORM configuration and repository implementations
+ *
+ * Note: PostgresMapRepository is provided in ApplicationModule
+ * because it depends on GenerateTacticalMapUseCase
  */
 @Global()
 @Module({
@@ -21,7 +24,6 @@ import { PostgresUserRepository, PostgresMapRepository, PostgresOAuthTokenReposi
   providers: [
     // Repository providers
     PostgresUserRepository,
-    PostgresMapRepository,
     PostgresOAuthTokenRepository,
 
     // Provide repositories with domain interface tokens
@@ -30,22 +32,16 @@ import { PostgresUserRepository, PostgresMapRepository, PostgresOAuthTokenReposi
       useClass: PostgresUserRepository,
     },
     {
-      provide: 'IMapRepository',
-      useClass: PostgresMapRepository,
-    },
-    {
       provide: 'IOAuthTokenRepository',
       useClass: PostgresOAuthTokenRepository,
     },
   ],
   exports: [
-    // Export for use in other modules
+    // Export TypeOrmModule so other modules can inject TypeORM repositories
     TypeOrmModule,
     PostgresUserRepository,
-    PostgresMapRepository,
     PostgresOAuthTokenRepository,
     'IUserRepository',
-    'IMapRepository',
     'IOAuthTokenRepository',
   ],
 })

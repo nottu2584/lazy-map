@@ -59,7 +59,7 @@ export class MapEntity {
     };
   };
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column()
   @Index()
   userId!: string;
 
@@ -77,7 +77,7 @@ export class MapEntity {
   @Index()
   category?: string | null;
 
-  @Column({ type: 'simple-array', nullable: true })
+  @Column({ type: 'text', array: true, nullable: true })
   tags?: string[] | null;
 
   @Column({ type: 'int', default: 0 })

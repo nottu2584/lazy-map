@@ -35,6 +35,14 @@ import {
 } from '@lazy-map/application';
 import { Module } from '@nestjs/common';
 import { InfrastructureModule } from './infrastructure.module';
+import { PostgresMapRepository } from '@lazy-map/infrastructure';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { MapEntity } from '@lazy-map/infrastructure';
+
+// Helper function to check if database should be used
+const shouldUseDatabase = () => {
+  return process.env.USE_DATABASE === 'true';
+};
 
 @Module({
   imports: [InfrastructureModule],
@@ -71,6 +79,25 @@ import { InfrastructureModule } from './infrastructure.module';
         'ILogger'
       ],
     },
+
+    // PostgreSQL Map Repository (when USE_DATABASE=true)
+    // Provides IMapRepository using PostgresMapRepository with proper dependencies
+    ...(shouldUseDatabase()
+      ? [
+          {
+            provide: 'IMapRepository',
+            useFactory: (mapEntityRepository, generateMapUseCase, logger) => {
+              return new PostgresMapRepository(
+                mapEntityRepository,
+                generateMapUseCase,
+                logger
+              );
+            },
+            inject: [getRepositoryToken(MapEntity), GenerateTacticalMapUseCase, 'ILogger'],
+          },
+        ]
+      : []),
+
     {
       provide: ValidateMapSettingsUseCase,
       useFactory: () => {

@@ -18,7 +18,13 @@
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk",
-    "test:e2e": "vitest run --config ./vitest.e2e.config.ts"
+    "test:e2e": "vitest run --config ./vitest.e2e.config.ts",
+    "typeorm": "typeorm-ts-node-commonjs -d ../../packages/infrastructure/src/adapters/persistence/postgres/datasource.config.ts",
+    "migration:generate": "pnpm typeorm migration:generate",
+    "migration:create": "pnpm typeorm migration:create",
+    "migration:run": "pnpm typeorm migration:run",
+    "migration:revert": "pnpm typeorm migration:revert",
+    "migration:show": "pnpm typeorm migration:show"
   },
   "dependencies": {
     "@lazy-map/application": "workspace:*",

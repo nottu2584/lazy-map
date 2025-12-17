@@ -1,4 +1,4 @@
-import { MapGrid, MapId, MapMetadata, Dimensions, UserId } from '@lazy-map/domain';
+import { MapGrid, MapMetadata, Dimensions, UserId } from '@lazy-map/domain';
 import { MapEntity } from '../entities/MapEntity';
 
 /**
@@ -126,6 +126,60 @@ export class MapMapper {
     entity.lastAccessedAt = new Date();
 
     return entity;
+  }
+
+  /**
+   * Generate a user-friendly description from map settings
+   * Used as fallback when user doesn't provide a description
+   */
+  static generateDescription(entity: MapEntity): string {
+    const { width, height } = entity.settings.dimensions;
+    const terrain = entity.settings.terrain?.type || 'terrain';
+
+    // Determine development level from settings (inferred from building density)
+    let development = 'Unknown';
+    if (entity.settings.features?.buildings?.enabled) {
+      const density = entity.settings.features.buildings.density || 0;
+      if (density === 0) development = 'Wilderness';
+      else if (density < 0.2) development = 'Frontier';
+      else if (density < 0.4) development = 'Rural';
+      else if (density < 0.7) development = 'Settled';
+      else development = 'Urban';
+    } else {
+      development = 'Wilderness';
+    }
+
+    // Build features list
+    const features: string[] = [];
+
+    if (entity.settings.features?.rivers?.enabled) {
+      const count = entity.settings.features.rivers.count || 1;
+      features.push(`${count} ${count === 1 ? 'river' : 'rivers'}`);
+    }
+
+    if (entity.settings.features?.buildings?.enabled) {
+      const density = entity.settings.features.buildings.density || 0;
+      if (density > 0) {
+        const level = density > 0.6 ? 'heavy' : density > 0.3 ? 'moderate' : 'light';
+        features.push(`${level} buildings`);
+      }
+    }
+
+    if (entity.settings.features?.forests?.enabled) {
+      const density = entity.settings.features.forests.density || 0;
+      if (density > 0) {
+        const level = density > 0.6 ? 'dense' : density > 0.3 ? 'moderate' : 'sparse';
+        features.push(`${level} vegetation`);
+      }
+    }
+
+    if (entity.settings.features?.roads?.enabled) {
+      features.push('roads');
+    }
+
+    const featureText = features.length > 0 ? ` (${features.join(', ')})` : '';
+
+    return `${width}×${height} ${terrain} map, ${development} development${featureText}`;
   }
 
   /**

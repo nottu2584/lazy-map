@@ -52,7 +52,10 @@ const shouldUseDatabase = () => {
     { provide: 'IFeaturesLayerService', useClass: FeaturesLayer },
 
     // Output port implementations
-    { provide: 'IMapPersistencePort', useClass: InMemoryMapPersistence },
+    // Only provide IMapPersistencePort when NOT using database
+    ...(shouldUseDatabase() ? [] : [
+      { provide: 'IMapPersistencePort', useClass: InMemoryMapPersistence },
+    ]),
     { provide: 'INotificationPort', useClass: ConsoleNotificationService },
 
     // User infrastructure services
@@ -152,16 +155,16 @@ const shouldUseDatabase = () => {
       : [
           { provide: 'IUserRepository', useClass: InMemoryUserRepository },
           { provide: 'IOAuthTokenRepository', useClass: InMemoryOAuthTokenRepository },
+          // Map Repository Adapter - bridges IMapRepository (domain) with IMapPersistencePort (application)
+          {
+            provide: 'IMapRepository',
+            useFactory: (mapPersistencePort) => {
+              return new MapRepositoryAdapter(mapPersistencePort);
+            },
+            inject: ['IMapPersistencePort'],
+          },
         ]),
 
-    // Map Repository Adapter - bridges IMapRepository (domain) with IMapPersistencePort (application)
-    {
-      provide: 'IMapRepository',
-      useFactory: (mapPersistencePort) => {
-        return new MapRepositoryAdapter(mapPersistencePort);
-      },
-      inject: ['IMapPersistencePort'],
-    },
     { provide: 'IMapHistoryRepository', useClass: InMemoryMapHistoryRepository },
 
     // Feature repositories
@@ -177,8 +180,6 @@ const shouldUseDatabase = () => {
     'IVegetationLayerService',
     'IStructuresLayerService',
     'IFeaturesLayerService',
-    'IMapPersistencePort',
-    'IMapRepository',
     'INotificationPort',
     'IPasswordService',
     'IAuthenticationPort',
@@ -186,8 +187,11 @@ const shouldUseDatabase = () => {
     'ITemplatePort',
     'IGoogleOAuthPort',
     'IDiscordOAuthPort',
-    // IUserRepository & IOAuthTokenRepository - exported from DatabaseModule or in-memory implementations depending on USE_DATABASE
-    ...(shouldUseDatabase() ? [] : ['IUserRepository', 'IOAuthTokenRepository']),
+    // When USE_DATABASE=false, export in-memory implementations
+    // When USE_DATABASE=true, DatabaseModule exports these (IUserRepository, IOAuthTokenRepository, IMapRepository)
+    ...(shouldUseDatabase()
+      ? []
+      : ['IUserRepository', 'IOAuthTokenRepository', 'IMapRepository', 'IMapPersistencePort']),
     'IMapHistoryRepository',
     // Feature repositories
     'IReliefFeatureRepository',

@@ -15,12 +15,16 @@ import { AdminGuard } from './admin.guard';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET', 'your-secret-key'),
-        signOptions: {
-          expiresIn: '7d',
-        },
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const jwtSecret = configService.get<string>('JWT_SECRET', 'your-secret-key');
+        console.log('[AuthModule JwtModule] JWT_SECRET for signing:', jwtSecret?.substring(0, 20) + '...');
+        return {
+          secret: jwtSecret,
+          signOptions: {
+            expiresIn: '7d',
+          },
+        };
+      },
       inject: [ConfigService],
     }),
     ApplicationModule,

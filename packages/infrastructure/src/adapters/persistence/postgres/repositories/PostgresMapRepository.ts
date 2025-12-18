@@ -12,7 +12,9 @@ import {
   ILogger,
   Seed,
   TacticalMapContext,
-  Dimensions
+  Dimensions,
+  ITacticalMapConverter,
+  MapMetadata
 } from '@lazy-map/domain';
 import { GenerateTacticalMapUseCase } from '@lazy-map/application';
 import { MapEntity } from '../entities/MapEntity';
@@ -30,6 +32,8 @@ export class PostgresMapRepository implements IMapRepository {
     private readonly repository: Repository<MapEntity>,
     @Inject(GenerateTacticalMapUseCase)
     private readonly generateMapUseCase: GenerateTacticalMapUseCase,
+    @Inject('ITacticalMapConverter')
+    private readonly tileConverter: ITacticalMapConverter,
     @Inject('ILogger')
     private readonly logger?: ILogger
   ) {}
@@ -263,7 +267,10 @@ export class PostgresMapRepository implements IMapRepository {
   private async regenerateMapFromEntity(entity: MapEntity): Promise<MapGrid | null> {
     try {
       // Parse seed and dimensions from stored entity
-      const seed = Seed.fromString(entity.seed);
+      // Handle seed: if it's a numeric string, use fromNumber, otherwise use fromString
+      const seed = /^\d+$/.test(entity.seed)
+        ? Seed.fromNumber(Number(entity.seed))
+        : Seed.fromString(entity.seed);
       const width = entity.settings.dimensions.width;
       const height = entity.settings.dimensions.height;
 
@@ -279,25 +286,41 @@ export class PostgresMapRepository implements IMapRepository {
       // Regenerate the map using the use case
       const result = await this.generateMapUseCase.execute(width, height, context, seed);
 
-      // Convert the tactical map result to MapGrid
-      // For now, create empty map with proper metadata
-      // TODO: Implement full conversion from TacticalMapGenerationResult to MapGrid
-      const dimensions = new Dimensions(
-        entity.settings.dimensions.width,
-        entity.settings.dimensions.height
-      );
-      const map = MapGrid.createEmpty(
-        entity.name,
-        dimensions,
-        entity.seed,
-        entity.createdAt,
-        32, // cell size
-        entity.user?.username,
-        entity.userId ? new UserId(entity.userId) : undefined
+      // Convert the tactical map layers to tiles using the converter
+      const tiles = this.tileConverter.convertToTiles(
+        width,
+        height,
+        result.layers,
+        context,
+        seed
       );
 
-      // Override the generated ID with the stored one
-      (map as any).id = new MapId(entity.id);
+      this.logger?.debug(`Converted ${width}x${height} tiles from layers`, {
+        component: 'PostgresMapRepository',
+        operation: 'regenerateMapFromEntity',
+        metadata: { mapId: entity.id, tileCount: width * height }
+      });
+
+      // Create MapGrid with converted tiles
+      const dimensions = new Dimensions(width, height);
+      const metadata = new MapMetadata(
+        entity.createdAt,
+        entity.updatedAt,
+        entity.user?.username,
+        entity.description || undefined
+      );
+      const userId = entity.userId ? new UserId(entity.userId) : undefined;
+
+      const map = new MapGrid(
+        new MapId(entity.id), // Use stored ID
+        entity.name,
+        dimensions,
+        5, // Tactical map cell size (5 feet per tile)
+        tiles,
+        metadata,
+        seed,
+        userId
+      );
 
       // Update access timestamp and view count
       entity.lastAccessedAt = new Date();
@@ -312,10 +335,14 @@ export class PostgresMapRepository implements IMapRepository {
 
       return map;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error(`[PostgresMapRepository] Regeneration failed for ${entity.id}:`, errorMessage);
+      console.error(`[PostgresMapRepository] Stack:`, errorStack);
       this.logger?.error(`Failed to regenerate map ${entity.id}`, {
         component: 'PostgresMapRepository',
         operation: 'regenerateMapFromEntity',
-        metadata: { mapId: entity.id, error: (error as Error).message }
+        metadata: { mapId: entity.id, error: errorMessage, stack: errorStack }
       });
       return null;
     }
@@ -323,11 +350,9 @@ export class PostgresMapRepository implements IMapRepository {
 
   /**
    * Helper method to extract seed from a map
-   * In a real implementation, this would be stored with the map
+   * Returns the seed value as a string for storage
    */
   private extractSeedFromMap(map: MapGrid): string {
-    // This would extract the actual seed used for generation
-    // For now, return a placeholder
-    return `seed_${map.id.value}`;
+    return map.seed.toString();
   }
 }

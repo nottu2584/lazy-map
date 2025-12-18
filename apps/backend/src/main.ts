@@ -1,5 +1,7 @@
 // Load environment variables before anything else (using require to avoid import hoisting)
-require('dotenv').config({ path: require('path').join(process.cwd(), 'apps/backend/.env') });
+require('dotenv').config();
+console.log('[main.ts] After dotenv.config() - JWT_SECRET:', process.env.JWT_SECRET?.substring(0, 20) + '...');
+console.log('[main.ts] After dotenv.config() - USE_DATABASE:', process.env.USE_DATABASE);
 
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';

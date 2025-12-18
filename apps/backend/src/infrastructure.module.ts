@@ -25,6 +25,7 @@ import {
   FeaturesLayer,
   MapRepositoryAdapter,
 } from '@lazy-map/infrastructure';
+import { IMapPersistencePort } from '@lazy-map/application';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
@@ -66,6 +67,7 @@ const shouldUseDatabase = () => {
       provide: 'IAuthenticationPort',
       useFactory: (configService: ConfigService) => {
         const jwtSecret = configService.get<string>('JWT_SECRET', 'your-secret-key');
+        console.log('[InfrastructureModule JwtAuthenticationService] JWT_SECRET:', jwtSecret?.substring(0, 20) + '...');
         const logger = new BackLoggingService('JwtAuthenticationService');
         return new JwtAuthenticationService(jwtSecret, logger);
       },
@@ -158,7 +160,7 @@ const shouldUseDatabase = () => {
           // Map Repository Adapter - bridges IMapRepository (domain) with IMapPersistencePort (application)
           {
             provide: 'IMapRepository',
-            useFactory: (mapPersistencePort) => {
+            useFactory: (mapPersistencePort: IMapPersistencePort) => {
               return new MapRepositoryAdapter(mapPersistencePort);
             },
             inject: ['IMapPersistencePort'],

@@ -1,4 +1,4 @@
-import { Dimensions, Position, SpatialBounds } from '../../common/value-objects';
+import { Dimensions, Position, SpatialBounds, Seed } from '../../common/value-objects';
 import { MapTile } from './MapTile';
 import { UserId } from '../../contexts/user/value-objects/UserId';
 
@@ -80,6 +80,7 @@ export class MapGrid {
     public readonly cellSize: number,
     tiles: MapTile[][],
     public readonly metadata: MapMetadata,
+    public readonly seed: Seed,
     public readonly ownerId?: UserId
   ) {
     this.validateCellSize(cellSize);
@@ -92,15 +93,15 @@ export class MapGrid {
   static createEmpty(
     name: string,
     dimensions: Dimensions,
-    seedValue: string | number,
+    seed: Seed,
     createdAt: Date,
     cellSize: number = 32,
     author?: string,
     ownerId?: UserId
   ): MapGrid {
-    const id = MapId.generate(seedValue);
+    const id = MapId.generate(seed.getValue());
     const metadata = new MapMetadata(createdAt, createdAt, author);
-    
+
     // Create empty tiles
     const tiles: MapTile[][] = [];
     for (let y = 0; y < dimensions.height; y++) {
@@ -110,10 +111,14 @@ export class MapGrid {
       }
     }
 
-    return new MapGrid(id, name, dimensions, cellSize, tiles, metadata, ownerId);
+    return new MapGrid(id, name, dimensions, cellSize, tiles, metadata, seed, ownerId);
   }
 
   // Tile access methods
+  get tiles(): MapTile[][] {
+    return this._tiles;
+  }
+
   getTile(position: Position): MapTile | null {
     if (!this.isValidPosition(position)) {
       return null;

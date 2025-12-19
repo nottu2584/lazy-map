@@ -4,7 +4,7 @@ import {
   MapId
 } from '../map/entities/MapGrid';
 import { MapTile } from '../map/entities/MapTile';
-import { Position, Dimensions, SubTilePosition } from '../common/value-objects';
+import { Position, Dimensions, SubTilePosition, Seed } from '../common/value-objects';
 
 describe('Basic Domain Entities', () => {
   describe('MapId', () => {
@@ -16,12 +16,14 @@ describe('Basic Domain Entities', () => {
 
   describe('MapGrid', () => {
     it('should create a map with valid dimensions', () => {
-      const map = MapGrid.createEmpty('Test Map', new Dimensions(10, 10), 32, 'Test Author');
-      
+      const seed = Seed.fromNumber(12345);
+      const map = MapGrid.createEmpty('Test Map', new Dimensions(10, 10), seed, new Date(), 32, 'Test Author');
+
       expect(map.name).toBe('Test Map');
       expect(map.dimensions.width).toBe(10);
       expect(map.dimensions.height).toBe(10);
       expect(map.cellSize).toBe(32);
+      expect(map.seed).toBe(seed);
     });
   });
 

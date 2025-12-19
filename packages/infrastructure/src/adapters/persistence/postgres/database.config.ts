@@ -1,13 +1,15 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { UserEntity, MapEntity, MapHistoryEntity } from './entities';
+import { UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity } from './entities';
 
 /**
  * Database configuration for PostgreSQL
  * Uses environment variables for sensitive information
+ *
+ * Note: This is runtime configuration used by NestJS modules
+ * For CLI migration commands, use datasource.config.ts
  */
 export const getDatabaseConfig = (): TypeOrmModuleOptions => {
   const isProduction = process.env.NODE_ENV === 'production';
-  const isDevelopment = process.env.NODE_ENV === 'development';
 
   return {
     type: 'postgres',
@@ -18,10 +20,11 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => {
     database: process.env.DB_NAME || 'lazy_map',
 
     // Entity configuration
-    entities: [UserEntity, MapEntity, MapHistoryEntity],
+    entities: [UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity],
 
-    // Synchronize in development only (use migrations in production)
-    synchronize: isDevelopment && process.env.DB_SYNCHRONIZE !== 'false',
+    // CRITICAL: Use migrations only, never auto-sync
+    // Set DB_SYNCHRONIZE=true only for initial development setup
+    synchronize: process.env.DB_SYNCHRONIZE === 'true',
 
     // Logging configuration
     logging: process.env.DB_LOGGING === 'true',
@@ -41,8 +44,8 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => {
         }
       : false,
 
-    // Migration configuration
-    migrations: ['dist/migrations/*.js'],
+    // Migration configuration - auto-run in production
+    migrations: [__dirname + '/migrations/*.js'],
     migrationsTableName: 'migrations',
     migrationsRun: isProduction,
 
@@ -51,15 +54,4 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => {
     retryDelay: 3000,
     autoLoadEntities: false,
   };
-};
-
-/**
- * Configuration for TypeORM CLI
- */
-export const dataSourceOptions = {
-  ...getDatabaseConfig(),
-  migrations: ['src/migrations/*.ts'],
-  cli: {
-    migrationsDir: 'src/migrations',
-  },
 };

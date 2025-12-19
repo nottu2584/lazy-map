@@ -137,7 +137,7 @@ export class MapMapper {
     const terrain = entity.settings.terrain?.type || 'terrain';
 
     // Determine development level from settings (inferred from building density)
-    let development = 'Unknown';
+    let development;
     if (entity.settings.features?.buildings?.enabled) {
       const density = entity.settings.features.buildings.density || 0;
       if (density === 0) development = 'Wilderness';

@@ -35,6 +35,16 @@ import {
 } from '@lazy-map/application';
 import { Module } from '@nestjs/common';
 import { InfrastructureModule } from './infrastructure.module';
+import { PostgresMapRepository } from '@lazy-map/infrastructure';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { MapEntity } from '@lazy-map/infrastructure';
+import { Repository } from 'typeorm';
+import { ILogger, ITacticalMapConverter, TacticalMapConverter } from '@lazy-map/domain';
+
+// Helper function to check if database should be used
+const shouldUseDatabase = () => {
+  return process.env.USE_DATABASE === 'true';
+};
 
 @Module({
   imports: [InfrastructureModule],
@@ -71,6 +81,66 @@ import { InfrastructureModule } from './infrastructure.module';
         'ILogger'
       ],
     },
+
+    // Tactical Map Converter (domain service)
+    // Converts layered tactical map data to tile-based MapGrid representation
+    {
+      provide: 'ITacticalMapConverter',
+      useClass: TacticalMapConverter,
+    },
+
+    // PostgreSQL Map Repository (when USE_DATABASE=true)
+    // Provides IMapRepository using PostgresMapRepository with proper dependencies
+    ...(shouldUseDatabase()
+      ? [
+          {
+            provide: 'IMapRepository',
+            useFactory: (
+              mapEntityRepository: Repository<MapEntity>,
+              generateMapUseCase: GenerateTacticalMapUseCase,
+              tileConverter: ITacticalMapConverter,
+              logger: ILogger
+            ) => {
+              return new PostgresMapRepository(
+                mapEntityRepository,
+                generateMapUseCase,
+                tileConverter,
+                logger
+              );
+            },
+            inject: [getRepositoryToken(MapEntity), GenerateTacticalMapUseCase, 'ITacticalMapConverter', 'ILogger'],
+          },
+          // Also provide IMapPersistencePort as a wrapper around PostgresMapRepository
+          // This allows use cases that depend on IMapPersistencePort to work with PostgreSQL
+          {
+            provide: 'IMapPersistencePort',
+            useFactory: (mapRepository: any) => {
+              // Adapt IMapRepository methods to IMapPersistencePort interface
+              return {
+                saveMap: (map: any) => mapRepository.save(map),
+                updateMap: (map: any) => mapRepository.update(map),
+                loadMap: (mapId: any) => mapRepository.findById(mapId),
+                deleteMap: (mapId: any) => mapRepository.delete(mapId),
+                mapExists: (mapId: any) => mapRepository.exists(mapId),
+                findByOwner: (userId: any, limit?: number) => mapRepository.findByOwnerId(userId),
+                getMapCount: () => mapRepository.count(),
+                // Feature methods - not implemented in PostgresMapRepository yet
+                saveFeature: async () => { throw new Error('Not implemented'); },
+                updateFeature: async () => { throw new Error('Not implemented'); },
+                loadFeature: async () => { throw new Error('Not implemented'); },
+                loadMapFeatures: async () => { throw new Error('Not implemented'); },
+                deleteFeature: async () => { throw new Error('Not implemented'); },
+                removeFeature: async () => { throw new Error('Not implemented'); },
+                listMaps: async () => { throw new Error('Not implemented'); },
+                beginTransaction: async () => { throw new Error('Not implemented'); },
+                getFeatureCount: async () => { throw new Error('Not implemented'); },
+              };
+            },
+            inject: ['IMapRepository'],
+          },
+        ]
+      : []),
+
     {
       provide: ValidateMapSettingsUseCase,
       useFactory: () => {

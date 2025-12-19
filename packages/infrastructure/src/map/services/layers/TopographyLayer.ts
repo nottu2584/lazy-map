@@ -11,12 +11,34 @@ import {
   ITopographyLayerService,
   TopographyLayerData,
   TopographyTileData,
-  GeologyLayerData
+  GeologyLayerData,
+  RockType
 } from '@lazy-map/domain';
+
+/**
+ * Physical dimensions and scale information
+ */
+interface PhysicalDimensions {
+  widthFeet: number;
+  heightFeet: number;
+  scale: 'tactical' | 'operational' | 'strategic';
+}
+
+/**
+ * Elevation generation parameters
+ */
+interface ElevationParameters {
+  min: number;
+  max: number;
+  physicalSize: PhysicalDimensions;
+}
 
 /**
  * Generates topographic expression from geological foundation
  * Features emerge from differential erosion based on rock properties
+ *
+ * Scale-adaptive: Adjusts elevation ranges based on map size
+ * Geology-adaptive: Generates features based on rock type behavior
  */
 export class TopographyLayer implements ITopographyLayerService {
   private width: number = 0;
@@ -60,19 +82,24 @@ export class TopographyLayer implements ITopographyLayerService {
       const erodedElevations = this.applyDifferentialErosion(baseElevations, geology, seed);
       this.logger?.debug('Applied differential erosion');
 
-      // 3. Smooth elevations for realism
+      // 3. Apply geology-specific features (karst, granite needles, badlands, etc.)
+      const params = this.calculateElevationParameters(context);
+      this.applyGeologicalFeatures(erodedElevations, geology, seed, params.max);
+      this.logger?.debug('Applied geological features');
+
+      // 4. Smooth elevations for realism
       const smoothedElevations = this.smoothElevations(erodedElevations);
       this.logger?.debug('Smoothed elevations');
 
-      // 4. Calculate slopes and aspects
+      // 5. Calculate slopes and aspects
       const topography = this.calculateTopography(smoothedElevations);
       this.logger?.debug('Calculated slopes and aspects');
 
-      // 5. Identify ridges and valleys
+      // 6. Identify ridges and valleys
       this.identifyTerrainFeatures(topography);
       this.logger?.debug('Identified terrain features');
 
-      // 6. Calculate statistics
+      // 7. Calculate statistics
       const stats = this.calculateStatistics(topography);
 
       this.logger?.info('Topography layer generation complete', {
@@ -97,6 +124,7 @@ export class TopographyLayer implements ITopographyLayerService {
 
   /**
    * Generate base elevations from geological features
+   * Uses scale-adaptive elevation range
    */
   private generateBaseElevations(
     geology: GeologyLayerData,
@@ -106,21 +134,38 @@ export class TopographyLayer implements ITopographyLayerService {
     const elevations: number[][] = [];
     const elevationNoise = NoiseGenerator.create(seed.getValue());
 
-    // Base elevation range for context (in feet)
-    const baseRange = this.getElevationRange(context.elevation);
+    // Calculate scale-adaptive elevation parameters
+    const params = this.calculateElevationParameters(context);
 
+    // First pass: generate noise values and find actual range
+    const noiseValues: number[][] = [];
+    let minNoise = Infinity;
+    let maxNoise = -Infinity;
+
+    for (let y = 0; y < this.height; y++) {
+      noiseValues[y] = [];
+      for (let x = 0; x < this.width; x++) {
+        const noise = elevationNoise.generateOctaves(x * 0.02, y * 0.02, 4, 0.6);
+        noiseValues[y][x] = noise;
+        minNoise = Math.min(minNoise, noise);
+        maxNoise = Math.max(maxNoise, noise);
+      }
+    }
+
+    // Second pass: normalize noise to 0-1 and apply elevation range
     for (let y = 0; y < this.height; y++) {
       elevations[y] = [];
       for (let x = 0; x < this.width; x++) {
         const geoTile = geology.tiles[y][x];
 
-        // Start with noise-based terrain
-        let elevation = baseRange.min +
-          elevationNoise.generateOctaves(x * 0.02, y * 0.02, 4, 0.6) *
-          (baseRange.max - baseRange.min);
+        // Normalize noise to 0-1 range
+        const normalizedNoise = (noiseValues[y][x] - minNoise) / (maxNoise - minNoise);
 
-        // Modify based on geological features
-        elevation = this.modifyElevationByFeatures(elevation, geoTile.features, x, y, elevationNoise);
+        // Apply elevation range
+        let elevation = params.min + normalizedNoise * (params.max - params.min);
+
+        // Modify based on geological features (with scaling)
+        elevation = this.modifyElevationByFeatures(elevation, geoTile.features, x, y, elevationNoise, params.max);
 
         elevations[y][x] = elevation;
       }
@@ -130,34 +175,75 @@ export class TopographyLayer implements ITopographyLayerService {
   }
 
   /**
-   * Get appropriate elevation range for context
+   * Calculate scale-adaptive elevation parameters
+   * Adjusts elevation range based on map physical size
    */
-  private getElevationRange(zone: ElevationZone): { min: number; max: number } {
-    switch (zone) {
-      case ElevationZone.LOWLAND:
-        return { min: 0, max: 30 }; // 0-30 feet variation
-      case ElevationZone.FOOTHILLS:
-        return { min: 10, max: 60 }; // 10-60 feet
-      case ElevationZone.HIGHLAND:
-        return { min: 20, max: 80 }; // 20-80 feet
-      case ElevationZone.ALPINE:
-        return { min: 30, max: 100 }; // 30-100 feet
-      default:
-        return { min: 0, max: 40 };
+  private calculateElevationParameters(
+    context: TacticalMapContext
+  ): ElevationParameters {
+    // Calculate physical dimensions (tiles × 5ft per tile)
+    const widthFeet = this.width * 5;
+    const heightFeet = this.height * 5;
+    const minDimension = Math.min(widthFeet, heightFeet);
+
+    // Determine scale category
+    let scale: 'tactical' | 'operational' | 'strategic';
+    if (minDimension < 300) {
+      scale = 'tactical'; // < 300ft = showing terrain sections
+    } else if (minDimension < 1000) {
+      scale = 'operational'; // 300-1000ft = showing multiple features
+    } else {
+      scale = 'strategic'; // > 1000ft = showing complete landscape
     }
+
+    // Base elevation range: 40% of smallest dimension
+    // Smaller maps show sections with proportional relief
+    const baseRange = minDimension * 0.40;
+
+    // Adjust by elevation zone
+    const zoneMultipliers: Record<ElevationZone, number> = {
+      [ElevationZone.LOWLAND]: 0.3,   // Gentle terrain
+      [ElevationZone.FOOTHILLS]: 0.6, // Moderate relief
+      [ElevationZone.HIGHLAND]: 0.8,  // Significant relief
+      [ElevationZone.ALPINE]: 1.0     // Maximum relief
+    };
+
+    const multiplier = zoneMultipliers[context.elevation] || 0.5;
+    const maxElevation = baseRange * multiplier;
+
+    this.logger?.debug('Calculated elevation parameters', {
+      metadata: {
+        scale,
+        physicalSize: `${widthFeet}ft × ${heightFeet}ft`,
+        elevationRange: `0-${Math.round(maxElevation)}ft`
+      }
+    });
+
+    return {
+      min: 0,
+      max: maxElevation,
+      physicalSize: { widthFeet, heightFeet, scale }
+    };
   }
 
   /**
    * Modify elevation based on geological features
+   * Features are scaled proportionally to map relief
    */
   private modifyElevationByFeatures(
     baseElevation: number,
     features: TerrainFeature[],
     x: number,
     y: number,
-    noise: NoiseGenerator
+    noise: NoiseGenerator,
+    maxElevation: number
   ): number {
     let elevation = baseElevation;
+
+    // Scale factor: normalize features to expected 50ft relief
+    // For tactical maps with 50ft relief, scale = 1.0
+    // For smaller relief, features scale down proportionally
+    const featureScale = maxElevation / 50;
 
     for (let i = 0; i < features.length; i++) {
       const feature = features[i];
@@ -165,46 +251,46 @@ export class TopographyLayer implements ITopographyLayerService {
       const variation = noise.generateAt(x * 0.13 + i, y * 0.13 + i);
 
       switch (feature) {
-        // Positive relief features
+        // Positive relief features (scaled)
         case TerrainFeature.TOWER:
-          elevation += 15 + variation * 25; // 15-40 feet
+          elevation += (15 + variation * 25) * featureScale; // 15-40 feet * scale
           break;
         case TerrainFeature.DOME:
-          elevation += 10 + variation * 20; // 10-30 feet
+          elevation += (10 + variation * 20) * featureScale; // 10-30 feet * scale
           break;
         case TerrainFeature.COLUMN:
-          elevation += 10 + variation * 15; // 10-25 feet
+          elevation += (10 + variation * 15) * featureScale; // 10-25 feet * scale
           break;
         case TerrainFeature.FIN:
-          elevation += 8 + variation * 12; // 8-20 feet
+          elevation += (8 + variation * 12) * featureScale; // 8-20 feet * scale
           break;
         case TerrainFeature.TOR:
-          elevation += 5 + variation * 10; // 5-15 feet
+          elevation += (5 + variation * 10) * featureScale; // 5-15 feet * scale
           break;
         case TerrainFeature.HOODOO:
-          elevation += 5 + variation * 15; // 5-20 feet
+          elevation += (5 + variation * 15) * featureScale; // 5-20 feet * scale
           break;
 
-        // Negative relief features
+        // Negative relief features (scaled)
         case TerrainFeature.SINKHOLE:
-          elevation -= 10 + variation * 20; // -10 to -30 feet
+          elevation -= (10 + variation * 20) * featureScale; // -10 to -30 feet * scale
           break;
         case TerrainFeature.CAVE:
-          elevation -= 5 + variation * 10; // -5 to -15 feet
+          elevation -= (5 + variation * 10) * featureScale; // -5 to -15 feet * scale
           break;
         case TerrainFeature.RAVINE:
-          elevation -= 8 + variation * 12; // -8 to -20 feet
+          elevation -= (8 + variation * 12) * featureScale; // -8 to -20 feet * scale
           break;
         case TerrainFeature.SLOT_CANYON:
-          elevation -= 15 + variation * 15; // -15 to -30 feet
+          elevation -= (15 + variation * 15) * featureScale; // -15 to -30 feet * scale
           break;
 
-        // Minor features
+        // Minor features (scaled)
         case TerrainFeature.LEDGE:
-          elevation += 3 + variation * 5; // 3-8 feet
+          elevation += (3 + variation * 5) * featureScale; // 3-8 feet * scale
           break;
         case TerrainFeature.TALUS:
-          elevation -= 2 + variation * 3; // -2 to -5 feet (debris slope)
+          elevation -= (2 + variation * 3) * featureScale; // -2 to -5 feet * scale
           break;
       }
     }
@@ -243,6 +329,174 @@ export class TopographyLayer implements ITopographyLayerService {
     }
 
     return eroded;
+  }
+
+  /**
+   * Apply geology-specific erosional features
+   * Adapts behavior based on rock type properties
+   */
+  private applyGeologicalFeatures(
+    elevations: number[][],
+    geology: GeologyLayerData,
+    seed: Seed,
+    maxElevation: number
+  ): void {
+    const featureNoise = NoiseGenerator.create(seed.getValue() * 11);
+
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        const geoTile = geology.tiles[y][x];
+        const rockType = geoTile.formation.rockType;
+
+        // Apply erosion features based on rock behavior
+        if (rockType === RockType.CARBONATE) {
+          // Chemical dissolution → irregular, angular features (limestone karst)
+          this.applyDissolutionFeatures(x, y, elevations, geoTile.fractureIntensity, maxElevation, featureNoise);
+        } else if (rockType === RockType.GRANITIC) {
+          // Mechanical fracture → needles or domes (granite)
+          this.applyFractureFeatures(x, y, elevations, geoTile.fractureIntensity, maxElevation, featureNoise);
+        } else if (rockType === RockType.CLASTIC) {
+          // Rapid erosion → smooth or badlands (sandstone/shale)
+          const resistance = geoTile.formation.properties.getErosionResistance();
+          this.applyWashFeatures(x, y, elevations, resistance, maxElevation, featureNoise);
+        } else if (rockType === RockType.METAMORPHIC) {
+          // Exfoliation → serrated ridges (slate/schist)
+          this.applyLayeredFeatures(x, y, elevations, maxElevation, featureNoise);
+        }
+      }
+    }
+  }
+
+  /**
+   * Apply dissolution features (limestone karst)
+   * Creates lapiaces (grooves) and dolinas (sinkholes)
+   * Features scaled proportionally to map relief
+   */
+  private applyDissolutionFeatures(
+    x: number,
+    y: number,
+    elevations: number[][],
+    fractureIntensity: number,
+    maxElevation: number,
+    noise: NoiseGenerator
+  ): void {
+    const dissolveStrength = noise.generateAt(x * 0.12, y * 0.12);
+    const featureScale = maxElevation / 50; // Scale to map relief
+
+    // High fracture + dissolution = fissures and grooves
+    if (fractureIntensity > 0.6 && dissolveStrength > 0.65) {
+      const depth = (8 + dissolveStrength * 15) * featureScale; // 8-23ft * scale
+      elevations[y][x] = Math.max(0, elevations[y][x] - depth);
+    }
+
+    // Circular depressions (dolinas/sinkholes)
+    if (fractureIntensity > 0.7 && dissolveStrength > 0.80) {
+      const dolinaDepth = (10 + dissolveStrength * 20) * featureScale; // 10-30ft * scale
+      // Apply radial depression
+      for (let dy = -2; dy <= 2; dy++) {
+        for (let dx = -2; dx <= 2; dx++) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height) {
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 3) {
+              const falloff = (3 - dist) / 3;
+              elevations[ny][nx] = Math.max(0, elevations[ny][nx] - dolinaDepth * falloff);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Apply fracture features (granite)
+   * Creates agujas (needles) at peaks, domos (domes) at base
+   * Features scaled proportionally to map relief
+   */
+  private applyFractureFeatures(
+    x: number,
+    y: number,
+    elevations: number[][],
+    fractureIntensity: number,
+    maxElevation: number,
+    noise: NoiseGenerator
+  ): void {
+    const fractureStrength = noise.generateAt(x * 0.15, y * 0.15);
+    const currentElevation = elevations[y][x];
+    const heightRatio = currentElevation / maxElevation;
+    const featureScale = maxElevation / 50; // Scale to map relief
+
+    // High altitude + high fracture = sharp needles
+    if (heightRatio > 0.7 && fractureIntensity > 0.6 && fractureStrength > 0.75) {
+      const needleHeight = (10 + fractureStrength * 20) * featureScale; // 10-30ft * scale
+      elevations[y][x] += needleHeight;
+    }
+    // Low altitude + low fracture = rounded domes
+    else if (heightRatio < 0.4 && fractureIntensity < 0.4) {
+      // Smooth by averaging with wider neighborhood
+      let sum = elevations[y][x];
+      let count = 1;
+      for (let dy = -2; dy <= 2; dy++) {
+        for (let dx = -2; dx <= 2; dx++) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height) {
+            sum += elevations[ny][nx];
+            count++;
+          }
+        }
+      }
+      elevations[y][x] = sum / count;
+    }
+  }
+
+  /**
+   * Apply wash features (soft sedimentary rocks)
+   * Creates smooth hills or badlands (cárcavas)
+   * Features scaled proportionally to map relief
+   */
+  private applyWashFeatures(
+    x: number,
+    y: number,
+    elevations: number[][],
+    erosionResistance: number,
+    maxElevation: number,
+    noise: NoiseGenerator
+  ): void {
+    const washStrength = noise.generateAt(x * 0.08, y * 0.08);
+    const featureScale = maxElevation / 50; // Scale to map relief
+
+    // Very low resistance = badlands with gullies
+    if (erosionResistance < 0.3 && washStrength > 0.70) {
+      const gullySteepness = 1.0 - erosionResistance;
+      const gullyDepth = (5 + washStrength * 10 * gullySteepness) * featureScale; // 5-15ft * scale
+      elevations[y][x] = Math.max(0, elevations[y][x] - gullyDepth);
+    }
+    // Normal wash erosion creates smooth terrain (handled by smoothing)
+  }
+
+  /**
+   * Apply layered features (slate/metamorphic)
+   * Creates serrated, saw-tooth ridges
+   * Features scaled proportionally to map relief
+   */
+  private applyLayeredFeatures(
+    x: number,
+    y: number,
+    elevations: number[][],
+    maxElevation: number,
+    noise: NoiseGenerator
+  ): void {
+    const layering = noise.generateAt(x * 0.20, y * 0.20);
+    const featureScale = maxElevation / 50; // Scale to map relief
+
+    // Create alternating peaks and troughs
+    if (layering > 0.65) {
+      const toothHeight = (3 + layering * 5) * featureScale; // 3-8ft * scale
+      const isUpper = ((x + y) % 3) === 0;
+      elevations[y][x] += isUpper ? toothHeight : -toothHeight * 0.5;
+    }
   }
 
   /**

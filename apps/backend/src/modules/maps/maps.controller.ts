@@ -62,7 +62,12 @@ export class MapsController {
       const width = dto.width || dto.dimensions?.width || 50;
       const height = dto.height || dto.dimensions?.height || 50;
       const seedValue = dto.seed || Math.floor(Math.random() * 1000000).toString();
-      const seed = typeof seedValue === 'string' ? Seed.fromString(seedValue) : Seed.fromNumber(seedValue);
+      // Handle seed: if it's a number, use fromNumber; if it's a numeric string, parse and use fromNumber; otherwise use fromString
+      const seed = typeof seedValue === 'number'
+        ? Seed.fromNumber(seedValue)
+        : /^\d+$/.test(seedValue)
+          ? Seed.fromNumber(Number(seedValue))
+          : Seed.fromString(seedValue);
 
       // Generate context from seed
       const context = TacticalMapContext.fromSeed(seed);
@@ -143,6 +148,10 @@ export class MapsController {
         req.user?.username || req.user?.email,
         dto.description
       );
+      // Handle seed: if it's a numeric string, use fromNumber, otherwise use fromString
+      const seed = /^\d+$/.test(dto.seed)
+        ? Seed.fromNumber(Number(dto.seed))
+        : Seed.fromString(dto.seed);
       const userId = req.user?.id || req.user?.userId || req.user?.sub;
       const ownerId = userId ? UserId.fromString(userId) : undefined;
 
@@ -175,6 +184,7 @@ export class MapsController {
         5, // Default cell size for tactical maps
         tiles,
         metadata,
+        seed,
         ownerId
       );
 

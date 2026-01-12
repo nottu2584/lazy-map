@@ -21,7 +21,7 @@
   "author": "",
   "license": "UNLICENSED",
   "devDependencies": {
-    "@types/node": "^24.10.1",
+    "@types/node": "^25.0.6",
     "typescript": "^5.7.3",
     "vitest": "^4.0.10"
   },

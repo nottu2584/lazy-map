@@ -177,6 +177,12 @@ lazy-map/
 │   │   └── .env.example
 │   └── frontend/           # React application
 │       ├── src/
+│       │   ├── components/      # UI components (shadcn/ui)
+│       │   ├── hooks/           # Custom React hooks
+│       │   ├── contexts/        # React Context providers
+│       │   ├── services/        # API client
+│       │   ├── types/           # TypeScript types
+│       │   └── lib/             # Utilities
 │       └── .env.example
 │
 ├── packages/               # Clean Architecture layers (CORE)
@@ -196,11 +202,17 @@ lazy-map/
 │   │       ├── features/         # Feature management
 │   │       └── contexts/         # Context-specific use cases
 │   │
-│   └── infrastructure/    # External integrations
-│       └── src/
-│           ├── adapters/         # Port implementations
-│           ├── persistence/      # Database
-│           └── services/         # External services
+│   ├── infrastructure/    # External integrations
+│   │   └── src/
+│   │       ├── adapters/         # Port implementations
+│   │       ├── persistence/      # Database
+│   │       └── services/         # External services
+│   │
+│   └── api-contracts/     # Auto-generated API types
+│       ├── src/
+│       │   ├── generated/        # Generated from OpenAPI spec
+│       │   └── index.ts          # Re-exports
+│       └── package.json
 │
 └── docker-compose.yml     # Development services
 ```
@@ -214,6 +226,32 @@ lazy-map/
 | **Artificial** | Man-made structures | Building, Road, Bridge |
 | **Cultural** | Settlements & regions | Settlement, Territory, Region |
 
+### OpenAPI Type Generation
+
+Frontend types are automatically generated from the backend's OpenAPI specification, ensuring end-to-end type safety:
+
+```bash
+# Generate types (run after backend API changes)
+pnpm generate
+
+# Watch mode (auto-regenerate on openapi.json changes)
+pnpm generate:watch
+```
+
+**How it works:**
+1. Backend exports `openapi.json` on startup (development mode)
+2. `openapi-typescript` generates TypeScript types in `packages/api-contracts`
+3. Frontend imports types from `@lazy-map/api-contracts`
+4. Compile-time errors catch API changes
+
+**Benefits:**
+- ✅ Single source of truth (backend schema)
+- ✅ Zero manual type duplication
+- ✅ Catch breaking API changes at build time
+- ✅ Full autocomplete for API requests/responses
+
+See [api-contracts README](./packages/api-contracts/README.md) for full documentation.
+
 ## 🛠️ Development
 
 ### Commands
@@ -223,6 +261,10 @@ lazy-map/
 pnpm dev              # Start frontend + backend
 pnpm dev:backend      # Backend only (port 3000)
 pnpm dev:frontend     # Frontend only (port 5173)
+
+# Type Generation
+pnpm generate         # Generate TypeScript types from OpenAPI spec
+pnpm generate:watch   # Auto-regenerate on openapi.json changes
 
 # Testing
 pnpm test            # Run all tests

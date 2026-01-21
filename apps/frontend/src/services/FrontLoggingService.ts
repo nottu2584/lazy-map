@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type {
   ILogger,
   LogLevel,
@@ -17,6 +18,9 @@ const LogLevelEnum: Record<string, LogLevel> = {
 /**
  * Frontend logging service implementation for browser environments
  * Uses browser console with structured formatting
+ *
+ * Note: console statements are intentional here as this is a logging adapter
+ * implementing the ILogger interface from the domain layer.
  */
 export class FrontLoggingService implements ILogger {
   private readonly baseContext: Partial<ErrorContext>;

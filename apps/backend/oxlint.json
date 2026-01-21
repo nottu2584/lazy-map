@@ -1,10 +1,5 @@
 {
-  "linter": "oxlint",
-  "exts": ["ts", "tsx", "js", "jsx"],
-  "formatter": "stylish",
-  "parserOptions": { "lang": "typescript" },
   "rules": {
-    "all": "warn",
     "correctness": "error",
     "suspicious": "error",
     "complexity": "off",
@@ -12,7 +7,7 @@
     "no-explicit-any": "off",
     "no-console": "off"
   },
-  "ignores": [
+  "ignorePatterns": [
     "dist/**",
     "node_modules/**",
     "coverage/**",

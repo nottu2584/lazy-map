@@ -62,6 +62,26 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup(apiPrefix, app, document);
 
+  // Export OpenAPI JSON spec for codegen (only in development)
+  // Do this BEFORE app.listen() so it works even if database isn't available
+  if (nodeEnv === 'development') {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const outputPath = path.resolve(__dirname, '../../openapi.json');
+      fs.writeFileSync(outputPath, JSON.stringify(document, null, 2));
+      logger.info(`OpenAPI spec written to: ${outputPath}`, {
+        component: 'Bootstrap',
+        operation: 'swagger-export'
+      });
+    } catch (error) {
+      logger.error('Failed to write OpenAPI spec', {
+        component: 'Bootstrap',
+        operation: 'swagger-export'
+      }, { error });
+    }
+  }
+
   // Start server
   const port = configService.get<number>('PORT', 3000);
   await app.listen(port);

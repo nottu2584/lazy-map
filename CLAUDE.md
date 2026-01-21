@@ -131,14 +131,16 @@ import { Building } from '@lazy-map/domain/contexts/artificial/entities/Building
 - `revert` - Revert previous commit
 
 **Valid Scopes** (MUST use one of these):
-- `deps` - Dependency updates
-- `backend` - Backend app
-- `frontend` - Frontend app
 - `application` - Application layer
-- `domain` - Domain layer
-- `infrastructure` - Infrastructure layer
+- `backend` - Backend app
 - `ci` - CI/CD
+- `deps` - Dependency updates
+- `docs` - Documentation
+- `domain` - Domain layer
+- `frontend` - Frontend app
+- `infrastructure` - Infrastructure layer
 - `release` - Release-related
+- `security` - Security fixes
 
 **Examples**:
 ```
@@ -152,6 +154,16 @@ import { Building } from '@lazy-map/domain/contexts/artificial/entities/Building
 ❌ fix(backend): This line starts with capital letter
 ❌ fix(backend): this line exceeds the 100 character limit for the entire header length
 ```
+
+**VS Code Setup**:
+The repository includes VS Code configuration for easier commit creation:
+- Extension: `vivaxy.vscode-conventional-commits` (auto-recommended)
+- Git commit template: `.gitmessage` (shows valid types/scopes in commit editor)
+- GitHub Copilot: AI-powered commit generation with custom instructions
+- Settings in `.vscode/settings.json` match `commitlint.config.mjs` exactly
+- Use CMD+Shift+P → "Conventional Commits" to create commits with guided UI
+- Click sparkle icon (⚡) in Source Control for AI-generated commit messages
+- See [/docs/guides/commit-message-generation.md](../docs/guides/commit-message-generation.md) for details
 
 ## Dependency Injection Pattern
 

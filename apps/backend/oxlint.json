@@ -1,18 +1,11 @@
 {
-  "linter": "oxlint",
-  "exts": ["ts", "tsx", "js", "jsx"],
-  "formatter": "stylish",
-  "parserOptions": { "lang": "typescript" },
+  "$schema": "https://oxc.rs/schema.json",
   "rules": {
-    "all": "warn",
     "correctness": "error",
     "suspicious": "error",
-    "complexity": "off",
-    "no-empty-interface": "off",
-    "no-explicit-any": "off",
-    "no-console": "off"
+    "complexity": "off"
   },
-  "ignores": [
+  "ignorePatterns": [
     "dist/**",
     "node_modules/**",
     "coverage/**",

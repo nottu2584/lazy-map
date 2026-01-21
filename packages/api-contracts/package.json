@@ -1,0 +1,15 @@
+{
+  "name": "@lazy-map/api-contracts",
+  "version": "1.0.0",
+  "description": "Auto-generated API types and client from OpenAPI spec",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "echo 'No build needed - TypeScript types only'",
+    "generate": "openapi-typescript ../../apps/backend/openapi.json -o src/generated/types.ts && prettier --write src/generated/types.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.4.4",
+    "prettier": "^3.5.3"
+  }
+}

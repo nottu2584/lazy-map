@@ -1,49 +1,67 @@
-import { useState } from 'react';
-import { MapGenerator } from './components/MapGenerator';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { SimplifiedMapGenerator } from './components/map/MapGenerator';
 import { MapHistory } from './components/MapHistory';
-import { Navigation } from './components/Navigation';
+import { MinimalNavigation } from './components/MinimalNavigation';
+import { OAuthCallback } from './components/OAuthCallback';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
 import './App.css';
 
 function App() {
-  const [currentView, setCurrentView] = useState<'generator' | 'history' | 'profile'>('generator');
-
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <Navigation currentView={currentView} onViewChange={setCurrentView} />
+      <BrowserRouter>
+        <ErrorBoundary>
+          <div className="min-h-screen bg-background">
+            <MinimalNavigation />
 
-        <main className="container mx-auto px-4 py-8">
-          {currentView === 'generator' && (
-            <div>
-              <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-gray-900 mb-3">
-                  Tactical Battlemap Generator
-                </h1>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                  Generate unique tactical maps for your tabletop RPG sessions.
-                  Each map is procedurally generated with realistic terrain, vegetation, and structures.
-                </p>
-              </div>
-              <MapGenerator />
-            </div>
-          )}
+            <main className="pt-16">
+              <Routes>
+              <Route
+                path="/"
+                element={<SimplifiedMapGenerator />}
+              />
 
-          {currentView === 'history' && (
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-8">Map History</h1>
-              <MapHistory />
-            </div>
-          )}
+              <Route
+                path="/history"
+                element={
+                  <div className="container mx-auto px-6 py-16">
+                    <h1 className="text-section-title font-heading mb-8">Map History</h1>
+                    <MapHistory />
+                  </div>
+                }
+              />
 
-          {currentView === 'profile' && (
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-8">Profile</h1>
-              <p className="text-gray-600">Manage your account and preferences.</p>
-            </div>
-          )}
-        </main>
-      </div>
+              <Route
+                path="/profile"
+                element={
+                  <div className="container mx-auto px-6 py-16">
+                    <h1 className="text-section-title font-heading mb-8">Profile</h1>
+                    <p className="text-body-large text-muted-foreground">
+                      Manage your account and preferences.
+                    </p>
+                  </div>
+                }
+              />
+
+              <Route path="/auth/callback" element={<OAuthCallback />} />
+
+              <Route
+                path="*"
+                element={
+                  <div className="text-center py-32 px-6">
+                    <h1 className="text-hero font-heading mb-4">404</h1>
+                    <p className="text-body-large text-muted-foreground">
+                      The page you're looking for doesn't exist.
+                    </p>
+                  </div>
+                }
+              />
+              </Routes>
+            </main>
+          </div>
+        </ErrorBoundary>
+      </BrowserRouter>
     </AuthProvider>
   );
 }

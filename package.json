@@ -17,6 +17,8 @@
     "lint:fix": "turbo lint:fix",
     "format": "turbo format",
     "setup": "pnpm install && turbo build --filter='@lazy-map/*'",
+    "generate": "pnpm --filter @lazy-map/api-contracts generate",
+    "generate:watch": "nodemon --watch apps/backend/openapi.json --exec 'pnpm generate'",
     "prepare": "node -e \"if (process.env.CI !== 'true') { require('child_process').execSync('husky', { stdio: 'inherit' }) }\""
   },
   "engines": {
@@ -27,6 +29,7 @@
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "concurrently": "^8.2.2",
+    "husky": "^9.1.7",
     "oxlint": "^1.9.0",
     "prettier": "^3.5.3",
     "turbo": "^2.5.5",

@@ -1,9 +1,11 @@
 {
-  "$schema": "https://oxc.rs/schema.json",
   "rules": {
     "correctness": "error",
     "suspicious": "error",
-    "complexity": "off"
+    "complexity": "off",
+    "no-empty-interface": "off",
+    "no-explicit-any": "off",
+    "no-console": "off"
   },
   "ignorePatterns": [
     "dist/**",

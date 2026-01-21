@@ -1,0 +1,1786 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User successfully registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid registration data"
+          },
+          "409": {
+            "description": "Email or username already exists"
+          }
+        },
+        "summary": "Register a new user",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User successfully logged in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        },
+        "summary": "Login user",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/auth/profile": {
+      "get": {
+        "operationId": "AuthController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current user profile",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/auth/google": {
+      "post": {
+        "operationId": "AuthController_googleSignIn",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleSignInDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully authenticated with Google",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Google token"
+          }
+        },
+        "summary": "Sign in with Google",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/auth/link-google": {
+      "post": {
+        "operationId": "AuthController_linkGoogleAccount",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkGoogleAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Google account linked successfully"
+          },
+          "400": {
+            "description": "Failed to link Google account"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Link Google account to existing user",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/auth/discord": {
+      "post": {
+        "operationId": "AuthController_discordSignIn",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscordSignInDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully authenticated with Discord",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid Discord token"
+          }
+        },
+        "summary": "Sign in with Discord",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/auth/link-discord": {
+      "post": {
+        "operationId": "AuthController_linkDiscordAccount",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkDiscordAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Discord account linked successfully"
+          },
+          "400": {
+            "description": "Failed to link Discord account"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Link Discord account to existing user",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/auth/google/login": {
+      "get": {
+        "operationId": "AuthController_initiateGoogleSignIn",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorization URL generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "authorizationUrl": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to generate authorization URL"
+          }
+        },
+        "summary": "Initiate Google OAuth sign-in",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/auth/google/callback": {
+      "get": {
+        "operationId": "AuthController_completeGoogleSignIn",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OAuth sign-in completed successfully"
+          },
+          "400": {
+            "description": "Invalid OAuth callback"
+          }
+        },
+        "summary": "Complete Google OAuth sign-in",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/auth/discord/login": {
+      "get": {
+        "operationId": "AuthController_initiateDiscordSignIn",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorization URL generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "authorizationUrl": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to generate authorization URL"
+          }
+        },
+        "summary": "Initiate Discord OAuth sign-in",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/auth/discord/callback": {
+      "get": {
+        "operationId": "AuthController_completeDiscordSignIn",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OAuth sign-in completed successfully"
+          },
+          "400": {
+            "description": "Invalid OAuth callback"
+          }
+        },
+        "summary": "Complete Discord OAuth sign-in",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/admin/users": {
+      "get": {
+        "operationId": "AdminController_listUsers",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Number of users per page",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of users to skip",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "description": "Filter by user role",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "USER",
+                "ADMIN",
+                "SUPER_ADMIN"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by user status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "SUSPENDED",
+                "PENDING",
+                "DEACTIVATED"
+              ]
+            }
+          },
+          {
+            "name": "searchTerm",
+            "required": false,
+            "in": "query",
+            "description": "Search in email and username",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all users with filtering and pagination",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/{userId}": {
+      "put": {
+        "operationId": "AdminController_updateUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID to update",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update user information",
+        "tags": [
+          "administration"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminController_deleteUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID to delete",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminActionResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a user account (permanent action)",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/{userId}/suspend": {
+      "post": {
+        "operationId": "AdminController_suspendUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID to suspend",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuspendUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User suspended successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminActionResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Suspend a user account",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/{userId}/reactivate": {
+      "post": {
+        "operationId": "AdminController_reactivateUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID to reactivate",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User reactivated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminActionResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reactivate a suspended user account",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/{userId}/role": {
+      "put": {
+        "operationId": "AdminController_promoteUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID to promote/demote",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromoteUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User role changed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminActionResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change user role (promote/demote)",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/admin/users/stats": {
+      "get": {
+        "operationId": "AdminController_getUserStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "User statistics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatsResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get user statistics for dashboard",
+        "tags": [
+          "administration"
+        ]
+      }
+    },
+    "/api/maps/generate": {
+      "post": {
+        "operationId": "MapsController_generateMap",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateMapDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tactical map generated successfully"
+          }
+        },
+        "summary": "Generate a new tactical battlemap",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/save": {
+      "post": {
+        "operationId": "MapsController_saveMap",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveMapDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Map saved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaveMapResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid map data"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Save a generated map for future retrieval",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/my-maps": {
+      "get": {
+        "operationId": "MapsController_getMyMaps",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Map history retrieved successfully"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current user's map history",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/{id}": {
+      "get": {
+        "operationId": "MapsController_getMap",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Map found"
+          },
+          "404": {
+            "description": "Map not found"
+          }
+        },
+        "summary": "Get a map by ID",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/seeds/validate": {
+      "post": {
+        "operationId": "MapsController_validateSeed",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateSeedDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Seed validation result"
+          }
+        },
+        "summary": "Validate a seed value for map generation",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/health": {
+      "get": {
+        "operationId": "MapsController_healthCheck",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Health check for maps service",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/benchmark/run": {
+      "post": {
+        "operationId": "BenchmarkController_runBenchmark",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Benchmark completed successfully"
+          }
+        },
+        "summary": "Run performance benchmark on tactical map generation",
+        "tags": [
+          "benchmark"
+        ]
+      }
+    },
+    "/api/benchmark/quick": {
+      "get": {
+        "operationId": "BenchmarkController_quickBenchmark",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Quick benchmark completed"
+          }
+        },
+        "summary": "Run a quick benchmark with default settings",
+        "tags": [
+          "benchmark"
+        ]
+      }
+    },
+    "/api/features": {
+      "get": {
+        "operationId": "FeaturesController_getAllFeatures",
+        "parameters": [
+          {
+            "name": "context",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "relief",
+                "natural",
+                "artificial",
+                "cultural"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Features retrieved successfully"
+          }
+        },
+        "summary": "Get all map features",
+        "tags": [
+          "features"
+        ]
+      }
+    },
+    "/api/features/statistics": {
+      "get": {
+        "operationId": "FeaturesController_getFeatureStatistics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Statistics retrieved successfully"
+          }
+        },
+        "summary": "Get feature statistics by context",
+        "tags": [
+          "features"
+        ]
+      }
+    },
+    "/api/features/{id}": {
+      "get": {
+        "operationId": "FeaturesController_getFeature",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Feature ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Feature found"
+          },
+          "404": {
+            "description": "Feature not found"
+          }
+        },
+        "summary": "Get a feature by ID",
+        "tags": [
+          "features"
+        ]
+      }
+    },
+    "/api/features/all": {
+      "delete": {
+        "operationId": "FeaturesController_clearAllFeatures",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "All features cleared successfully"
+          }
+        },
+        "summary": "Clear all features from all contexts",
+        "tags": [
+          "features"
+        ]
+      }
+    },
+    "/api/features/health": {
+      "get": {
+        "operationId": "FeaturesController_healthCheck",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Health check for features service",
+        "tags": [
+          "features"
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "HealthController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Application is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "healthy",
+                        "degraded",
+                        "unhealthy"
+                      ]
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "uptime": {
+                      "type": "number",
+                      "description": "Uptime in seconds"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Check application health status",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/health/live": {
+      "get": {
+        "operationId": "HealthController_getLiveness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Application is alive"
+          }
+        },
+        "summary": "Liveness probe endpoint",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/health/ready": {
+      "get": {
+        "operationId": "HealthController_getReadiness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Application is ready"
+          },
+          "503": {
+            "description": "Application is not ready"
+          }
+        },
+        "summary": "Readiness probe endpoint",
+        "tags": [
+          "health"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Lazy Map API",
+    "description": "API for generating battle maps",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "maps",
+      "description": ""
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "RegisterUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email address",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password (minimum 8 characters)",
+            "example": "securePassword123",
+            "minLength": 8
+          },
+          "username": {
+            "type": "string",
+            "description": "Username for the account",
+            "example": "johnDoe",
+            "minLength": 3,
+            "maxLength": 50
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "username"
+        ]
+      },
+      "AuthResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "JWT access token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "user": {
+            "type": "object",
+            "description": "User information"
+          }
+        },
+        "required": [
+          "accessToken",
+          "user"
+        ]
+      },
+      "LoginUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email address",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password",
+            "example": "securePassword123"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "UserProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "User ID",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "email": {
+            "type": "string",
+            "description": "User email address",
+            "example": "user@example.com"
+          },
+          "username": {
+            "type": "string",
+            "description": "Username",
+            "example": "johnDoe"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Account creation date",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "lastLogin": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last login date",
+            "example": "2024-09-10T14:20:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "username",
+          "createdAt"
+        ]
+      },
+      "GoogleSignInDto": {
+        "type": "object",
+        "properties": {
+          "idToken": {
+            "type": "string",
+            "description": "Google ID token received from Google Sign-In",
+            "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjI4YTQyMWNhZmJlM..."
+          },
+          "clientId": {
+            "type": "string",
+            "description": "Optional Google client ID for additional validation",
+            "example": "123456789012-abcdefghijk.apps.googleusercontent.com"
+          }
+        },
+        "required": [
+          "idToken"
+        ]
+      },
+      "LinkGoogleAccountDto": {
+        "type": "object",
+        "properties": {
+          "idToken": {
+            "type": "string",
+            "description": "Google ID token received from Google Sign-In",
+            "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjI4YTQyMWNhZmJlM..."
+          }
+        },
+        "required": [
+          "idToken"
+        ]
+      },
+      "DiscordSignInDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Discord access token received from Discord OAuth",
+            "example": "YOUR_DISCORD_ACCESS_TOKEN_HERE"
+          }
+        },
+        "required": [
+          "accessToken"
+        ]
+      },
+      "LinkDiscordAccountDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Discord access token received from Discord OAuth",
+            "example": "YOUR_DISCORD_ACCESS_TOKEN_HERE"
+          }
+        },
+        "required": [
+          "accessToken"
+        ]
+      },
+      "UserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastLoginAt": {
+            "type": "object"
+          },
+          "suspendedAt": {
+            "type": "object"
+          },
+          "suspensionReason": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "username",
+          "role",
+          "status",
+          "createdAt"
+        ]
+      },
+      "UserListDataDto": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "users",
+          "total",
+          "hasMore"
+        ]
+      },
+      "UserListResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserListDataDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "New email address"
+          },
+          "username": {
+            "type": "string",
+            "description": "New username"
+          }
+        }
+      },
+      "UserResponseDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "username",
+          "role",
+          "status",
+          "updatedAt"
+        ]
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserResponseDataDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "SuspendUserDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "description": "Reason for suspension"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "AdminActionDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "previousRole": {
+            "type": "string"
+          },
+          "newRole": {
+            "type": "string"
+          },
+          "suspendedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "reactivatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "promotedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "deletedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "suspensionReason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "AdminActionResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AdminActionDataDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "PromoteUserDto": {
+        "type": "object",
+        "properties": {
+          "newRole": {
+            "type": "string",
+            "description": "New role for the user",
+            "enum": [
+              "USER",
+              "ADMIN",
+              "SUPER_ADMIN"
+            ]
+          }
+        },
+        "required": [
+          "newRole"
+        ]
+      },
+      "DeleteUserDto": {
+        "type": "object",
+        "properties": {
+          "confirmDeletion": {
+            "type": "boolean",
+            "description": "Explicit confirmation of deletion"
+          }
+        },
+        "required": [
+          "confirmDeletion"
+        ]
+      },
+      "UserStatsDataDto": {
+        "type": "object",
+        "properties": {
+          "totalUsers": {
+            "type": "number"
+          },
+          "activeUsers": {
+            "type": "number"
+          },
+          "suspendedUsers": {
+            "type": "number"
+          },
+          "pendingUsers": {
+            "type": "number"
+          },
+          "deactivatedUsers": {
+            "type": "number"
+          },
+          "adminUsers": {
+            "type": "number"
+          },
+          "superAdminUsers": {
+            "type": "number"
+          },
+          "regularUsers": {
+            "type": "number"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "totalUsers",
+          "activeUsers",
+          "suspendedUsers",
+          "pendingUsers",
+          "deactivatedUsers",
+          "adminUsers",
+          "superAdminUsers",
+          "regularUsers",
+          "generatedAt"
+        ]
+      },
+      "UserStatsResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserStatsDataDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "DimensionsDto": {
+        "type": "object",
+        "properties": {
+          "width": {
+            "type": "number",
+            "description": "Map width in tiles",
+            "minimum": 10,
+            "maximum": 200
+          },
+          "height": {
+            "type": "number",
+            "description": "Map height in tiles",
+            "minimum": 10,
+            "maximum": 200
+          }
+        },
+        "required": [
+          "width",
+          "height"
+        ]
+      },
+      "GenerateMapDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Map name"
+          },
+          "width": {
+            "type": "number",
+            "description": "Map width (deprecated, use dimensions)",
+            "minimum": 10,
+            "maximum": 200
+          },
+          "height": {
+            "type": "number",
+            "description": "Map height (deprecated, use dimensions)",
+            "minimum": 10,
+            "maximum": 200
+          },
+          "dimensions": {
+            "description": "Map dimensions",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DimensionsDto"
+              }
+            ]
+          },
+          "seed": {
+            "type": "object",
+            "description": "Seed for deterministic generation"
+          }
+        }
+      },
+      "TileDto": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number",
+            "description": "X coordinate of the tile"
+          },
+          "y": {
+            "type": "number",
+            "description": "Y coordinate of the tile"
+          },
+          "terrain": {
+            "type": "string",
+            "description": "Terrain type of the tile"
+          },
+          "elevation": {
+            "type": "number",
+            "description": "Elevation of the tile"
+          },
+          "vegetation": {
+            "type": "string",
+            "description": "Vegetation on the tile"
+          },
+          "structure": {
+            "type": "string",
+            "description": "Structure on the tile"
+          },
+          "features": {
+            "description": "Features on the tile",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "moisture": {
+            "type": "number",
+            "description": "Moisture level of the tile"
+          },
+          "temperature": {
+            "type": "number",
+            "description": "Temperature of the tile"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "terrain"
+        ]
+      },
+      "SaveMapDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Generated map ID"
+          },
+          "width": {
+            "type": "number",
+            "description": "Map width"
+          },
+          "height": {
+            "type": "number",
+            "description": "Map height"
+          },
+          "seed": {
+            "type": "string",
+            "description": "Seed used for generation"
+          },
+          "tiles": {
+            "description": "Map tiles",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TileDto"
+            }
+          },
+          "name": {
+            "type": "string",
+            "description": "Optional map name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional map description"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Optional map metadata"
+          }
+        },
+        "required": [
+          "id",
+          "width",
+          "height",
+          "seed",
+          "tiles"
+        ]
+      },
+      "SaveMapResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the save was successful"
+          },
+          "mapId": {
+            "type": "string",
+            "description": "Saved map ID"
+          },
+          "message": {
+            "type": "string",
+            "description": "Success message"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if save failed"
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "ValidateSeedDto": {
+        "type": "object",
+        "properties": {
+          "seed": {
+            "type": "object",
+            "description": "Seed value to validate"
+          }
+        },
+        "required": [
+          "seed"
+        ]
+      }
+    }
+  }
+}

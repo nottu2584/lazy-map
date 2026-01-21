@@ -1,0 +1,5 @@
+node_modules
+dist
+
+# Optional: Uncomment to not commit generated types (regenerate in CI)
+# src/generated/types.ts

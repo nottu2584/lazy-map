@@ -10,7 +10,8 @@ import {
   Seed,
   TacticalMapContext,
   Terrain,
-  UserId
+  UserId,
+  VegetationConfig
 } from '@lazy-map/domain';
 import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
 import { Body, Controller, Get, Inject, Param, Post, Request, UseGuards } from '@nestjs/common';
@@ -72,9 +73,21 @@ export class MapsController {
       // Generate context from seed
       const context = TacticalMapContext.fromSeed(seed);
 
+      // Create vegetation config if provided
+      let vegetationConfig: VegetationConfig | undefined;
+      if (dto.vegetationMultiplier !== undefined) {
+        vegetationConfig = VegetationConfig.create(dto.vegetationMultiplier);
+      }
+
       // Execute tactical map generation
       const startTime = Date.now();
-      const result = await this.generateTacticalMapUseCase.execute(width, height, context, seed);
+      const result = await this.generateTacticalMapUseCase.execute(
+        width,
+        height,
+        context,
+        seed,
+        vegetationConfig
+      );
       const duration = Date.now() - startTime;
 
       operationLogger.info('Tactical map generation completed successfully', {

@@ -45,4 +45,16 @@ export class GenerateMapDto {
   @ApiPropertyOptional({ description: 'Seed for deterministic generation' })
   @IsOptional()
   seed?: string | number;
+
+  @ApiPropertyOptional({
+    description: 'Vegetation density multiplier (0.0-2.0). Controls forest coverage and tree density. 0.0 = no vegetation, 1.0 = normal forest, 2.0 = maximum density jungle',
+    minimum: 0.0,
+    maximum: 2.0,
+    default: 1.0
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0.0)
+  @Max(2.0)
+  vegetationMultiplier?: number;
 }

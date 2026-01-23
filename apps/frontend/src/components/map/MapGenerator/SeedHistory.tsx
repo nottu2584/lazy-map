@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { seedHistoryService, type SeedHistoryEntry } from '../../../services/seedHistoryService';
+import { seedHistoryService, type SeedHistoryEntry } from '../../../services';
 
 interface SeedHistoryProps {
   onApplySeed: (entry: SeedHistoryEntry) => void;

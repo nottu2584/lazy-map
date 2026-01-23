@@ -62,8 +62,8 @@ export function SliderInput({
         </span>
       </div>
       <Slider
-        value={value}
-        onValueChange={onChange}
+        value={[value]}
+        onValueChange={(values) => onChange(values[0])}
         min={min}
         max={max}
         step={step}

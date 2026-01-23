@@ -39,10 +39,6 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
     @apply bg-background text-foreground;
     font-family: 'Urbanist', system-ui, -apple-system, sans-serif;
@@ -62,31 +58,14 @@
     line-height: 1.1;
   }
 
-  /* Labels, technical text, code */
-  label, code, pre, .mono {
+  /* Technical text: code blocks, user input, map labels */
+  code, pre, .mono {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+  }
+
+  /* User input text (what users type) */
+  input, textarea, select {
     font-family: 'JetBrains Mono', 'Courier New', monospace;
   }
 }
 
-@layer components {
-  /* Hero text styles */
-  .text-hero {
-    font-size: clamp(3rem, 8vw, 6rem);
-    font-weight: 900;
-    letter-spacing: -0.03em;
-    line-height: 1;
-  }
-
-  .text-section-title {
-    font-size: 2rem;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }
-
-  .text-body-large {
-    font-size: 1.25rem;
-    line-height: 1.6;
-    font-weight: 400;
-  }
-}

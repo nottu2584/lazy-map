@@ -58,7 +58,7 @@ export function PasswordRequirements({
       )}
       <span
         className={cn(
-          'font-mono text-xs',
+          'text-xs',
           hasStartedTyping
             ? met
               ? 'text-foreground'
@@ -73,7 +73,7 @@ export function PasswordRequirements({
 
   return (
     <div className="space-y-2 mt-3 p-3 rounded-md bg-muted/30 border border-border">
-      <p className="text-xs font-mono font-medium uppercase tracking-wide text-muted-foreground mb-2">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">
         Password Requirements:
       </p>
       <div className="space-y-1.5">

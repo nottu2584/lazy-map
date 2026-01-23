@@ -5,7 +5,6 @@ import { MinimalNavigation } from './components/MinimalNavigation';
 import { OAuthCallback } from './components/OAuthCallback';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
-import './App.css';
 
 function App() {
   return (
@@ -26,7 +25,9 @@ function App() {
                 path="/history"
                 element={
                   <div className="container mx-auto px-6 py-16">
-                    <h1 className="text-section-title font-heading mb-8">Map History</h1>
+                    <h1 className="scroll-m-20 text-3xl font-semibold tracking-tight mb-8">
+                      Map History
+                    </h1>
                     <MapHistory />
                   </div>
                 }
@@ -36,8 +37,10 @@ function App() {
                 path="/profile"
                 element={
                   <div className="container mx-auto px-6 py-16">
-                    <h1 className="text-section-title font-heading mb-8">Profile</h1>
-                    <p className="text-body-large text-muted-foreground">
+                    <h1 className="scroll-m-20 text-3xl font-semibold tracking-tight mb-8">
+                      Profile
+                    </h1>
+                    <p className="text-lg text-muted-foreground">
                       Manage your account and preferences.
                     </p>
                   </div>
@@ -50,8 +53,10 @@ function App() {
                 path="*"
                 element={
                   <div className="text-center py-32 px-6">
-                    <h1 className="text-hero font-heading mb-4">404</h1>
-                    <p className="text-body-large text-muted-foreground">
+                    <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight mb-4">
+                      404
+                    </h1>
+                    <p className="text-lg text-muted-foreground">
                       The page you're looking for doesn't exist.
                     </p>
                   </div>

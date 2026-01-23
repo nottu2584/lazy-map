@@ -79,8 +79,10 @@ export function OAuthCallback() {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-        <div className="text-4xl font-heading font-bold mb-4">Signing you in...</div>
-        <p className="text-body-large text-muted-foreground">Please wait</p>
+        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight mb-4">
+          Signing you in...
+        </h1>
+        <p className="text-lg text-muted-foreground">Please wait</p>
       </div>
     </div>
   );

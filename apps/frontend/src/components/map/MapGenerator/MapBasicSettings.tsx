@@ -1,5 +1,10 @@
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldGroup,
+} from '@/components/ui/field';
 
 interface MapBasicSettingsProps {
   name: string;
@@ -19,22 +24,21 @@ export function MapBasicSettings({
   onHeightChange,
 }: MapBasicSettingsProps) {
   return (
-    <div className="space-y-4">
-      <div>
-        <Label htmlFor="map-name">Map Name (optional)</Label>
+    <FieldGroup>
+      <Field>
+        <FieldLabel htmlFor="map-name">Map Name (optional)</FieldLabel>
         <Input
           id="map-name"
           type="text"
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
           placeholder="Leave empty to use seed as name"
-          className="mt-1.5"
         />
-      </div>
+      </Field>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="map-width">Width</Label>
+        <Field>
+          <FieldLabel htmlFor="map-width">Width</FieldLabel>
           <Input
             id="map-width"
             type="number"
@@ -42,11 +46,11 @@ export function MapBasicSettings({
             max="100"
             value={width}
             onChange={(e) => onWidthChange(parseInt(e.target.value))}
-            className="mt-1.5"
           />
-        </div>
-        <div>
-          <Label htmlFor="map-height">Height</Label>
+          <FieldDescription>10-100 tiles</FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="map-height">Height</FieldLabel>
           <Input
             id="map-height"
             type="number"
@@ -54,10 +58,10 @@ export function MapBasicSettings({
             max="100"
             value={height}
             onChange={(e) => onHeightChange(parseInt(e.target.value))}
-            className="mt-1.5"
           />
-        </div>
+          <FieldDescription>10-100 tiles</FieldDescription>
+        </Field>
       </div>
-    </div>
+    </FieldGroup>
   );
 }

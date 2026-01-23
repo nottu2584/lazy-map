@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { apiService } from '../services/apiService';
+import { apiService } from '../services';
 import type { MapSettings, GeneratedMap } from '@/types';
 
 export function useMapGeneration() {

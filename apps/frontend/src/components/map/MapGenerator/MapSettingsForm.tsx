@@ -4,7 +4,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { MapBasicSettings } from './MapBasicSettings';
 import { MapSeedInput } from './MapSeedInput';
 import { SeedHistory } from './SeedHistory';
-import { seedHistoryService, type SeedHistoryEntry } from '../../../services/seedHistoryService';
+import { MapAdvancedSettings } from './MapAdvancedSettings';
+import { seedHistoryService, type SeedHistoryEntry } from '../../../services';
 import type { MapSettings } from '@/types';
 
 interface MapSettingsFormProps {
@@ -19,21 +20,6 @@ export function MapSettingsForm({ onGenerate, isGenerating }: MapSettingsFormPro
     height: 50,
     cellSize: 5,
     seed: '',
-    generateForests: true,
-    generateRivers: false,
-    generateRoads: false,
-    generateBuildings: false,
-    terrainDistribution: {
-      grassland: 0.4,
-      forest: 0.3,
-      mountain: 0.2,
-      water: 0.1,
-    },
-    forestSettings: {
-      forestDensity: 0.3,
-      treeDensity: 0.6,
-      treeClumping: 0.7,
-    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -116,6 +102,14 @@ export function MapSettingsForm({ onGenerate, isGenerating }: MapSettingsFormPro
           </p>
         </div>
       </Alert>
+
+      {/* Advanced Settings */}
+      <MapAdvancedSettings
+        settings={settings.advancedSettings}
+        onChange={(advancedSettings) =>
+          setSettings((prev) => ({ ...prev, advancedSettings }))
+        }
+      />
 
       <Button type="submit" disabled={isGenerating} className="w-full">
         {isGenerating ? 'Generating...' : 'Generate Map'}

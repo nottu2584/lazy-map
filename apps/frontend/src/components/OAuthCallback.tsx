@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { logger } from '../services/logger';
+import { logger } from '../services';
 
 export function OAuthCallback() {
   const [searchParams] = useSearchParams();
@@ -16,7 +16,7 @@ export function OAuthCallback() {
         const error = searchParams.get('error');
 
         if (error) {
-          logger.error('OAuth error', { component: 'OAuthCallback', error });
+          logger.error('OAuth error', { component: 'OAuthCallback', metadata: { error } });
           alert(`Authentication failed: ${error}`);
           navigate('/');
           return;
@@ -41,10 +41,11 @@ export function OAuthCallback() {
               id: userId,
               email,
               username,
+              role: 'user', // Default role for OAuth users
             },
             token
           );
-          logger.info('OAuth login successful', { component: 'OAuthCallback', email });
+          logger.info('OAuth login successful', { component: 'OAuthCallback', metadata: { email } });
         } else {
           // Fetch user data from API using token
           const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3030/api';
@@ -60,13 +61,13 @@ export function OAuthCallback() {
 
           const userData = await response.json();
           login(userData, token);
-          logger.info('OAuth login successful', { component: 'OAuthCallback', email: userData.email });
+          logger.info('OAuth login successful', { component: 'OAuthCallback', metadata: { email: userData.email } });
         }
 
         // Redirect to home
         navigate('/');
       } catch (err) {
-        logger.error('OAuth callback error', { component: 'OAuthCallback', error: err });
+        logger.error('OAuth callback error', { component: 'OAuthCallback', metadata: { error: err } });
         alert('Authentication failed. Please try again.');
         navigate('/');
       }

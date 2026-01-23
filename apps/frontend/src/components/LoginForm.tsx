@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { apiService } from '../services/apiService';
+import { apiService } from '../services';
 
 export function LoginForm() {
   const { login } = useAuth();

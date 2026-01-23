@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { SimplifiedMapGenerator } from './components/map/MapGenerator';
+import { MapGenerator } from './components/map/MapGenerator';
 import { MapHistory } from './components/MapHistory';
 import { MinimalNavigation } from './components/MinimalNavigation';
 import { OAuthCallback } from './components/OAuthCallback';
@@ -19,7 +19,7 @@ function App() {
               <Routes>
               <Route
                 path="/"
-                element={<SimplifiedMapGenerator />}
+                element={<MapGenerator />}
               />
 
               <Route

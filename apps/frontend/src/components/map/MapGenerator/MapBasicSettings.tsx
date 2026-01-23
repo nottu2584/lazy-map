@@ -21,12 +21,13 @@ export function MapBasicSettings({
   return (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="map-name">Map Name</Label>
+        <Label htmlFor="map-name">Map Name (optional)</Label>
         <Input
           id="map-name"
           type="text"
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
+          placeholder="Leave empty to use seed as name"
           className="mt-1.5"
         />
       </div>

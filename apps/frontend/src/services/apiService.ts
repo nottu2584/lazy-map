@@ -1,7 +1,7 @@
 import type { ApiResponse } from '@lazy-map/application';
 import axios from 'axios';
-import type { GeneratedMap, MapSettings } from '../components/MapGenerator';
-import { logger } from './logger';
+import type { GeneratedMap, MapSettings } from '../types';
+import { logger } from './';
 
 // API configuration from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3030/api';
@@ -54,6 +54,40 @@ export interface GenerateMapRequest {
     height: number;
   };
   seed?: string | number;
+  cellSize?: number;
+
+  // Advanced settings
+  elevationVariance?: number;
+  elevationMultiplier?: number;
+  addHeightNoise?: boolean;
+  heightVariance?: number;
+  inclinationChance?: number;
+
+  forestSettings?: {
+    forestDensity?: number;
+    treeDensity?: number;
+    treeClumping?: number;
+    underbrushDensity?: number;
+    allowTreeOverlap?: boolean;
+    enableInosculation?: boolean;
+    preferredSpecies?: string[];
+  };
+
+  terrainDistribution?: {
+    grassland?: number;
+    forest?: number;
+    mountain?: number;
+    water?: number;
+    desert?: number;
+    swamp?: number;
+  };
+
+  generateForests?: boolean;
+  generateRivers?: boolean;
+  generateRoads?: boolean;
+  generateBuildings?: boolean;
+
+  biomeType?: string;
 }
 
 export interface TacticalMapResponse {
@@ -95,12 +129,60 @@ export interface TacticalMapResponse {
 
 // Convert frontend settings to backend request format
 function mapSettingsToRequest(settings: MapSettings): GenerateMapRequest {
-  return {
+  const request: GenerateMapRequest = {
     name: settings.name,
     width: settings.width,
     height: settings.height,
     seed: settings.seed || Math.floor(Math.random() * 1000000),
+    cellSize: settings.cellSize,
   };
+
+  // Add advanced settings if provided
+  if (settings.advancedSettings) {
+    const { elevation, vegetation, terrainDistribution, features, biomeOverride } = settings.advancedSettings;
+
+    // Elevation settings
+    if (elevation) {
+      if (elevation.variance !== undefined) request.elevationVariance = elevation.variance;
+      if (elevation.multiplier !== undefined) request.elevationMultiplier = elevation.multiplier;
+      if (elevation.addNoise !== undefined) request.addHeightNoise = elevation.addNoise;
+      if (elevation.heightVariance !== undefined) request.heightVariance = elevation.heightVariance;
+      if (elevation.inclinationChance !== undefined) request.inclinationChance = elevation.inclinationChance;
+    }
+
+    // Vegetation settings
+    if (vegetation) {
+      request.forestSettings = {
+        forestDensity: vegetation.forestDensity,
+        treeDensity: vegetation.treeDensity,
+        treeClumping: vegetation.treeClumping,
+        underbrushDensity: vegetation.underbrushDensity,
+        allowTreeOverlap: vegetation.allowTreeOverlap,
+        enableInosculation: vegetation.enableInosculation,
+        preferredSpecies: vegetation.preferredSpecies,
+      };
+    }
+
+    // Terrain distribution
+    if (terrainDistribution) {
+      request.terrainDistribution = terrainDistribution;
+    }
+
+    // Feature toggles
+    if (features) {
+      if (features.generateForests !== undefined) request.generateForests = features.generateForests;
+      if (features.generateRivers !== undefined) request.generateRivers = features.generateRivers;
+      if (features.generateRoads !== undefined) request.generateRoads = features.generateRoads;
+      if (features.generateBuildings !== undefined) request.generateBuildings = features.generateBuildings;
+    }
+
+    // Biome override
+    if (biomeOverride) {
+      request.biomeType = biomeOverride;
+    }
+  }
+
+  return request;
 }
 
 // Convert backend response to frontend format

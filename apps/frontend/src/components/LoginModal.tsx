@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { logger } from '../services/logger';
+import { logger } from '../services';
 import {
   Dialog,
   DialogContent,
@@ -145,7 +145,7 @@ export function LoginModal({ onClose }: LoginModalProps) {
       if (event.data?.type === 'oauth-success' && event.data.provider === provider) {
         logger.info('OAuth success message received', {
           component: 'LoginModal',
-          provider,
+          metadata: { provider },
         });
 
         // Login with received token and user data

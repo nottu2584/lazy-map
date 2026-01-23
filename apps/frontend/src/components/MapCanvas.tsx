@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import type { GeneratedMap } from './MapGenerator';
+import type { GeneratedMap } from '../types';
 
 interface MapCanvasProps {
   map: GeneratedMap;

@@ -2,7 +2,7 @@
  * Service for managing seed history in localStorage
  */
 
-import { logger } from './logger';
+import { logger } from './LoggerService';
 
 export interface SeedHistoryEntry {
   id: string;

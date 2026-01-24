@@ -1,5 +1,6 @@
 import { Seed } from '../../../common/value-objects/Seed';
 import { TacticalMapContext } from '../../value-objects/TacticalMapContext';
+import { VegetationConfig } from '../../value-objects/VegetationConfig';
 import { GeologyLayerData } from './IGeologyLayerService';
 import { TopographyLayerData } from './ITopographyLayerService';
 import { HydrologyLayerData } from './IHydrologyLayerService';
@@ -55,6 +56,7 @@ export interface IVegetationLayerService {
    * @param geology Geological layer data
    * @param context Tactical map context
    * @param seed Seed for deterministic generation
+   * @param config Optional vegetation configuration (density control)
    * @returns Vegetation layer data
    */
   generate(
@@ -62,6 +64,7 @@ export interface IVegetationLayerService {
     topography: TopographyLayerData,
     geology: GeologyLayerData,
     context: TacticalMapContext,
-    seed: Seed
+    seed: Seed,
+    config?: VegetationConfig
   ): Promise<VegetationLayerData>;
 }

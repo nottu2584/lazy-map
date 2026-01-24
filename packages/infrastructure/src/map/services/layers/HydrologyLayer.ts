@@ -13,7 +13,9 @@ import {
   HydrologyTileData,
   StreamSegment,
   GeologyLayerData,
-  TopographyLayerData
+  TopographyLayerData,
+  HydrologyConfig,
+  HydrologyConstants
 } from '@lazy-map/domain';
 
 /**
@@ -48,7 +50,8 @@ export class HydrologyLayer implements IHydrologyLayerService {
     topography: TopographyLayerData,
     geology: GeologyLayerData,
     context: TacticalMapContext,
-    seed: Seed
+    seed: Seed,
+    config?: HydrologyConfig
   ): Promise<HydrologyLayerData> {
     if (!topography || !topography.tiles) {
       throw MapGenerationErrors.invalidLayerDependency('hydrology', 'topography');
@@ -79,11 +82,11 @@ export class HydrologyLayer implements IHydrologyLayerService {
       this.logger?.debug('Calculated flow accumulation');
 
       // 3. Place springs at geological boundaries
-      const springs = this.placeSprings(geology, topography, seed);
+      const springs = this.placeSprings(geology, topography, seed, config);
       this.logger?.debug('Placed springs', { metadata: { count: springs.length } });
 
       // 4. Identify streams based on flow accumulation threshold
-      const streamData = this.identifyStreams(flowAccumulation, flowDirections, context);
+      const streamData = this.identifyStreams(flowAccumulation, flowDirections, context, config);
       this.logger?.debug('Identified streams');
 
       // 5. Calculate water depth and pools
@@ -92,7 +95,8 @@ export class HydrologyLayer implements IHydrologyLayerService {
         topography,
         streamData,
         context,
-        seed
+        seed,
+        config
       );
       this.logger?.debug('Calculated water depths');
 
@@ -256,10 +260,15 @@ export class HydrologyLayer implements IHydrologyLayerService {
   private placeSprings(
     geology: GeologyLayerData,
     topography: TopographyLayerData,
-    seed: Seed
+    seed: Seed,
+    config?: HydrologyConfig
   ): { x: number; y: number }[] {
     const springs: { x: number; y: number }[] = [];
     const springNoise = NoiseGenerator.create(seed.getValue() * 6);
+
+    // Get spring parameters from config (with defaults)
+    const springThreshold = config?.getSpringThreshold() ?? HydrologyConstants.DEFAULT_SPRING_THRESHOLD;
+    const slopeBonus = config?.getSlopeSpringBonus() ?? HydrologyConstants.DEFAULT_SLOPE_BONUS;
 
     // Check transition zones for spring placement
     for (const pos of geology.transitionZones) {
@@ -271,13 +280,14 @@ export class HydrologyLayer implements IHydrologyLayerService {
 
       // Springs occur where permeable meets impermeable rock
       if (geoTile.formation.canHaveSprings()) {
-        // Higher chance on slopes
-        const slopeBonus = topoTile.slope > 15 ? 0.3 : 0;
+        // Higher chance on slopes - use config-driven bonus
+        const slopeBonusValue = topoTile.slope > 15 ? slopeBonus : 0;
 
         // Use noise for random placement
-        const chance = springNoise.generateAt(x * 0.5, y * 0.5) + slopeBonus;
+        const chance = springNoise.generateAt(x * 0.5, y * 0.5) + slopeBonusValue;
 
-        if (chance > 0.8) {
+        // Use config-driven threshold
+        if (chance > springThreshold) {
           springs.push({ x, y });
         }
       }
@@ -292,13 +302,14 @@ export class HydrologyLayer implements IHydrologyLayerService {
   private identifyStreams(
     flowAccumulation: number[][],
     flowDirections: number[][],
-    context: TacticalMapContext
+    context: TacticalMapContext,
+    config?: HydrologyConfig
   ): { isStream: boolean[][]; streamOrder: number[][] } {
     const isStream: boolean[][] = [];
     const streamOrder: number[][] = [];
 
-    // Threshold for stream formation based on context
-    const threshold = this.getStreamThreshold(context);
+    // Threshold for stream formation based on context and config
+    const threshold = this.getStreamThreshold(context, config);
 
     // Initialize arrays
     for (let y = 0; y < this.height; y++) {
@@ -323,22 +334,34 @@ export class HydrologyLayer implements IHydrologyLayerService {
 
   /**
    * Get appropriate stream formation threshold
+   * Applies config multiplier to base thresholds (inverse relationship)
    */
-  private getStreamThreshold(context: TacticalMapContext): number {
+  private getStreamThreshold(context: TacticalMapContext, config?: HydrologyConfig): number {
+    // Base thresholds per hydrology type
+    let baseThreshold: number;
     switch (context.hydrology) {
       case HydrologyType.ARID:
-        return 25; // High threshold but reduced for 50x50 maps
+        baseThreshold = 25; // High threshold but reduced for 50x50 maps
+        break;
       case HydrologyType.SEASONAL:
-        return 15;
+        baseThreshold = 15;
+        break;
       case HydrologyType.STREAM:
-        return 8;  // Reduced for better stream generation
+        baseThreshold = 8;  // Reduced for better stream generation
+        break;
       case HydrologyType.RIVER:
-        return 5;
+        baseThreshold = 5;
+        break;
       case HydrologyType.WETLAND:
-        return 3;
+        baseThreshold = 3;
+        break;
       default:
-        return 10;
+        baseThreshold = 10;
     }
+
+    // Apply config multiplier (default 1.0× if no config)
+    const multiplier = config?.getStreamThresholdMultiplier() ?? 1.0;
+    return baseThreshold * multiplier;
   }
 
   /**
@@ -402,10 +425,14 @@ export class HydrologyLayer implements IHydrologyLayerService {
     topography: TopographyLayerData,
     streamData: { isStream: boolean[][]; streamOrder: number[][] },
     context: TacticalMapContext,
-    seed: Seed
+    seed: Seed,
+    config?: HydrologyConfig
   ): number[][] {
     const depths: number[][] = [];
     const poolNoise = NoiseGenerator.create(seed.getValue() * 7);
+
+    // Get pool threshold from config (with default)
+    const poolThreshold = config?.getPoolThreshold() ?? HydrologyConstants.DEFAULT_POOL_THRESHOLD;
 
     for (let y = 0; y < this.height; y++) {
       depths[y] = [];
@@ -426,12 +453,13 @@ export class HydrologyLayer implements IHydrologyLayerService {
           }
         }
 
-        // Check for pools in depressions
+        // Check for pools in depressions - use config-driven threshold
         if (topography.tiles[y][x].isValley &&
             topography.tiles[y][x].slope < 5 &&
             context.hydrology !== HydrologyType.ARID) {
           const poolChance = poolNoise.generateAt(x * 0.2, y * 0.2);
-          if (poolChance > 0.7) {
+          // Use config-driven threshold (lower threshold = more pools)
+          if (poolChance > poolThreshold) {
             depth = Math.max(depth, 1 + poolChance * 2); // 1-3 feet
           }
         }

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { seedHistoryService, type SeedHistoryEntry } from '../../../services/seedHistoryService';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { seedHistoryService, type SeedHistoryEntry } from '../../../services';
 
 interface SeedHistoryProps {
   onApplySeed: (entry: SeedHistoryEntry) => void;
@@ -45,32 +46,47 @@ export function SeedHistory({ onApplySeed }: SeedHistoryProps) {
       </Button>
 
       {showSeedHistory && (
-        <div className="mt-2 bg-muted rounded-md p-3 space-y-2 max-h-48 overflow-y-auto">
+        <div className="mt-2 bg-muted rounded-lg p-3 space-y-2 max-h-48 overflow-y-auto">
           {seedHistory.map((entry) => (
             <div
               key={entry.id}
-              className="flex items-center justify-between bg-background rounded px-3 py-2 shadow-sm"
+              className="flex items-center justify-between bg-background rounded-lg px-3 py-2 shadow-sm"
             >
-              <button
-                type="button"
-                onClick={() => {
-                  onApplySeed(entry);
-                  setShowSeedHistory(false);
-                }}
-                className="flex-1 text-left hover:text-primary group min-w-0"
-              >
-                <div className="text-sm font-medium group-hover:text-primary truncate">
-                  {entry.mapName}
-                </div>
-                <div className="text-xs text-muted-foreground truncate">
-                  Seed:{' '}
-                  {typeof entry.seed === 'string'
-                    ? `"${entry.seed}"`
-                    : entry.seed}
-                  {entry.metadata?.dimensions &&
-                    ` • ${entry.metadata.dimensions.width}×${entry.metadata.dimensions.height}`}
-                </div>
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      onApplySeed(entry);
+                      setShowSeedHistory(false);
+                    }}
+                    className="flex-1 text-left h-auto py-1 px-2 min-w-0 justify-start"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">
+                        {entry.mapName}
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        Seed:{' '}
+                        {typeof entry.seed === 'string'
+                          ? `"${entry.seed}"`
+                          : entry.seed}
+                        {entry.metadata?.dimensions &&
+                          ` • ${entry.metadata.dimensions.width}×${entry.metadata.dimensions.height}`}
+                      </div>
+                    </div>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-xs">
+                  <p className="font-medium">{entry.mapName}</p>
+                  <p className="text-xs">
+                    Seed: {typeof entry.seed === 'string' ? `"${entry.seed}"` : entry.seed}
+                    {entry.metadata?.dimensions &&
+                      ` • ${entry.metadata.dimensions.width}×${entry.metadata.dimensions.height}`}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
               <Button
                 type="button"
                 variant="ghost"

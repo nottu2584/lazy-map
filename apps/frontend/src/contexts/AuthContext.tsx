@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { logger } from '../services/logger';
+import { logger } from '../services';
 
 interface User {
   id: string;

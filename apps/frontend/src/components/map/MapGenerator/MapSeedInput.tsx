@@ -29,7 +29,7 @@ export function MapSeedInput({ seed, onSeedChange }: MapSeedInputProps) {
           aria-invalid={!validation.valid && !validation.isValidating}
           className={
             validation.isValidating
-              ? 'border-yellow-300 focus-visible:ring-yellow-500'
+              ? 'border-warning focus-visible:ring-warning'
               : validation.valid
                 ? ''
                 : 'border-destructive focus-visible:ring-destructive'
@@ -37,13 +37,13 @@ export function MapSeedInput({ seed, onSeedChange }: MapSeedInputProps) {
         />
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
           {validation.isValidating && (
-            <Loader2 className="h-4 w-4 text-yellow-500 animate-spin" />
+            <Loader2 className="h-4 w-4 text-warning animate-spin" />
           )}
           {!validation.isValidating && !validation.valid && (
             <XCircle className="h-4 w-4 text-destructive" />
           )}
           {!validation.isValidating && validation.valid && seed && (
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <CheckCircle2 className="h-4 w-4 text-success" />
           )}
         </div>
       </div>
@@ -53,7 +53,7 @@ export function MapSeedInput({ seed, onSeedChange }: MapSeedInputProps) {
       {validation.warnings && validation.warnings.length > 0 && (
         <div className="space-y-1">
           {validation.warnings.map((warning, index) => (
-            <p key={index} className="text-sm text-yellow-600">
+            <p key={index} className="text-sm text-warning">
               {warning}
             </p>
           ))}

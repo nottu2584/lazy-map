@@ -155,9 +155,9 @@ export function MapHistory({ onLoadMap }: MapHistoryProps) {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="divide-y max-h-96 overflow-y-auto">
+            <ul className="divide-y max-h-96 overflow-y-auto">
               {maps.map((map) => (
-                <div
+                <li
                   key={map.id}
                   className={`py-4 hover:bg-muted/50 cursor-pointer transition-colors px-4 rounded ${
                     selectedMap?.id === map.id ? 'bg-muted' : ''
@@ -194,9 +194,9 @@ export function MapHistory({ onLoadMap }: MapHistoryProps) {
                       </Button>
                     </div>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </CardContent>
         </Card>
       </div>

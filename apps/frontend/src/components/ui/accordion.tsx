@@ -136,7 +136,7 @@ const AccordionContent = React.forwardRef<HTMLDivElement, AccordionContentProps>
           'overflow-hidden text-sm transition-all data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up',
           className
         )}
-        data-state={isOpen ? 'open' : 'closed'}
+        data-state="open"
       >
         <div className="pb-4 pt-0">{children}</div>
       </div>

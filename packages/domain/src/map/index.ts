@@ -16,6 +16,10 @@ export {
   Season,
   RequiredFeatures,
   VegetationConfig,
-  ForestryConstants
+  ForestryConstants,
+  TopographyConfig,
+  TopographyConstants,
+  HydrologyConfig,
+  HydrologyConstants
 } from './value-objects';
 export * from './errors';

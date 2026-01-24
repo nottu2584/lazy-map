@@ -14,6 +14,14 @@ export interface AdvancedMapSettings {
   // Vegetation density control (0.0-2.0)
   // 0.0 = no vegetation, 1.0 = normal forest (default), 2.0 = dense jungle
   vegetationMultiplier?: number;
+
+  // Terrain ruggedness control (0.5-2.0)
+  // 0.5 = smooth rolling hills, 1.0 = normal terrain (default), 2.0 = highly rugged broken terrain
+  terrainRuggedness?: number;
+
+  // Water abundance control (0.5-2.0)
+  // 0.5 = dry/sparse water, 1.0 = moderate water (default), 2.0 = abundant water features
+  waterAbundance?: number;
 }
 
 export interface GeneratedMap {

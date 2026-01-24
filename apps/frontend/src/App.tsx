@@ -5,14 +5,16 @@ import { MinimalNavigation } from './components/MinimalNavigation';
 import { OAuthCallback } from './components/OAuthCallback';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
+import { TooltipProvider } from './components/ui/tooltip';
 
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <ErrorBoundary>
-          <div className="min-h-screen bg-background">
-            <MinimalNavigation />
+      <TooltipProvider>
+        <BrowserRouter>
+          <ErrorBoundary>
+            <div className="min-h-screen bg-background">
+              <MinimalNavigation />
 
             <main className="pt-16">
               <Routes>
@@ -67,6 +69,7 @@ function App() {
           </div>
         </ErrorBoundary>
       </BrowserRouter>
+      </TooltipProvider>
     </AuthProvider>
   );
 }

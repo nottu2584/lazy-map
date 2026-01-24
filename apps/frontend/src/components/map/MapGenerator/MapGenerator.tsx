@@ -1,7 +1,10 @@
+import { Input } from '@/components/ui';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button-group';
 import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Separator } from '@/components/ui/separator';
 import {
   Empty,
   EmptyDescription,
@@ -9,26 +12,84 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty';
-import { Input } from '@/components/ui/input';
+import { Field, FieldLabel } from '@/components/ui/field';
 import { useMapGeneration } from '@/hooks';
 import type { AdvancedMapSettings, MapSettings } from '@/types';
-import { ChevronDown, Map } from 'lucide-react';
+import { ChevronDown, Lightbulb, Map } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { seedHistoryService, type SeedHistoryEntry } from '../../../services';
 import { MapCanvas } from '../../MapCanvas';
+import { EnvironmentSheet } from './EnvironmentSheet';
 import { MapBasicSettings } from './MapBasicSettings';
 import { MapError } from './MapError';
 import { MapProgress } from './MapProgress';
 import { SeedHistory } from './SeedHistory';
+import { TerrainRuggednessControl } from './TerrainRuggednessControl';
 import { VegetationDensityControl } from './VegetationDensityControl';
+import { WaterAbundanceControl } from './WaterAbundanceControl';
+
+type TerrainPreset = {
+  name: string;
+  description: string;
+  settings: AdvancedMapSettings;
+};
+
+const TERRAIN_PRESETS: TerrainPreset[] = [
+  {
+    name: 'Gentle',
+    description: 'Smooth rolling hills, abundant water, dense forests',
+    settings: {
+      terrainRuggedness: 0.6,
+      waterAbundance: 1.4,
+      vegetationMultiplier: 1.6,
+    },
+  },
+  {
+    name: 'Normal',
+    description: 'Balanced terrain with realistic variation',
+    settings: {
+      terrainRuggedness: 1.0,
+      waterAbundance: 1.0,
+      vegetationMultiplier: 1.0,
+    },
+  },
+  {
+    name: 'Challenging',
+    description: 'Rugged broken terrain, sparse water and vegetation',
+    settings: {
+      terrainRuggedness: 1.8,
+      waterAbundance: 1.3,
+      vegetationMultiplier: 0.6,
+    },
+  },
+];
+
+const STORAGE_KEY = 'lazy-map-environment-settings';
 
 export function MapGenerator() {
   const [seedInput, setSeedInput] = useState('');
-  const [advancedSettings, setAdvancedSettings] = useState<Omit<MapSettings, 'seed'>>({
-    name: '',
-    width: 50,
-    height: 50,
-    cellSize: 5,
+  const [advancedSettings, setAdvancedSettings] = useState<Omit<MapSettings, 'seed'>>(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const defaultSettings = {
+      name: '',
+      width: 50,
+      height: 50,
+      cellSize: 5,
+    };
+
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        return {
+          ...defaultSettings,
+          advancedSettings: parsed,
+        };
+      } catch (e) {
+        return defaultSettings;
+      }
+    }
+
+    return defaultSettings;
   });
 
   const { generatedMap, isGenerating, error, progress, progressValue, generateMap, clearError } =
@@ -36,12 +97,17 @@ export function MapGenerator() {
 
   const mapSectionRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to map when generation completes
   useEffect(() => {
     if (generatedMap && !isGenerating && mapSectionRef.current) {
       mapSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [generatedMap, isGenerating]);
+
+  useEffect(() => {
+    if (advancedSettings.advancedSettings) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(advancedSettings.advancedSettings));
+    }
+  }, [advancedSettings.advancedSettings]);
 
   const handleQuickSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,6 +182,13 @@ export function MapGenerator() {
     }));
   };
 
+  const applyPreset = (preset: TerrainPreset) => {
+    setAdvancedSettings((prev) => ({
+      ...prev,
+      advancedSettings: preset.settings,
+    }));
+  };
+
   return (
     <>
       <div className="flex flex-col">
@@ -132,22 +205,34 @@ export function MapGenerator() {
         {/* Quick Input Section */}
         <section className="px-6 pb-8">
           <div className="max-w-3xl mx-auto">
-            <form onSubmit={handleQuickSubmit} className="flex gap-3">
-              <Input
-                value={seedInput}
-                onChange={(e) => setSeedInput(e.target.value)}
-                placeholder="goblin-ambush"
-                className="h-14 text-lg"
-                disabled={isGenerating}
-              />
-              <Button type="submit" size="lg" className="px-8" disabled={isGenerating}>
-                {isGenerating ? 'Generating...' : 'Generate'}
-              </Button>
+            <form onSubmit={handleQuickSubmit}>
+              <Field orientation="horizontal">
+                <FieldLabel className="sr-only">Map Seed</FieldLabel>
+                <Input
+                  value={seedInput}
+                  onChange={(e) => setSeedInput(e.target.value)}
+                  placeholder="goblin-ambush"
+                  className="h-14 text-lg md:text-lg"
+                  disabled={isGenerating}
+                />
+                <Button type="submit" variant="default" disabled={isGenerating} size="lg" className="h-14 px-8 text-lg">
+                  {isGenerating ? 'Generating...' : 'Generate'}
+                </Button>
+              </Field>
             </form>
             <p className="text-sm text-muted-foreground text-center mt-3">
-              Try: <code className="bg-muted rounded px-[0.3rem] py-[0.2rem] font-mono text-sm">goblin-ambush</code> or{' '}
-              <code className="bg-muted rounded px-[0.3rem] py-[0.2rem] font-mono text-sm">forest-temple</code> or{' '}
-              <code className="bg-muted rounded px-[0.3rem] py-[0.2rem] font-mono text-sm">mountain-pass</code>
+              Try:{' '}
+              <code className="bg-muted rounded-lg px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                goblin-ambush
+              </code>{' '}
+              ,{' '}
+              <code className="bg-muted rounded-lg px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                forest-temple
+              </code>{' '}
+              or{' '}
+              <code className="bg-muted rounded-lg px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                mountain-pass
+              </code>
             </p>
           </div>
         </section>
@@ -163,7 +248,9 @@ export function MapGenerator() {
                       variant="ghost"
                       className="w-full justify-between px-6 py-4 h-auto hover:bg-transparent"
                     >
-                      <span className="text-lg font-medium">Advanced Settings</span>
+                      <span className="text-base font-semibold text-foreground">
+                        Advanced Settings
+                      </span>
                       <ChevronDown className="h-5 w-5 transition-transform duration-200 data-[state=open]:rotate-180" />
                     </Button>
                   </CollapsibleTrigger>
@@ -171,9 +258,6 @@ export function MapGenerator() {
                     <form onSubmit={handleAdvancedSubmit} className="space-y-6 px-6 pb-6">
                       {/* Basic Settings */}
                       <div>
-                        <h3 className="text-base font-semibold mb-3 text-foreground">
-                          Map Configuration
-                        </h3>
                         <p className="text-sm text-muted-foreground mb-4">
                           Seed value is taken from the main input above. Configure map dimensions
                           and name here.
@@ -192,34 +276,73 @@ export function MapGenerator() {
                       </div>
 
                       {/* Divider */}
-                      <div className="border-t border-border" />
+                      <Separator />
 
-                      {/* Vegetation Density Control */}
+                      {/* Environment Controls */}
                       <div>
-                        <h3 className="text-base font-semibold mb-3 text-foreground">
-                          Environment Control
-                        </h3>
-                        <VegetationDensityControl
-                          settings={advancedSettings.advancedSettings}
-                          onChange={updateAdvancedSettings}
-                        />
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-base font-semibold text-foreground">
+                            Environment Control
+                          </h3>
+                          <EnvironmentSheet />
+                        </div>
+
+                        {/* Terrain Presets */}
+                        <div className="mb-6">
+                          <p className="text-sm text-muted-foreground mb-3">
+                            Quick presets for common terrain types:
+                          </p>
+                          <ButtonGroup className="w-full">
+                            {TERRAIN_PRESETS.map((preset) => (
+                              <Button
+                                key={preset.name}
+                                type="button"
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => applyPreset(preset)}
+                                title={preset.description}
+                              >
+                                {preset.name}
+                              </Button>
+                            ))}
+                          </ButtonGroup>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Or fine-tune individual settings below
+                          </p>
+                        </div>
+
+                        <div className="space-y-4">
+                          <TerrainRuggednessControl
+                            settings={advancedSettings.advancedSettings}
+                            onChange={updateAdvancedSettings}
+                          />
+                          <WaterAbundanceControl
+                            settings={advancedSettings.advancedSettings}
+                            onChange={updateAdvancedSettings}
+                          />
+                          <VegetationDensityControl
+                            settings={advancedSettings.advancedSettings}
+                            onChange={updateAdvancedSettings}
+                          />
+                        </div>
                       </div>
 
                       {/* Info Alert */}
                       <Alert>
+                        <Lightbulb className="h-4 w-4" />
                         <AlertTitle className="text-sm font-medium">
                           About Map Generation
                         </AlertTitle>
                         <AlertDescription className="text-sm">
-                          The map's biome, elevation, and water features are automatically
-                          determined from the seed value. The vegetation density slider provides
-                          fine-tuned control over forest coverage and tree density while maintaining
-                          deterministic generation.
+                          The map's biome, elevation, and hydrology are automatically determined
+                          from the seed value. The environment controls provide fine-tuned
+                          customization: adjust terrain roughness, water feature frequency, and
+                          forest coverage while maintaining deterministic generation.
                         </AlertDescription>
                       </Alert>
 
                       <Button type="submit" disabled={isGenerating} className="w-full">
-                        {isGenerating ? 'Generating...' : 'Generate Map'}
+                        Generate Map
                       </Button>
                     </form>
                   </CollapsibleContent>

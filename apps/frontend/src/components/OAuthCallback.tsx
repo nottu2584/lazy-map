@@ -17,15 +17,13 @@ export function OAuthCallback() {
 
         if (error) {
           logger.error('OAuth error', { component: 'OAuthCallback', metadata: { error } });
-          alert(`Authentication failed: ${error}`);
-          navigate('/');
+          navigate('/', { state: { authError: `Authentication failed: ${error}` } });
           return;
         }
 
         if (!token) {
           logger.error('No token in OAuth callback', { component: 'OAuthCallback' });
-          alert('Authentication failed: No token received');
-          navigate('/');
+          navigate('/', { state: { authError: 'Authentication failed: No token received' } });
           return;
         }
 
@@ -68,8 +66,7 @@ export function OAuthCallback() {
         navigate('/');
       } catch (err) {
         logger.error('OAuth callback error', { component: 'OAuthCallback', metadata: { error: err } });
-        alert('Authentication failed. Please try again.');
-        navigate('/');
+        navigate('/', { state: { authError: 'Authentication failed. Please try again.' } });
       }
     };
 

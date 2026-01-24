@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { logger } from '../services/logger';
+import { logger } from '../services';
 
 export function OAuthCallback() {
   const [searchParams] = useSearchParams();
@@ -16,16 +16,14 @@ export function OAuthCallback() {
         const error = searchParams.get('error');
 
         if (error) {
-          logger.error('OAuth error', { component: 'OAuthCallback', error });
-          alert(`Authentication failed: ${error}`);
-          navigate('/');
+          logger.error('OAuth error', { component: 'OAuthCallback', metadata: { error } });
+          navigate('/', { state: { authError: `Authentication failed: ${error}` } });
           return;
         }
 
         if (!token) {
           logger.error('No token in OAuth callback', { component: 'OAuthCallback' });
-          alert('Authentication failed: No token received');
-          navigate('/');
+          navigate('/', { state: { authError: 'Authentication failed: No token received' } });
           return;
         }
 
@@ -41,10 +39,11 @@ export function OAuthCallback() {
               id: userId,
               email,
               username,
+              role: 'user', // Default role for OAuth users
             },
             token
           );
-          logger.info('OAuth login successful', { component: 'OAuthCallback', email });
+          logger.info('OAuth login successful', { component: 'OAuthCallback', metadata: { email } });
         } else {
           // Fetch user data from API using token
           const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3030/api';
@@ -60,15 +59,14 @@ export function OAuthCallback() {
 
           const userData = await response.json();
           login(userData, token);
-          logger.info('OAuth login successful', { component: 'OAuthCallback', email: userData.email });
+          logger.info('OAuth login successful', { component: 'OAuthCallback', metadata: { email: userData.email } });
         }
 
         // Redirect to home
         navigate('/');
       } catch (err) {
-        logger.error('OAuth callback error', { component: 'OAuthCallback', error: err });
-        alert('Authentication failed. Please try again.');
-        navigate('/');
+        logger.error('OAuth callback error', { component: 'OAuthCallback', metadata: { error: err } });
+        navigate('/', { state: { authError: 'Authentication failed. Please try again.' } });
       }
     };
 
@@ -78,8 +76,10 @@ export function OAuthCallback() {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-        <div className="text-4xl font-heading font-bold mb-4">Signing you in...</div>
-        <p className="text-body-large text-muted-foreground">Please wait</p>
+        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight mb-4">
+          Signing you in...
+        </h1>
+        <p className="text-lg text-muted-foreground">Please wait</p>
       </div>
     </div>
   );

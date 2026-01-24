@@ -13,6 +13,9 @@ import {
   FeaturesLayerData,
   TacticalMapContext,
   Seed,
+  VegetationConfig,
+  TopographyConfig,
+  HydrologyConfig,
   type ILogger,
   MapGenerationErrors
 } from '@lazy-map/domain';
@@ -59,12 +62,22 @@ export class GenerateTacticalMapUseCase {
   /**
    * Execute the tactical map generation
    * Generates all layers in sequence, with each depending on previous layers
+   * @param width Map width in tiles
+   * @param height Map height in tiles
+   * @param context Tactical map context
+   * @param seed Seed for deterministic generation
+   * @param topographyConfig Optional topography configuration (terrain ruggedness)
+   * @param hydrologyConfig Optional hydrology configuration (water abundance)
+   * @param vegetationConfig Optional vegetation configuration (density control)
    */
   async execute(
     width: number,
     height: number,
     context: TacticalMapContext,
-    seed: Seed
+    seed: Seed,
+    topographyConfig?: TopographyConfig,
+    hydrologyConfig?: HydrologyConfig,
+    vegetationConfig?: VegetationConfig
   ): Promise<TacticalMapGenerationResult> {
     const startTime = Date.now();
 
@@ -100,11 +113,16 @@ export class GenerateTacticalMapUseCase {
       });
 
       // Layer 1: Topographic Expression
-      this.logger?.debug('Generating topography layer');
+      this.logger?.debug('Generating topography layer', {
+        metadata: {
+          topographyConfig: topographyConfig?.toString()
+        }
+      });
       const topography = await this.topographyLayerService.generate(
         geology,
         context,
-        seed
+        seed,
+        topographyConfig
       );
       this.logger?.debug('Topography layer complete', {
         metadata: {
@@ -115,12 +133,17 @@ export class GenerateTacticalMapUseCase {
       });
 
       // Layer 2: Hydrological Flow
-      this.logger?.debug('Generating hydrology layer');
+      this.logger?.debug('Generating hydrology layer', {
+        metadata: {
+          hydrologyConfig: hydrologyConfig?.toString()
+        }
+      });
       const hydrology = await this.hydrologyLayerService.generate(
         topography,
         geology,
         context,
-        seed
+        seed,
+        hydrologyConfig
       );
       this.logger?.debug('Hydrology layer complete', {
         metadata: {
@@ -131,13 +154,18 @@ export class GenerateTacticalMapUseCase {
       });
 
       // Layer 3: Vegetation Patterns
-      this.logger?.debug('Generating vegetation layer');
+      this.logger?.debug('Generating vegetation layer', {
+        metadata: {
+          vegetationConfig: vegetationConfig?.toString()
+        }
+      });
       const vegetation = await this.vegetationLayerService.generate(
         hydrology,
         topography,
         geology,
         context,
-        seed
+        seed,
+        vegetationConfig
       );
       this.logger?.debug('Vegetation layer complete', {
         metadata: {

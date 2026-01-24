@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { apiService } from '../services/apiService';
+import { apiService } from '../services';
 import type { MapSettings, GeneratedMap } from '@/types';
 
 export function useMapGeneration() {
@@ -8,25 +8,28 @@ export function useMapGeneration() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
+  const [progressValue, setProgressValue] = useState<number>(0);
 
   const generateMap = async (settings: MapSettings) => {
     setIsGenerating(true);
     setError(null);
     setProgress('Initializing map generation...');
+    setProgressValue(0);
 
     try {
       const progressSteps = [
-        'Generating terrain...',
-        'Adding elevation details...',
-        'Creating forests and vegetation...',
-        'Placing features...',
-        'Finalizing map...',
+        { text: 'Generating terrain...', value: 20 },
+        { text: 'Adding elevation details...', value: 40 },
+        { text: 'Creating forests and vegetation...', value: 60 },
+        { text: 'Placing features...', value: 80 },
+        { text: 'Finalizing map...', value: 95 },
       ];
 
       let stepIndex = 0;
       const progressInterval = setInterval(() => {
         if (stepIndex < progressSteps.length) {
-          setProgress(progressSteps[stepIndex]);
+          setProgress(progressSteps[stepIndex].text);
+          setProgressValue(progressSteps[stepIndex].value);
           stepIndex++;
         }
       }, 1000);
@@ -35,12 +38,17 @@ export function useMapGeneration() {
 
       clearInterval(progressInterval);
       setProgress('Map generation complete!');
+      setProgressValue(100);
       setGeneratedMap(response);
       toast.success('Map generated successfully!');
 
-      setTimeout(() => setProgress(''), 2000);
+      setTimeout(() => {
+        setProgress('');
+        setProgressValue(0);
+      }, 2000);
     } catch (err) {
       setProgress('');
+      setProgressValue(0);
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to generate map';
       setError(errorMessage);
@@ -61,6 +69,7 @@ export function useMapGeneration() {
     isGenerating,
     error,
     progress,
+    progressValue,
     generateMap,
     clearError,
   };

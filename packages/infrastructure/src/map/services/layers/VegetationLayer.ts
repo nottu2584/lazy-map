@@ -14,6 +14,8 @@ import {
   SubTilePosition,
   PlantProperties,
   PlantGrowthForm,
+  VegetationConfig,
+  ForestryConstants,
   type ILogger,
   // Import from domain layer service interfaces
   IVegetationLayerService,
@@ -47,10 +49,14 @@ export class VegetationLayer implements IVegetationLayerService {
     topography: TopographyLayerData,
     geology: GeologyLayerData,
     context: TacticalMapContext,
-    seed: Seed
+    seed: Seed,
+    config?: VegetationConfig
   ): Promise<VegetationLayerData> {
     this.width = hydrology.tiles[0].length;
     this.height = hydrology.tiles.length;
+
+    // Use default config if not provided
+    const vegetationConfig = config ?? VegetationConfig.default();
 
     // 1. Determine base vegetation potential
     const vegetationPotential = this.calculateVegetationPotential(
@@ -64,7 +70,8 @@ export class VegetationLayer implements IVegetationLayerService {
     const forestDistribution = this.generateForestPatches(
       vegetationPotential,
       context,
-      seed
+      seed,
+      vegetationConfig
     );
 
     // 3. Place individual plants based on local conditions
@@ -74,7 +81,8 @@ export class VegetationLayer implements IVegetationLayerService {
       hydrology,
       topography,
       context,
-      seed
+      seed,
+      vegetationConfig
     );
 
     // 4. Identify clearings and meadows
@@ -201,17 +209,25 @@ export class VegetationLayer implements IVegetationLayerService {
   private generateForestPatches(
     potential: number[][],
     context: TacticalMapContext,
-    seed: Seed
+    seed: Seed,
+    config: VegetationConfig
   ): boolean[][] {
     const forest: boolean[][] = [];
     const forestNoise = NoiseGenerator.create(seed.getValue() * 8);
+
+    // Calculate threshold based on desired forest coverage
+    const targetCoverage = config.getForestCoverage();
 
     // Initialize with noise-based seeding
     for (let y = 0; y < this.height; y++) {
       forest[y] = [];
       for (let x = 0; x < this.width; x++) {
         const noise = forestNoise.generateAt(x * 0.1, y * 0.1);
-        const threshold = 0.5 - potential[y][x] * 0.3;
+        // Adjust threshold to achieve target coverage
+        // Lower threshold = more forest
+        const baseThreshold = 1.0 - targetCoverage;
+        const potentialAdjustment = potential[y][x] * 0.3;
+        const threshold = baseThreshold - potentialAdjustment;
         forest[y][x] = noise > threshold && potential[y][x] > 0.3;
       }
     }
@@ -260,10 +276,15 @@ export class VegetationLayer implements IVegetationLayerService {
     hydrology: HydrologyLayerData,
     topography: TopographyLayerData,
     context: TacticalMapContext,
-    seed: Seed
+    seed: Seed,
+    config: VegetationConfig
   ): Plant[][][] {
     const plants: Plant[][][] = [];
     const plantNoise = NoiseGenerator.create(seed.getValue() * 9);
+
+    // Get probabilities from config
+    const treeProbability = config.getTreeProbability();
+    const understoryProbability = config.getUnderstoryProbability();
 
     for (let y = 0; y < this.height; y++) {
       plants[y] = [];
@@ -278,17 +299,19 @@ export class VegetationLayer implements IVegetationLayerService {
         const moisture = hydrology.tiles[y][x].moisture;
 
         if (isForest) {
-          // Forest tile - add trees
-          const treeCount = Math.floor(1 + plantNoise.generateAt(x * 0.5, y * 0.5) * 2);
-          for (let i = 0; i < treeCount; i++) {
-            const species = this.selectTreeSpecies(context.biome, moisture, seed.getValue() + x + y + i);
-            const size = this.selectPlantSize(species, growthPotential, seed.getValue() + i);
-            plants[y][x].push(this.createTree(species, size, x, y, i));
+          // Forest tile - probability-based tree placement
+          // Use noise for deterministic but natural-looking distribution
+          const treeChance = plantNoise.generateAt(x * 0.5, y * 0.5);
+          if (treeChance < treeProbability) {
+            // Place EXACTLY ONE tree (realistic for 5x5ft tile)
+            const species = this.selectTreeSpecies(context.biome, moisture, seed.getValue() + x + y);
+            const size = this.selectPlantSize(species, growthPotential, seed.getValue());
+            plants[y][x].push(this.createTree(species, size, x, y, 0));
           }
 
-          // Add understory
+          // Add understory (shrubs and bushes)
           const shrubChance = plantNoise.generateAt(x * 0.3, y * 0.3);
-          if (shrubChance > 0.6) {
+          if (shrubChance < understoryProbability) {
             const shrubSpecies = this.selectShrubSpecies(context.biome, moisture, seed.getValue() + x * y);
             plants[y][x].push(this.createShrub(shrubSpecies, PlantSize.MEDIUM, x, y, 0));
           }
@@ -476,6 +499,48 @@ export class VegetationLayer implements IVegetationLayerService {
   }
 
   /**
+   * Calculate basal area in a neighborhood using forestry survey method
+   * @param x Center tile x coordinate
+   * @param y Center tile y coordinate
+   * @param plants Plant distribution
+   * @returns Basal area in ft²/acre
+   */
+  private calculateBasalArea(x: number, y: number, plants: Plant[][][]): number {
+    const surveyRadius = ForestryConstants.SURVEY_RADIUS_TILES;
+    let totalBasalArea = 0;
+
+    // Survey all tiles in radius
+    for (let dy = -surveyRadius; dy <= surveyRadius; dy++) {
+      for (let dx = -surveyRadius; dx <= surveyRadius; dx++) {
+        const nx = x + dx;
+        const ny = y + dy;
+
+        // Check bounds
+        if (nx < 0 || nx >= this.width || ny < 0 || ny >= this.height) continue;
+
+        // Calculate basal area for all trees in this tile
+        const tilePlants = plants[ny][nx];
+        for (const plant of tilePlants) {
+          if (plant instanceof TreePlant) {
+            // Basal area = π × (diameter/2)²
+            const radius = plant.trunkDiameter / 2;
+            const basalArea = Math.PI * radius * radius;
+            totalBasalArea += basalArea;
+          }
+        }
+      }
+    }
+
+    // Convert to basal area per acre
+    // Survey area in square feet = π × radius²
+    const surveyRadiusFt = surveyRadius * 5; // tiles to feet
+    const surveyAreaFt2 = Math.PI * surveyRadiusFt * surveyRadiusFt;
+    const basalAreaPerAcre = (totalBasalArea / surveyAreaFt2) * 43560;
+
+    return basalAreaPerAcre;
+  }
+
+  /**
    * Calculate tactical properties for vegetation
    */
   private calculateTacticalProperties(
@@ -509,19 +574,27 @@ export class VegetationLayer implements IVegetationLayerService {
 
         canopyHeight[y][x] = maxHeight;
 
-        // Calculate density
-        if (treeCount > 0) {
-          canopyDensity[y][x] = Math.min(1, treeCount * 0.4);
+        // Calculate density using basal area survey
+        const basalArea = this.calculateBasalArea(x, y, plants);
+        const densityClass = VegetationConfig.classifyDensity(basalArea);
+
+        // Convert basal area classification to canopy density (0-1)
+        if (densityClass === 'dense') {
+          canopyDensity[y][x] = 0.8;
+        } else if (densityClass === 'moderate') {
+          canopyDensity[y][x] = 0.5;
+        } else if (densityClass === 'sparse') {
+          canopyDensity[y][x] = 0.2;
         } else if (shrubCount > 0) {
-          canopyDensity[y][x] = Math.min(1, shrubCount * 0.3);
+          canopyDensity[y][x] = 0.3;
         } else {
           canopyDensity[y][x] = tilePlants.length > 0 ? 0.1 : 0;
         }
 
-        // Determine vegetation type
-        if (treeCount >= 2) {
+        // Determine vegetation type using basal area classification
+        if (densityClass === 'dense') {
           vegetationType[y][x] = VegetationType.DENSE_TREES;
-        } else if (treeCount === 1) {
+        } else if (densityClass === 'moderate' || densityClass === 'sparse') {
           vegetationType[y][x] = VegetationType.SPARSE_TREES;
         } else if (shrubCount > 0) {
           // Check for wetland vegetation based on moisture

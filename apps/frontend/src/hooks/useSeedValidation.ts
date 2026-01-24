@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { apiService } from '../services/apiService';
+import { apiService } from '../services';
 import type { SeedValidationResult } from '@/types';
 
 export function useSeedValidation(seed: string | undefined) {

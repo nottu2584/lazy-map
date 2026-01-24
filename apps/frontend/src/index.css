@@ -6,9 +6,17 @@
 
 @layer base {
   :root {
-    /* Base colors - High contrast monochrome */
-    --background: 0 0% 100%;           /* Pure white */
-    --foreground: 0 0% 3%;             /* Near black */
+    /* Base colors - 80s ink and paper aesthetic */
+    --background: 0 0% 100%;           /* Bright white (magazine paper) */
+    --foreground: 220 30% 10%;         /* Blue-black (80s ink) */
+
+    /* Primary brand color - Blue-black ink */
+    --primary: 220 30% 10%;            /* Blue-black (main brand color) */
+    --primary-foreground: 0 0% 100%;   /* Bright white on primary */
+
+    /* Secondary color - Light gray */
+    --secondary: 0 0% 96%;             /* Light gray background */
+    --secondary-foreground: 220 30% 10%; /* Blue-black text on secondary */
 
     /* Grayscale hierarchy */
     --muted: 0 0% 96%;                 /* Light gray background */
@@ -16,7 +24,7 @@
 
     /* Non-repro blue accent (technical, nostalgic) */
     --accent: 192 64% 79%;             /* #A4DDED - Non-repro blue */
-    --accent-foreground: 0 0% 3%;      /* Dark text on accent */
+    --accent-foreground: 220 30% 10%;  /* Blue-black text on accent */
 
     /* Borders and inputs */
     --border: 0 0% 90%;                /* Subtle borders */
@@ -25,13 +33,21 @@
 
     /* Card and popover (minimal use) */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3%;
+    --card-foreground: 220 30% 10%;    /* Blue-black text */
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3%;
+    --popover-foreground: 220 30% 10%; /* Blue-black text */
 
-    /* Keep destructive for errors */
+    /* Destructive (errors) */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
+
+    /* Success (validation passed) - warm green complements cool blue accent */
+    --success: 145 60% 45%;           /* #2E8B57 - warm green */
+    --success-foreground: 0 0% 100%;  /* Bright white text */
+
+    /* Warning (validation issues) - amber complements cool blue */
+    --warning: 38 92% 55%;             /* #F59E0B - amber/orange */
+    --warning-foreground: 220 30% 10%; /* Blue-black text */
 
     /* Radius for rounded corners */
     --radius: 0.5rem;
@@ -39,10 +55,6 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
     @apply bg-background text-foreground;
     font-family: 'Urbanist', system-ui, -apple-system, sans-serif;
@@ -62,31 +74,14 @@
     line-height: 1.1;
   }
 
-  /* Labels, technical text, code */
-  label, code, pre, .mono {
+  /* Technical text: code blocks, user input, map labels */
+  code, pre, .mono {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+  }
+
+  /* User input text (what users type) */
+  input, textarea, select {
     font-family: 'JetBrains Mono', 'Courier New', monospace;
   }
 }
 
-@layer components {
-  /* Hero text styles */
-  .text-hero {
-    font-size: clamp(3rem, 8vw, 6rem);
-    font-weight: 900;
-    letter-spacing: -0.03em;
-    line-height: 1;
-  }
-
-  .text-section-title {
-    font-size: 2rem;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }
-
-  .text-body-large {
-    font-size: 1.25rem;
-    line-height: 1.6;
-    font-weight: 400;
-  }
-}

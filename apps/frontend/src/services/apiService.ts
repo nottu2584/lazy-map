@@ -1,7 +1,7 @@
 import type { ApiResponse } from '@lazy-map/application';
 import axios from 'axios';
-import type { GeneratedMap, MapSettings } from '../components/MapGenerator';
-import { logger } from './logger';
+import type { GeneratedMap, MapSettings } from '../types';
+import { logger } from './';
 
 // API configuration from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3030/api';
@@ -54,6 +54,12 @@ export interface GenerateMapRequest {
     height: number;
   };
   seed?: string | number;
+  cellSize?: number;
+
+  // Advanced settings
+  terrainRuggedness?: number; // 0.5-2.0: Controls terrain detail and roughness
+  waterAbundance?: number; // 0.5-2.0: Controls frequency of water features
+  vegetationMultiplier?: number; // 0.0-2.0: Controls forest coverage and density
 }
 
 export interface TacticalMapResponse {
@@ -95,12 +101,35 @@ export interface TacticalMapResponse {
 
 // Convert frontend settings to backend request format
 function mapSettingsToRequest(settings: MapSettings): GenerateMapRequest {
-  return {
+  const request: GenerateMapRequest = {
     name: settings.name,
     width: settings.width,
     height: settings.height,
     seed: settings.seed || Math.floor(Math.random() * 1000000),
+    cellSize: settings.cellSize,
   };
+
+  // Add advanced settings if provided
+  if (settings.advancedSettings) {
+    const { terrainRuggedness, waterAbundance, vegetationMultiplier } = settings.advancedSettings;
+
+    // Terrain ruggedness multiplier
+    if (terrainRuggedness !== undefined) {
+      request.terrainRuggedness = terrainRuggedness;
+    }
+
+    // Water abundance multiplier
+    if (waterAbundance !== undefined) {
+      request.waterAbundance = waterAbundance;
+    }
+
+    // Vegetation density multiplier
+    if (vegetationMultiplier !== undefined) {
+      request.vegetationMultiplier = vegetationMultiplier;
+    }
+  }
+
+  return request;
 }
 
 // Convert backend response to frontend format

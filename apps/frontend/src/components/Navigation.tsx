@@ -11,7 +11,7 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+    `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
       isActive
         ? 'bg-primary/10 text-primary'
         : 'text-muted-foreground hover:text-foreground'
@@ -69,12 +69,14 @@ export function Navigation() {
             </div>
 
             {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            </Button>
           </div>
 
           {/* Mobile Menu */}
@@ -83,11 +85,7 @@ export function Navigation() {
               <div className="flex flex-col space-y-3">
                 <NavLink
                   to="/"
-                  className={({ isActive }) =>
-                    `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground'
-                    }`
-                  }
+                  className={navLinkClass}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Generator
@@ -97,22 +95,14 @@ export function Navigation() {
                   <>
                     <NavLink
                       to="/history"
-                      className={({ isActive }) =>
-                        `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                          isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground'
-                        }`
-                      }
+                      className={navLinkClass}
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Map History
                     </NavLink>
                     <NavLink
                       to="/profile"
-                      className={({ isActive }) =>
-                        `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                          isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground'
-                        }`
-                      }
+                      className={navLinkClass}
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Profile

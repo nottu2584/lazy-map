@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { logger } from '../services/logger';
+import { logger } from '../services';
 import {
   Dialog,
   DialogContent,
@@ -145,7 +145,7 @@ export function LoginModal({ onClose }: LoginModalProps) {
       if (event.data?.type === 'oauth-success' && event.data.provider === provider) {
         logger.info('OAuth success message received', {
           component: 'LoginModal',
-          provider,
+          metadata: { provider },
         });
 
         // Login with received token and user data
@@ -234,7 +234,7 @@ export function LoginModal({ onClose }: LoginModalProps) {
             <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-background text-muted-foreground font-mono text-xs">
+            <span className="px-2 bg-background text-muted-foreground text-xs">
               OR CONTINUE WITH EMAIL
             </span>
           </div>
@@ -301,7 +301,7 @@ export function LoginModal({ onClose }: LoginModalProps) {
                 placeholder="••••••••"
               />
               {confirmPasswordTouched && formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                <p className="text-sm text-destructive font-mono">Passwords do not match</p>
+                <p className="text-sm text-destructive">Passwords do not match</p>
               )}
             </div>
           )}

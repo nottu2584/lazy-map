@@ -14,6 +14,12 @@ export {
   HydrologyType,
   DevelopmentLevel,
   Season,
-  RequiredFeatures
+  RequiredFeatures,
+  VegetationConfig,
+  ForestryConstants,
+  TopographyConfig,
+  TopographyConstants,
+  HydrologyConfig,
+  HydrologyConstants
 } from './value-objects';
 export * from './errors';

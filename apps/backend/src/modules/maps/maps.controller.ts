@@ -1,6 +1,18 @@
-import { ApiResponse as ApiResponseType, GenerateTacticalMapUseCase, GetMapQuery, GetMapUseCase, GetUserMapsQuery, GetUserMapsUseCase, SaveMapCommand, SaveMapUseCase, ValidateSeedResult, ValidateSeedUseCase } from '@lazy-map/application';
+import {
+  ApiResponse as ApiResponseType,
+  GenerateTacticalMapUseCase,
+  GetMapQuery,
+  GetMapUseCase,
+  GetUserMapsQuery,
+  GetUserMapsUseCase,
+  SaveMapCommand,
+  SaveMapUseCase,
+  ValidateSeedResult,
+  ValidateSeedUseCase,
+} from '@lazy-map/application';
 import {
   Dimensions,
+  HydrologyConfig,
   ILogger,
   MapGrid,
   MapId,
@@ -10,7 +22,9 @@ import {
   Seed,
   TacticalMapContext,
   Terrain,
-  UserId
+  TopographyConfig,
+  UserId,
+  VegetationConfig,
 } from '@lazy-map/domain';
 import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
 import { Body, Controller, Get, Inject, Param, Post, Request, UseGuards } from '@nestjs/common';
@@ -21,7 +35,6 @@ import { GenerateMapDto, SaveMapDto, SaveMapResponseDto, ValidateSeedDto } from 
 @ApiTags('maps')
 @Controller('maps')
 export class MapsController {
-
   constructor(
     @Inject(GenerateTacticalMapUseCase)
     private readonly generateTacticalMapUseCase: GenerateTacticalMapUseCase,
@@ -39,11 +52,14 @@ export class MapsController {
   @Post('generate')
   @ApiOperation({ summary: 'Generate a new tactical battlemap' })
   @ApiResponse({ status: 201, description: 'Tactical map generated successfully' })
-  async generateMap(@Body() dto: GenerateMapDto, @Request() req: any): Promise<ApiResponseType<any>> {
+  async generateMap(
+    @Body() dto: GenerateMapDto,
+    @Request() req: any,
+  ): Promise<ApiResponseType<any>> {
     const operationLogger = this.logger.child({
       component: 'MapsController',
       operation: 'generateMap',
-      userId: req.user?.userId || 'anonymous'
+      userId: req.user?.userId || 'anonymous',
     });
 
     try {
@@ -52,10 +68,10 @@ export class MapsController {
           mapName: dto.name || 'New Map',
           dimensions: {
             width: dto.width || dto.dimensions?.width || 50,
-            height: dto.height || dto.dimensions?.height || 50
+            height: dto.height || dto.dimensions?.height || 50,
           },
-          seed: dto.seed || 'random'
-        }
+          seed: dto.seed || 'random',
+        },
       });
 
       // Convert DTO to parameters
@@ -63,18 +79,45 @@ export class MapsController {
       const height = dto.height || dto.dimensions?.height || 50;
       const seedValue = dto.seed || Math.floor(Math.random() * 1000000).toString();
       // Handle seed: if it's a number, use fromNumber; if it's a numeric string, parse and use fromNumber; otherwise use fromString
-      const seed = typeof seedValue === 'number'
-        ? Seed.fromNumber(seedValue)
-        : /^\d+$/.test(seedValue)
-          ? Seed.fromNumber(Number(seedValue))
-          : Seed.fromString(seedValue);
+      const seed =
+        typeof seedValue === 'number'
+          ? Seed.fromNumber(seedValue)
+          : /^\d+$/.test(seedValue)
+            ? Seed.fromNumber(Number(seedValue))
+            : Seed.fromString(seedValue);
 
       // Generate context from seed
       const context = TacticalMapContext.fromSeed(seed);
 
+      // Create topography config if provided
+      let topographyConfig: TopographyConfig | undefined;
+      if (dto.terrainRuggedness !== undefined) {
+        topographyConfig = TopographyConfig.create(dto.terrainRuggedness);
+      }
+
+      // Create hydrology config if provided
+      let hydrologyConfig: HydrologyConfig | undefined;
+      if (dto.waterAbundance !== undefined) {
+        hydrologyConfig = HydrologyConfig.create(dto.waterAbundance);
+      }
+
+      // Create vegetation config if provided
+      let vegetationConfig: VegetationConfig | undefined;
+      if (dto.vegetationMultiplier !== undefined) {
+        vegetationConfig = VegetationConfig.create(dto.vegetationMultiplier);
+      }
+
       // Execute tactical map generation
       const startTime = Date.now();
-      const result = await this.generateTacticalMapUseCase.execute(width, height, context, seed);
+      const result = await this.generateTacticalMapUseCase.execute(
+        width,
+        height,
+        context,
+        seed,
+        topographyConfig,
+        hydrologyConfig,
+        vegetationConfig,
+      );
       const duration = Date.now() - startTime;
 
       operationLogger.info('Tactical map generation completed successfully', {
@@ -82,8 +125,8 @@ export class MapsController {
           width: result.width,
           height: result.height,
           context: result.context?.getDescription(),
-          duration
-        }
+          duration,
+        },
       });
 
       return {
@@ -93,17 +136,17 @@ export class MapsController {
           width: result.width,
           height: result.height,
           context: result.context?.getDescription(),
-          totalTime: duration
+          totalTime: duration,
         },
-        message: `Tactical map generated successfully in ${duration}ms`
+        message: `Tactical map generated successfully in ${duration}ms`,
       };
     } catch (error) {
       operationLogger.logError(error, {
         metadata: {
           mapName: dto.name,
           dimensions: dto.dimensions,
-          seed: dto.seed
-        }
+          seed: dto.seed,
+        },
       });
 
       return {
@@ -122,12 +165,12 @@ export class MapsController {
   @ApiResponse({ status: 400, description: 'Invalid map data' })
   async saveMap(
     @Body() dto: SaveMapDto,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseType<SaveMapResponseDto>> {
     const operationLogger = this.logger.child({
       component: 'MapsController',
       operation: 'saveMap',
-      entityId: dto.id
+      entityId: dto.id,
     });
 
     try {
@@ -135,8 +178,8 @@ export class MapsController {
         metadata: {
           mapId: dto.id,
           userId: req.user?.id || req.user?.userId,
-          name: dto.name
-        }
+          name: dto.name,
+        },
       });
 
       // Create domain objects
@@ -146,7 +189,7 @@ export class MapsController {
         new Date(),
         new Date(),
         req.user?.username || req.user?.email,
-        dto.description
+        dto.description,
       );
       // Handle seed: if it's a numeric string, use fromNumber, otherwise use fromString
       const seed = /^\d+$/.test(dto.seed)
@@ -160,16 +203,12 @@ export class MapsController {
       for (let y = 0; y < dto.height; y++) {
         tiles[y] = [];
         for (let x = 0; x < dto.width; x++) {
-          const tileDto = dto.tiles.find(t => t.x === x && t.y === y);
+          const tileDto = dto.tiles.find((t) => t.x === x && t.y === y);
           if (tileDto) {
             // Create terrain object - for now just use grass as default
             // TODO: Create proper terrain mapping from string to Terrain objects
             const terrain = Terrain.grass();
-            tiles[y][x] = new MapTile(
-              new Position(x, y),
-              terrain,
-              tileDto.elevation || 1.0
-            );
+            tiles[y][x] = new MapTile(new Position(x, y), terrain, tileDto.elevation || 1.0);
           } else {
             tiles[y][x] = new MapTile(new Position(x, y));
           }
@@ -185,7 +224,7 @@ export class MapsController {
         tiles,
         metadata,
         seed,
-        ownerId
+        ownerId,
       );
 
       // Create save command
@@ -193,7 +232,7 @@ export class MapsController {
         map: mapGrid,
         userId: req.user?.id || req.user?.userId || req.user?.sub,
         name: dto.name,
-        description: dto.description
+        description: dto.description,
       };
 
       // Execute save
@@ -203,8 +242,8 @@ export class MapsController {
         operationLogger.info('Map saved successfully', {
           metadata: {
             mapId: result.mapId,
-            userId: command.userId
-          }
+            userId: command.userId,
+          },
         });
 
         return {
@@ -212,33 +251,33 @@ export class MapsController {
           data: {
             success: true,
             mapId: result.mapId,
-            message: 'Map saved successfully'
-          }
+            message: 'Map saved successfully',
+          },
         };
       } else {
         operationLogger.warn('Failed to save map', {
           metadata: {
             error: result.error,
-            userId: command.userId
-          }
+            userId: command.userId,
+          },
         });
 
         return {
           success: false,
-          error: result.error || 'Failed to save map'
+          error: result.error || 'Failed to save map',
         };
       }
     } catch (error) {
       operationLogger.logError(error, {
         metadata: {
           mapId: dto.id,
-          userId: req.user?.id
-        }
+          userId: req.user?.id,
+        },
       });
 
       return {
         success: false,
-        error: error.message || 'Failed to save map'
+        error: error.message || 'Failed to save map',
       };
     }
   }
@@ -246,7 +285,7 @@ export class MapsController {
   @Get('my-maps')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current user\'s map history' })
+  @ApiOperation({ summary: "Get current user's map history" })
   @ApiResponse({ status: 200, description: 'Map history retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Authentication required' })
   async getMyMaps(@Request() req: any): Promise<ApiResponseType<MapGrid[]>> {
@@ -255,7 +294,7 @@ export class MapsController {
       if (!userId) {
         return {
           success: false,
-          error: 'User ID not found in token'
+          error: 'User ID not found in token',
         };
       }
       const query = new GetUserMapsQuery(userId);
@@ -283,32 +322,32 @@ export class MapsController {
     const operationLogger = this.logger.child({
       component: 'MapsController',
       operation: 'getMap',
-      entityId: id
+      entityId: id,
     });
 
     try {
       operationLogger.debug('Retrieving map by ID', {
-        metadata: { mapId: id }
+        metadata: { mapId: id },
       });
 
       const query: GetMapQuery = { mapId: id };
       const result = await this.getMapUseCase.execute(query);
-      
+
       if (!result.success || !result.data) {
         operationLogger.warn('Map not found', {
-          metadata: { 
+          metadata: {
             mapId: id,
-            error: result.error 
-          }
+            error: result.error,
+          },
         });
         return {
           success: false,
           error: result.error || 'Map not found',
         };
       }
-      
+
       operationLogger.debug('Map retrieved successfully', {
-        metadata: { mapId: id }
+        metadata: { mapId: id },
       });
 
       return {
@@ -318,7 +357,7 @@ export class MapsController {
       };
     } catch (error) {
       operationLogger.logError(error, {
-        metadata: { mapId: id }
+        metadata: { mapId: id },
       });
 
       return {
@@ -338,7 +377,7 @@ export class MapsController {
       return {
         success: true,
         data: result,
-        message: result.valid ? 'Seed is valid' : 'Seed validation failed'
+        message: result.valid ? 'Seed is valid' : 'Seed validation failed',
       };
     } catch (error) {
       return {

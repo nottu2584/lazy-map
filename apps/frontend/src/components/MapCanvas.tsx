@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import type { GeneratedMap } from '../types';
+import { Button } from './ui/button';
 
 interface MapCanvasProps {
   map: GeneratedMap;
@@ -183,7 +184,7 @@ export function MapCanvas({ map }: MapCanvasProps) {
   return (
     <div className="space-y-4">
       {/* Map Info */}
-      <div className="flex justify-between items-center text-sm text-gray-600">
+      <div className="flex justify-between items-center text-sm text-muted-foreground">
         <div>
           <strong>{map.name}</strong> - {map.width}x{map.height} cells
         </div>
@@ -199,8 +200,10 @@ export function MapCanvas({ map }: MapCanvasProps) {
           .map(([terrain, color]) => (
             <div key={terrain} className="flex items-center gap-2">
               <div
-                className="w-4 h-4 border border-gray-300"
+                className="w-4 h-4 border border-input"
                 style={{ backgroundColor: color }}
+                aria-label={`${terrain} terrain color`}
+                role="img"
               />
               <span className="capitalize">{terrain}</span>
             </div>
@@ -210,7 +213,7 @@ export function MapCanvas({ map }: MapCanvasProps) {
       {/* Canvas Container */}
       <div
         ref={containerRef}
-        className="border border-gray-300 rounded-lg overflow-hidden bg-white"
+        className="border border-border rounded-lg overflow-hidden bg-background"
         style={{ height: '500px' }}
       >
         <canvas
@@ -224,18 +227,18 @@ export function MapCanvas({ map }: MapCanvasProps) {
 
       {/* Export Options */}
       <div className="flex gap-4">
-        <button
+        <Button
           onClick={handleExportPNG}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+          variant="default"
         >
           Export PNG
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleExportPDF}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+          variant="secondary"
         >
           Export PDF
-        </button>
+        </Button>
       </div>
     </div>
   );

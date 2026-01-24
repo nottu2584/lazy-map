@@ -4,52 +4,55 @@ import { TooltipHelp } from '@/components/ui/TooltipHelp';
 import { Button } from '@/components/ui/button';
 import type { AdvancedMapSettings } from '@/types';
 
-interface VegetationDensityControlProps {
+interface TerrainRuggednessControlProps {
   settings?: AdvancedMapSettings;
   onChange: (settings: AdvancedMapSettings) => void;
 }
 
-export function VegetationDensityControl({
+export function TerrainRuggednessControl({
   settings = {},
   onChange,
-}: VegetationDensityControlProps) {
-  const density = settings.vegetationMultiplier ?? 1.0;
+}: TerrainRuggednessControlProps) {
+  const ruggedness = settings.terrainRuggedness ?? 1.0;
 
-  const handleDensityChange = (value: number[]) => {
+  const handleRuggednessChange = (value: number[]) => {
     onChange({
       ...settings,
-      vegetationMultiplier: value[0],
+      terrainRuggedness: value[0],
     });
   };
 
   const handleReset = () => {
     onChange({
       ...settings,
-      vegetationMultiplier: 1.0,
+      terrainRuggedness: 1.0,
     });
   };
 
-  const getDensityLabel = (value: number): string => {
-    if (value === 0) return 'None';
-    if (value < 0.5) return 'Sparse';
-    if (value < 1.0) return 'Light';
-    if (value === 1.0) return 'Normal';
-    if (value < 1.5) return 'Dense';
-    if (value < 2.0) return 'Very Dense';
-    return 'Maximum';
+  const getRuggednessLabel = (value: number): string => {
+    if (value < 0.7) return 'Very Smooth';
+    if (value < 0.9) return 'Smooth';
+    if (value < 1.1) return 'Normal';
+    if (value < 1.3) return 'Rugged';
+    if (value < 1.7) return 'Very Rugged';
+    return 'Extreme';
   };
 
   return (
     <FieldGroup>
       <Field>
         <div className="flex items-center justify-between mb-2">
-          <TooltipHelp content="Controls forest coverage and tree density">
-            <FieldLabel className="text-sm font-medium mb-0">Vegetation Density</FieldLabel>
+          <TooltipHelp content="Controls terrain detail and elevation variance">
+            <FieldLabel className="text-sm font-medium mb-0">Terrain Ruggedness</FieldLabel>
           </TooltipHelp>
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-foreground">{getDensityLabel(density)}</span>
-            <span className="text-sm font-mono text-muted-foreground">{density.toFixed(1)}x</span>
-            {density !== 1.0 && (
+            <span className="text-sm font-medium text-foreground">
+              {getRuggednessLabel(ruggedness)}
+            </span>
+            <span className="text-sm font-mono text-muted-foreground">
+              {ruggedness.toFixed(1)}x
+            </span>
+            {ruggedness !== 1.0 && (
               <Button
                 type="button"
                 variant="ghost"
@@ -64,18 +67,18 @@ export function VegetationDensityControl({
         </div>
 
         <Slider
-          value={[density]}
-          onValueChange={handleDensityChange}
-          min={0}
-          max={2}
+          value={[ruggedness]}
+          onValueChange={handleRuggednessChange}
+          min={0.5}
+          max={2.0}
           step={0.1}
           className="w-full"
         />
 
         <div className="flex justify-between text-xs text-muted-foreground mt-1">
-          <span>None</span>
+          <span>Smooth</span>
           <span>Normal</span>
-          <span>Maximum</span>
+          <span>Extreme</span>
         </div>
       </Field>
     </FieldGroup>

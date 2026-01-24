@@ -57,6 +57,8 @@ export interface GenerateMapRequest {
   cellSize?: number;
 
   // Advanced settings
+  terrainRuggedness?: number; // 0.5-2.0: Controls terrain detail and roughness
+  waterAbundance?: number; // 0.5-2.0: Controls frequency of water features
   vegetationMultiplier?: number; // 0.0-2.0: Controls forest coverage and density
 }
 
@@ -109,7 +111,17 @@ function mapSettingsToRequest(settings: MapSettings): GenerateMapRequest {
 
   // Add advanced settings if provided
   if (settings.advancedSettings) {
-    const { vegetationMultiplier } = settings.advancedSettings;
+    const { terrainRuggedness, waterAbundance, vegetationMultiplier } = settings.advancedSettings;
+
+    // Terrain ruggedness multiplier
+    if (terrainRuggedness !== undefined) {
+      request.terrainRuggedness = terrainRuggedness;
+    }
+
+    // Water abundance multiplier
+    if (waterAbundance !== undefined) {
+      request.waterAbundance = waterAbundance;
+    }
 
     // Vegetation density multiplier
     if (vegetationMultiplier !== undefined) {

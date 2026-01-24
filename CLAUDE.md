@@ -90,6 +90,71 @@ import { Building, IBuildingGenerationService } from '@lazy-map/domain';
 import { Building } from '@lazy-map/domain/contexts/artificial/entities/Building';
 ```
 
+### 7. Component Composition (Frontend)
+**Priority: Use shadcn/ui primitives, customize rather than recreate**
+
+- **Always check shadcn/ui first** before creating custom components
+- **Compose existing components** to achieve functionality
+- **Customize through props/styling** rather than reimplementing
+- **Create new components ONLY when**:
+  - Functionality cannot be achieved through composition
+  - No similar component exists in shadcn/ui library
+  - Behavior fundamentally differs from available primitives
+
+**Rationale**:
+- Maintains consistency across the application
+- Leverages Radix UI's accessibility features (keyboard navigation, screen readers)
+- Reduces maintenance burden
+- Ensures proper theme variable synchronization
+
+✅ **Correct - Compose shadcn/ui**:
+```typescript
+// Use Tooltip from shadcn
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+
+export function HelpTooltip({ content }: { content: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <InfoIcon className="h-4 w-4" />
+      </TooltipTrigger>
+      <TooltipContent>
+        <p className="max-w-xs">{content}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+// Use Field + Input for forms
+import { Input } from '@/components/ui/input';
+import { Field, FieldLabel } from '@/components/ui/field';
+
+<Field>
+  <FieldLabel>Email</FieldLabel>
+  <Input type="email" placeholder="user@example.com" />
+</Field>
+```
+
+❌ **Wrong - Custom reimplementation**:
+```typescript
+// Don't create custom tooltips with manual positioning
+export function CustomTooltip({ content }: { content: string }) {
+  return (
+    <div className="group relative">
+      <div className="absolute hidden group-hover:block z-50">
+        {content}
+      </div>
+    </div>
+  );
+}
+
+// Don't use raw HTML inputs with hardcoded styles
+<input
+  className="border border-gray-300 rounded-md px-3 py-2"
+  placeholder="Email"
+/>
+```
+
 ## Domain Contexts
 
 - `relief/` - Terrain, elevation, geology

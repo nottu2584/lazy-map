@@ -1,37 +1,26 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
+import * as React from "react"
+import * as SliderPrimitive from "@radix-ui/react-slider"
 
-export interface SliderProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
-  value?: number;
-  onValueChange?: (value: number) => void;
-}
+import { cn } from "@/lib/utils"
 
-const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
-  ({ className, value, onValueChange, onChange, ...props }, ref) => {
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = parseFloat(e.target.value);
-      onValueChange?.(newValue);
-      onChange?.(e);
-    };
+const Slider = React.forwardRef<
+  React.ElementRef<typeof SliderPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <SliderPrimitive.Root
+    ref={ref}
+    className={cn(
+      "relative flex w-full touch-none select-none items-center",
+      className
+    )}
+    {...props}
+  >
+    <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-lg border border-border bg-muted">
+      <SliderPrimitive.Range className="absolute h-full bg-foreground" />
+    </SliderPrimitive.Track>
+    <SliderPrimitive.Thumb className="block h-4 w-4 rounded-full bg-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50" />
+  </SliderPrimitive.Root>
+))
+Slider.displayName = SliderPrimitive.Root.displayName
 
-    return (
-      <input
-        type="range"
-        ref={ref}
-        value={value}
-        onChange={handleChange}
-        className={cn(
-          'w-full h-2 bg-primary/20 rounded-lg appearance-none cursor-pointer accent-primary',
-          '[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary',
-          '[&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-0',
-          className
-        )}
-        {...props}
-      />
-    );
-  }
-);
-Slider.displayName = 'Slider';
-
-export { Slider };
+export { Slider }

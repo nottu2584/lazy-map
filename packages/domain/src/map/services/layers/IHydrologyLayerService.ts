@@ -1,5 +1,6 @@
 import { Seed } from '../../../common/value-objects/Seed';
 import { TacticalMapContext } from '../../value-objects/TacticalMapContext';
+import { HydrologyConfig } from '../../value-objects/HydrologyConfig';
 import { GeologyLayerData } from './IGeologyLayerService';
 import { TopographyLayerData } from './ITopographyLayerService';
 import { MoistureLevel } from '../../../contexts/natural/value-objects/MoistureLevel';
@@ -49,12 +50,14 @@ export interface IHydrologyLayerService {
    * @param geology Geological layer data
    * @param context Tactical map context
    * @param seed Seed for deterministic generation
+   * @param config Optional hydrology configuration (water abundance)
    * @returns Hydrological layer data
    */
   generate(
     topography: TopographyLayerData,
     geology: GeologyLayerData,
     context: TacticalMapContext,
-    seed: Seed
+    seed: Seed,
+    config?: HydrologyConfig
   ): Promise<HydrologyLayerData>;
 }

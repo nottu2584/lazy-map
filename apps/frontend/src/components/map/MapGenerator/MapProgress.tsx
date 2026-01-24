@@ -1,19 +1,20 @@
-import { Loader2 } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 
 interface MapProgressProps {
   progress: string;
+  value: number;
 }
 
-export function MapProgress({ progress }: MapProgressProps) {
+export function MapProgress({ progress, value }: MapProgressProps) {
   if (!progress) return null;
 
   return (
-    <Alert className="mt-4">
-      <div className="flex items-center gap-3">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <AlertDescription className="text-sm">{progress}</AlertDescription>
+    <div className="mt-4 space-y-2">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">{progress}</span>
+        <span className="font-mono text-muted-foreground">{value}%</span>
       </div>
-    </Alert>
+      <Progress value={value} className="h-2" />
+    </div>
   );
 }

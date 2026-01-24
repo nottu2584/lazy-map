@@ -12,7 +12,9 @@ import {
   TopographyLayerData,
   TopographyTileData,
   GeologyLayerData,
-  RockType
+  RockType,
+  TopographyConfig,
+  TopographyConstants
 } from '@lazy-map/domain';
 
 /**
@@ -55,7 +57,8 @@ export class TopographyLayer implements ITopographyLayerService {
   async generate(
     geology: GeologyLayerData,
     context: TacticalMapContext,
-    seed: Seed
+    seed: Seed,
+    config?: TopographyConfig
   ): Promise<TopographyLayerData> {
     if (!geology || !geology.tiles) {
       throw MapGenerationErrors.invalidLayerDependency('topography', 'geology');
@@ -75,7 +78,7 @@ export class TopographyLayer implements ITopographyLayerService {
 
     try {
       // 1. Generate base elevation from geological features
-      const baseElevations = this.generateBaseElevations(geology, context, seed);
+      const baseElevations = this.generateBaseElevations(geology, context, seed, config);
       this.logger?.debug('Generated base elevations');
 
       // 2. Apply differential erosion based on rock resistance
@@ -83,7 +86,7 @@ export class TopographyLayer implements ITopographyLayerService {
       this.logger?.debug('Applied differential erosion');
 
       // 3. Apply geology-specific features (karst, granite needles, badlands, etc.)
-      const params = this.calculateElevationParameters(context);
+      const params = this.calculateElevationParameters(context, config);
       this.applyGeologicalFeatures(erodedElevations, geology, seed, params.max);
       this.logger?.debug('Applied geological features');
 
@@ -129,13 +132,19 @@ export class TopographyLayer implements ITopographyLayerService {
   private generateBaseElevations(
     geology: GeologyLayerData,
     context: TacticalMapContext,
-    seed: Seed
+    seed: Seed,
+    config?: TopographyConfig
   ): number[][] {
     const elevations: number[][] = [];
     const elevationNoise = NoiseGenerator.create(seed.getValue());
 
     // Calculate scale-adaptive elevation parameters
-    const params = this.calculateElevationParameters(context);
+    const params = this.calculateElevationParameters(context, config);
+
+    // Get noise generation parameters from config (with defaults)
+    const octaves = config?.getNoiseOctaves() ?? TopographyConstants.DEFAULT_OCTAVES;
+    const persistence = config?.getNoisePersistence() ?? TopographyConstants.DEFAULT_PERSISTENCE;
+    const scale = config?.getNoiseScale() ?? TopographyConstants.NOISE_SCALE;
 
     // First pass: generate noise values and find actual range
     const noiseValues: number[][] = [];
@@ -145,7 +154,7 @@ export class TopographyLayer implements ITopographyLayerService {
     for (let y = 0; y < this.height; y++) {
       noiseValues[y] = [];
       for (let x = 0; x < this.width; x++) {
-        const noise = elevationNoise.generateOctaves(x * 0.02, y * 0.02, 4, 0.6);
+        const noise = elevationNoise.generateOctaves(x * scale, y * scale, octaves, persistence);
         noiseValues[y][x] = noise;
         minNoise = Math.min(minNoise, noise);
         maxNoise = Math.max(maxNoise, noise);
@@ -179,7 +188,8 @@ export class TopographyLayer implements ITopographyLayerService {
    * Adjusts elevation range based on map physical size
    */
   private calculateElevationParameters(
-    context: TacticalMapContext
+    context: TacticalMapContext,
+    config?: TopographyConfig
   ): ElevationParameters {
     // Calculate physical dimensions (tiles × 5ft per tile)
     const widthFeet = this.width * 5;
@@ -196,19 +206,23 @@ export class TopographyLayer implements ITopographyLayerService {
       scale = 'strategic'; // > 1000ft = showing complete landscape
     }
 
-    // Base elevation range: 40% of smallest dimension
+    // Base elevation range: default 40% of smallest dimension (adjustable via config)
     // Smaller maps show sections with proportional relief
-    const baseRange = minDimension * 0.40;
+    const reliefMultiplier = config?.getReliefMultiplier() ?? TopographyConstants.DEFAULT_RELIEF;
+    const baseRange = minDimension * reliefMultiplier;
 
     // Adjust by elevation zone
-    const zoneMultipliers: Record<ElevationZone, number> = {
+    const baseZoneMultipliers: Record<ElevationZone, number> = {
       [ElevationZone.LOWLAND]: 0.3,   // Gentle terrain
       [ElevationZone.FOOTHILLS]: 0.6, // Moderate relief
       [ElevationZone.HIGHLAND]: 0.8,  // Significant relief
       [ElevationZone.ALPINE]: 1.0     // Maximum relief
     };
 
-    const multiplier = zoneMultipliers[context.elevation] || 0.5;
+    // Apply variance adjustment from config
+    const baseZoneMultiplier = baseZoneMultipliers[context.elevation] || 0.5;
+    const varianceAdjustment = config?.getZoneMultiplierAdjustment() ?? TopographyConstants.DEFAULT_VARIANCE;
+    const multiplier = baseZoneMultiplier * varianceAdjustment;
     const maxElevation = baseRange * multiplier;
 
     this.logger?.debug('Calculated elevation parameters', {

@@ -4,6 +4,296 @@
  */
 
 export interface paths {
+  "/api/auth/register": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Register a new user */
+    post: operations["AuthController_register"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/login": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Login user */
+    post: operations["AuthController_login"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/profile": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get current user profile */
+    get: operations["AuthController_getProfile"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/google": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Sign in with Google */
+    post: operations["AuthController_googleSignIn"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/link-google": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Link Google account to existing user */
+    post: operations["AuthController_linkGoogleAccount"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/discord": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Sign in with Discord */
+    post: operations["AuthController_discordSignIn"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/link-discord": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Link Discord account to existing user */
+    post: operations["AuthController_linkDiscordAccount"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/google/login": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Initiate Google OAuth sign-in */
+    get: operations["AuthController_initiateGoogleSignIn"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/google/callback": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Complete Google OAuth sign-in */
+    get: operations["AuthController_completeGoogleSignIn"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/discord/login": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Initiate Discord OAuth sign-in */
+    get: operations["AuthController_initiateDiscordSignIn"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/discord/callback": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Complete Discord OAuth sign-in */
+    get: operations["AuthController_completeDiscordSignIn"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/users": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List all users with filtering and pagination */
+    get: operations["AdminController_listUsers"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/users/{userId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Update user information */
+    put: operations["AdminController_updateUser"];
+    post?: never;
+    /** Delete a user account (permanent action) */
+    delete: operations["AdminController_deleteUser"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/users/{userId}/suspend": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Suspend a user account */
+    post: operations["AdminController_suspendUser"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/users/{userId}/reactivate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reactivate a suspended user account */
+    post: operations["AdminController_reactivateUser"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/users/{userId}/role": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Change user role (promote/demote) */
+    put: operations["AdminController_promoteUser"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/admin/users/stats": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get user statistics for dashboard */
+    get: operations["AdminController_getUserStats"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/maps/generate": {
     parameters: {
       query?: never;
@@ -21,10 +311,455 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/maps/save": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Save a generated map for future retrieval */
+    post: operations["MapsController_saveMap"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/maps/my-maps": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get current user's map history */
+    get: operations["MapsController_getMyMaps"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/maps/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get a map by ID */
+    get: operations["MapsController_getMap"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/maps/seeds/validate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Validate a seed value for map generation */
+    post: operations["MapsController_validateSeed"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/maps/health": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Health check for maps service */
+    get: operations["MapsController_healthCheck"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/benchmark/run": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Run performance benchmark on tactical map generation */
+    post: operations["BenchmarkController_runBenchmark"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/benchmark/quick": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Run a quick benchmark with default settings */
+    get: operations["BenchmarkController_quickBenchmark"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/features": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get all map features */
+    get: operations["FeaturesController_getAllFeatures"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/features/statistics": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get feature statistics by context */
+    get: operations["FeaturesController_getFeatureStatistics"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/features/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get a feature by ID */
+    get: operations["FeaturesController_getFeature"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/features/all": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Clear all features from all contexts */
+    delete: operations["FeaturesController_clearAllFeatures"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/features/health": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Health check for features service */
+    get: operations["FeaturesController_healthCheck"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/health": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Check application health status */
+    get: operations["HealthController_getHealth"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/health/live": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Liveness probe endpoint */
+    get: operations["HealthController_getLiveness"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/health/ready": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Readiness probe endpoint */
+    get: operations["HealthController_getReadiness"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    RegisterUserDto: {
+      /**
+       * @description User email address
+       * @example user@example.com
+       */
+      email: string;
+      /**
+       * @description User password (minimum 8 characters)
+       * @example securePassword123
+       */
+      password: string;
+      /**
+       * @description Username for the account
+       * @example johnDoe
+       */
+      username: string;
+    };
+    AuthResponseDto: {
+      /**
+       * @description JWT access token
+       * @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+       */
+      accessToken: string;
+      /** @description User information */
+      user: Record<string, never>;
+    };
+    LoginUserDto: {
+      /**
+       * @description User email address
+       * @example user@example.com
+       */
+      email: string;
+      /**
+       * @description User password
+       * @example securePassword123
+       */
+      password: string;
+    };
+    UserProfileDto: {
+      /**
+       * @description User ID
+       * @example 550e8400-e29b-41d4-a716-446655440000
+       */
+      id: string;
+      /**
+       * @description User email address
+       * @example user@example.com
+       */
+      email: string;
+      /**
+       * @description Username
+       * @example johnDoe
+       */
+      username: string;
+      /**
+       * Format: date-time
+       * @description Account creation date
+       * @example 2024-01-15T10:30:00Z
+       */
+      createdAt: string;
+      /**
+       * Format: date-time
+       * @description Last login date
+       * @example 2024-09-10T14:20:00Z
+       */
+      lastLogin?: string;
+    };
+    GoogleSignInDto: {
+      /**
+       * @description Google ID token received from Google Sign-In
+       * @example eyJhbGciOiJSUzI1NiIsImtpZCI6IjI4YTQyMWNhZmJlM...
+       */
+      idToken: string;
+      /**
+       * @description Optional Google client ID for additional validation
+       * @example 123456789012-abcdefghijk.apps.googleusercontent.com
+       */
+      clientId?: string;
+    };
+    LinkGoogleAccountDto: {
+      /**
+       * @description Google ID token received from Google Sign-In
+       * @example eyJhbGciOiJSUzI1NiIsImtpZCI6IjI4YTQyMWNhZmJlM...
+       */
+      idToken: string;
+    };
+    DiscordSignInDto: {
+      /**
+       * @description Discord access token received from Discord OAuth
+       * @example YOUR_DISCORD_ACCESS_TOKEN_HERE
+       */
+      accessToken: string;
+    };
+    LinkDiscordAccountDto: {
+      /**
+       * @description Discord access token received from Discord OAuth
+       * @example YOUR_DISCORD_ACCESS_TOKEN_HERE
+       */
+      accessToken: string;
+    };
+    UserDto: {
+      id: string;
+      email: string;
+      username: string;
+      role: string;
+      status: string;
+      /** Format: date-time */
+      createdAt: string;
+      lastLoginAt?: Record<string, never>;
+      suspendedAt?: Record<string, never>;
+      suspensionReason?: Record<string, never>;
+    };
+    UserListDataDto: {
+      users: components["schemas"]["UserDto"][];
+      total: number;
+      hasMore: boolean;
+    };
+    UserListResponseDto: {
+      success: boolean;
+      data: components["schemas"]["UserListDataDto"];
+    };
+    UpdateUserDto: {
+      /** @description New email address */
+      email?: string;
+      /** @description New username */
+      username?: string;
+    };
+    UserResponseDataDto: {
+      id: string;
+      email: string;
+      username: string;
+      role: string;
+      status: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    UserResponseDto: {
+      success: boolean;
+      data: components["schemas"]["UserResponseDataDto"];
+    };
+    SuspendUserDto: {
+      /** @description Reason for suspension */
+      reason: string;
+    };
+    AdminActionDataDto: {
+      id: string;
+      status?: string;
+      previousRole?: string;
+      newRole?: string;
+      /** Format: date-time */
+      suspendedAt?: string;
+      /** Format: date-time */
+      reactivatedAt?: string;
+      /** Format: date-time */
+      promotedAt?: string;
+      /** Format: date-time */
+      deletedAt?: string;
+      suspensionReason?: string;
+    };
+    AdminActionResponseDto: {
+      success: boolean;
+      data: components["schemas"]["AdminActionDataDto"];
+    };
+    PromoteUserDto: {
+      /**
+       * @description New role for the user
+       * @enum {string}
+       */
+      newRole: "USER" | "ADMIN" | "SUPER_ADMIN";
+    };
+    DeleteUserDto: {
+      /** @description Explicit confirmation of deletion */
+      confirmDeletion: boolean;
+    };
+    UserStatsDataDto: {
+      totalUsers: number;
+      activeUsers: number;
+      suspendedUsers: number;
+      pendingUsers: number;
+      deactivatedUsers: number;
+      adminUsers: number;
+      superAdminUsers: number;
+      regularUsers: number;
+      /** Format: date-time */
+      generatedAt: string;
+    };
+    UserStatsResponseDto: {
+      success: boolean;
+      data: components["schemas"]["UserStatsDataDto"];
+    };
     DimensionsDto: {
       /** @description Map width in tiles */
       width: number;
@@ -41,36 +776,74 @@ export interface components {
       /** @description Map dimensions */
       dimensions?: components["schemas"]["DimensionsDto"];
       /** @description Seed for deterministic generation */
-      seed?: string | number;
+      seed?: Record<string, never>;
+      /**
+       * @description Vegetation density multiplier (0.0-2.0). Controls forest coverage and tree density. 0.0 = no vegetation, 1.0 = normal forest, 2.0 = maximum density jungle
+       * @default 1
+       */
+      vegetationMultiplier: number;
+      /**
+       * @description Terrain ruggedness multiplier (0.5-2.0). Controls terrain detail and elevation variance. 0.5 = smooth gentle terrain, 1.0 = normal terrain, 2.0 = highly rugged with extreme elevation changes
+       * @default 1
+       */
+      terrainRuggedness: number;
+      /**
+       * @description Water abundance multiplier (0.5-2.0). Controls frequency of water features including streams, springs, and pools. 0.5 = arid with few water sources, 1.0 = moderate water features, 2.0 = abundant water sources
+       * @default 1
+       */
+      waterAbundance: number;
     };
-    TacticalMapResponse: {
-      map: {
-        width?: number;
-        height?: number;
-        tiles?: {
-          position?: {
-            x?: number;
-            y?: number;
-          };
-          terrain?: {
-            type?: string;
-            movementCost?: number;
-            isPassable?: boolean;
-          };
-          elevation?: number;
-          layers?: Record<string, never>;
-        }[];
-        context?: {
-          biome?: string;
-          elevation?: string;
-          development?: string;
-          description?: string;
-        };
-      };
+    TileDto: {
+      /** @description X coordinate of the tile */
+      x: number;
+      /** @description Y coordinate of the tile */
+      y: number;
+      /** @description Terrain type of the tile */
+      terrain: string;
+      /** @description Elevation of the tile */
+      elevation?: number;
+      /** @description Vegetation on the tile */
+      vegetation?: string;
+      /** @description Structure on the tile */
+      structure?: string;
+      /** @description Features on the tile */
+      features?: string[];
+      /** @description Moisture level of the tile */
+      moisture?: number;
+      /** @description Temperature of the tile */
+      temperature?: number;
+    };
+    SaveMapDto: {
+      /** @description Generated map ID */
+      id: string;
+      /** @description Map width */
       width: number;
+      /** @description Map height */
       height: number;
-      context?: string;
-      totalTime: number;
+      /** @description Seed used for generation */
+      seed: string;
+      /** @description Map tiles */
+      tiles: components["schemas"]["TileDto"][];
+      /** @description Optional map name */
+      name?: string;
+      /** @description Optional map description */
+      description?: string;
+      /** @description Optional map metadata */
+      metadata?: Record<string, never>;
+    };
+    SaveMapResponseDto: {
+      /** @description Indicates if the save was successful */
+      success: boolean;
+      /** @description Saved map ID */
+      mapId?: string;
+      /** @description Success message */
+      message?: string;
+      /** @description Error message if save failed */
+      error?: string;
+    };
+    ValidateSeedDto: {
+      /** @description Seed value to validate */
+      seed: Record<string, never>;
     };
   };
   responses: never;
@@ -81,6 +854,618 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  AuthController_register: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RegisterUserDto"];
+      };
+    };
+    responses: {
+      /** @description User successfully registered */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AuthResponseDto"];
+        };
+      };
+      /** @description Invalid registration data */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Email or username already exists */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AuthController_login: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LoginUserDto"];
+      };
+    };
+    responses: {
+      /** @description User successfully logged in */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AuthResponseDto"];
+        };
+      };
+      /** @description Invalid credentials */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AuthController_getProfile: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description User profile retrieved successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserProfileDto"];
+        };
+      };
+      /** @description Authentication required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AuthController_googleSignIn: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GoogleSignInDto"];
+      };
+    };
+    responses: {
+      /** @description Successfully authenticated with Google */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AuthResponseDto"];
+        };
+      };
+      /** @description Invalid Google token */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AuthController_linkGoogleAccount: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LinkGoogleAccountDto"];
+      };
+    };
+    responses: {
+      /** @description Google account linked successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Failed to link Google account */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Authentication required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AuthController_discordSignIn: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DiscordSignInDto"];
+      };
+    };
+    responses: {
+      /** @description Successfully authenticated with Discord */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AuthResponseDto"];
+        };
+      };
+      /** @description Invalid Discord token */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AuthController_linkDiscordAccount: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LinkDiscordAccountDto"];
+      };
+    };
+    responses: {
+      /** @description Discord account linked successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Failed to link Discord account */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Authentication required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AuthController_initiateGoogleSignIn: {
+    parameters: {
+      query: {
+        state: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Authorization URL generated successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            authorizationUrl?: string;
+          };
+        };
+      };
+      /** @description Failed to generate authorization URL */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AuthController_completeGoogleSignIn: {
+    parameters: {
+      query: {
+        code: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OAuth sign-in completed successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid OAuth callback */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AuthController_initiateDiscordSignIn: {
+    parameters: {
+      query: {
+        state: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Authorization URL generated successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            authorizationUrl?: string;
+          };
+        };
+      };
+      /** @description Failed to generate authorization URL */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AuthController_completeDiscordSignIn: {
+    parameters: {
+      query: {
+        code: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OAuth sign-in completed successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid OAuth callback */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AdminController_listUsers: {
+    parameters: {
+      query?: {
+        /** @description Number of users per page */
+        limit?: number;
+        /** @description Number of users to skip */
+        offset?: number;
+        /** @description Filter by user role */
+        role?: "USER" | "ADMIN" | "SUPER_ADMIN";
+        /** @description Filter by user status */
+        status?: "ACTIVE" | "SUSPENDED" | "PENDING" | "DEACTIVATED";
+        /** @description Search in email and username */
+        searchTerm?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Users retrieved successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserListResponseDto"];
+        };
+      };
+      /** @description Insufficient permissions */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AdminController_updateUser: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description User ID to update */
+        userId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateUserDto"];
+      };
+    };
+    responses: {
+      /** @description User updated successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserResponseDto"];
+        };
+      };
+      /** @description Insufficient permissions */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description User not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AdminController_deleteUser: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description User ID to delete */
+        userId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DeleteUserDto"];
+      };
+    };
+    responses: {
+      /** @description User deleted successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminActionResponseDto"];
+        };
+      };
+      /** @description Insufficient permissions */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description User not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AdminController_suspendUser: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description User ID to suspend */
+        userId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SuspendUserDto"];
+      };
+    };
+    responses: {
+      /** @description User suspended successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminActionResponseDto"];
+        };
+      };
+      /** @description Insufficient permissions */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description User not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AdminController_reactivateUser: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description User ID to reactivate */
+        userId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description User reactivated successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminActionResponseDto"];
+        };
+      };
+      /** @description Insufficient permissions */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description User not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AdminController_promoteUser: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description User ID to promote/demote */
+        userId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PromoteUserDto"];
+      };
+    };
+    responses: {
+      /** @description User role changed successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminActionResponseDto"];
+        };
+      };
+      /** @description Insufficient permissions */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description User not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  AdminController_getUserStats: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description User statistics retrieved successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserStatsResponseDto"];
+        };
+      };
+      /** @description Insufficient permissions */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   MapsController_generateMap: {
     parameters: {
       query?: never;
@@ -99,13 +1484,344 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
+        content?: never;
+      };
+    };
+  };
+  MapsController_saveMap: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SaveMapDto"];
+      };
+    };
+    responses: {
+      /** @description Map saved successfully */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SaveMapResponseDto"];
+        };
+      };
+      /** @description Invalid map data */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Authentication required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  MapsController_getMyMaps: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Map history retrieved successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Authentication required */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  MapsController_getMap: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Map found */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Map not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  MapsController_validateSeed: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ValidateSeedDto"];
+      };
+    };
+    responses: {
+      /** @description Seed validation result */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  MapsController_healthCheck: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  BenchmarkController_runBenchmark: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Benchmark completed successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  BenchmarkController_quickBenchmark: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Quick benchmark completed */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FeaturesController_getAllFeatures: {
+    parameters: {
+      query?: {
+        context?: "relief" | "natural" | "artificial" | "cultural";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Features retrieved successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FeaturesController_getFeatureStatistics: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Statistics retrieved successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FeaturesController_getFeature: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Feature ID */
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Feature found */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Feature not found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FeaturesController_clearAllFeatures: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description All features cleared successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FeaturesController_healthCheck: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  HealthController_getHealth: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Application is healthy */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
           "application/json": {
-            success?: boolean;
-            data?: components["schemas"]["TacticalMapResponse"];
-            message?: string;
+            /** @enum {string} */
+            status?: "healthy" | "degraded" | "unhealthy";
+            /** Format: date-time */
+            timestamp?: string;
+            /** @description Uptime in seconds */
+            uptime?: number;
+            version?: string;
           };
         };
+      };
+    };
+  };
+  HealthController_getLiveness: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Application is alive */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  HealthController_getReadiness: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Application is ready */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Application is not ready */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

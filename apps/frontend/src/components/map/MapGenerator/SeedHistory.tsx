@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { seedHistoryService, type SeedHistoryEntry } from '../../../services';
+import type { SeedHistoryEntry } from '../../../types';
+import { seedHistoryService } from '../../../services';
 
 interface SeedHistoryProps {
   onApplySeed: (entry: SeedHistoryEntry) => void;

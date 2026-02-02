@@ -14,10 +14,10 @@ import {
 } from '@/components/ui/empty';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { useMapGeneration } from '@/hooks';
-import type { AdvancedMapSettings, MapSettings } from '@/types';
+import type { AdvancedMapSettings, MapSettings, SeedHistoryEntry } from '@/types';
 import { ChevronDown, Lightbulb, Map } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { seedHistoryService, type SeedHistoryEntry } from '../../../services';
+import { seedHistoryService } from '../../../services';
 import { MapCanvas } from '../../MapCanvas';
 import { EnvironmentSheet } from './EnvironmentSheet';
 import { MapBasicSettings } from './MapBasicSettings';

@@ -1646,6 +1646,27 @@
           "seed": {
             "type": "object",
             "description": "Seed for deterministic generation"
+          },
+          "vegetationMultiplier": {
+            "type": "number",
+            "description": "Vegetation density multiplier (0.0-2.0). Controls forest coverage and tree density. 0.0 = no vegetation, 1.0 = normal forest, 2.0 = maximum density jungle",
+            "minimum": 0,
+            "maximum": 2,
+            "default": 1
+          },
+          "terrainRuggedness": {
+            "type": "number",
+            "description": "Terrain ruggedness multiplier (0.5-2.0). Controls terrain detail and elevation variance. 0.5 = smooth gentle terrain, 1.0 = normal terrain, 2.0 = highly rugged with extreme elevation changes",
+            "minimum": 0.5,
+            "maximum": 2,
+            "default": 1
+          },
+          "waterAbundance": {
+            "type": "number",
+            "description": "Water abundance multiplier (0.5-2.0). Controls frequency of water features including streams, springs, and pools. 0.5 = arid with few water sources, 1.0 = moderate water features, 2.0 = abundant water sources",
+            "minimum": 0.5,
+            "maximum": 2,
+            "default": 1
           }
         }
       },

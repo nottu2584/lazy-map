@@ -1,7 +1,11 @@
-export { apiService } from './ApiService';
-export { seedHistoryService } from './SeedHistoryService';
-export { logger } from './LoggerService';
-export { FrontLoggingService } from './FrontLoggingService';
+/**
+ * Service exports
+ *
+ * Note: Type definitions are in src/types, not here.
+ * Import types from '../types' instead of '../services'.
+ */
 
-export type { SeedHistoryEntry } from './SeedHistoryService';
-export type { GenerateMapRequest, TacticalMapResponse } from './ApiService';
+export { apiService } from './ApiService';
+export { FrontLoggingService } from './FrontLoggingService';
+export { logger } from './LoggerService';
+export { seedHistoryService } from './SeedHistoryService';

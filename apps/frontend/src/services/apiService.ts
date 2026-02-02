@@ -1,9 +1,13 @@
 import type { ApiResponse } from '@lazy-map/application';
 import axios from 'axios';
-import type { GeneratedMap, MapSettings } from '../types';
-import { logger } from './';
+import { logger } from '.';
+import type {
+  GeneratedMap,
+  MapSettings,
+  GenerateMapRequest,
+  TacticalMapResponse,
+} from '../types';
 
-// API configuration from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3030/api';
 const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '30000', 10);
 
@@ -27,7 +31,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor for error handling
@@ -42,64 +46,12 @@ apiClient.interceptors.response.use(
       window.location.reload();
     }
     return Promise.reject(error);
-  }
+  },
 );
 
-export interface GenerateMapRequest {
-  name?: string;
-  width?: number;
-  height?: number;
-  dimensions?: {
-    width: number;
-    height: number;
-  };
-  seed?: string | number;
-  cellSize?: number;
-
-  // Advanced settings
-  terrainRuggedness?: number; // 0.5-2.0: Controls terrain detail and roughness
-  waterAbundance?: number; // 0.5-2.0: Controls frequency of water features
-  vegetationMultiplier?: number; // 0.0-2.0: Controls forest coverage and density
-}
-
-export interface TacticalMapResponse {
-  map: {
-    width: number;
-    height: number;
-    tiles: Array<{
-      position: {
-        x: number;
-        y: number;
-      };
-      terrain: {
-        type: string;
-        movementCost: number;
-        isPassable: boolean;
-      };
-      elevation: number;
-      layers: {
-        geology?: any;
-        topography?: any;
-        hydrology?: any;
-        vegetation?: any;
-        structures?: any;
-        features?: any;
-      };
-    }>;
-    context?: {
-      biome: string;
-      elevation: string;
-      development: string;
-      description?: string;
-    };
-  };
-  width: number;
-  height: number;
-  context?: string;
-  totalTime: number;
-}
-
-// Convert frontend settings to backend request format
+/**
+ * Convert frontend settings to backend request format
+ */
 function mapSettingsToRequest(settings: MapSettings): GenerateMapRequest {
   const request: GenerateMapRequest = {
     name: settings.name,
@@ -133,8 +85,11 @@ function mapSettingsToRequest(settings: MapSettings): GenerateMapRequest {
 }
 
 // Convert backend response to frontend format
-function mapResponseToGeneratedMap(response: TacticalMapResponse, seed?: string | number): GeneratedMap {
-  const tiles = response.map.tiles.map(tile => {
+function mapResponseToGeneratedMap(
+  response: TacticalMapResponse,
+  seed?: string | number,
+): GeneratedMap {
+  const tiles = response.map.tiles.map((tile) => {
     // Extract features from layers
     const features: string[] = [];
 
@@ -179,7 +134,7 @@ export const apiService = {
     try {
       const response = await apiClient.post<ApiResponse<{ user: any; token: string }>>(
         '/auth/login',
-        { email, password }
+        { email, password },
       );
 
       return response.data;
@@ -187,12 +142,12 @@ export const apiService = {
       if (axios.isAxiosError(error)) {
         return {
           success: false,
-          error: error.response?.data?.error || 'Login failed'
+          error: error.response?.data?.error || 'Login failed',
         };
       }
       return {
         success: false,
-        error: 'An unexpected error occurred'
+        error: 'An unexpected error occurred',
       };
     }
   },
@@ -203,7 +158,7 @@ export const apiService = {
 
       const response = await apiClient.post<ApiResponse<TacticalMapResponse>>(
         '/maps/generate',
-        request
+        request,
       );
 
       if (!response.data.success || !response.data.data) {
@@ -217,24 +172,34 @@ export const apiService = {
           throw new Error(error.response.data.error);
         }
         if (error.code === 'ECONNREFUSED') {
-          throw new Error('Cannot connect to the map generation service. Please ensure the backend is running on port 3030.');
+          throw new Error(
+            'Cannot connect to the map generation service. Please ensure the backend is running on port 3030.',
+          );
         }
         if (error.code === 'ECONNABORTED') {
-          throw new Error('Map generation timed out. Please try with smaller dimensions or simpler settings.');
+          throw new Error(
+            'Map generation timed out. Please try with smaller dimensions or simpler settings.',
+          );
         }
       }
       throw new Error(error instanceof Error ? error.message : 'Unknown error occurred');
     }
   },
 
-  async saveMap(map: GeneratedMap, name?: string, description?: string): Promise<{ success: boolean; mapId?: string; error?: string }> {
+  async saveMap(
+    map: GeneratedMap,
+    name?: string,
+    description?: string,
+  ): Promise<{ success: boolean; mapId?: string; error?: string }> {
     try {
       const token = localStorage.getItem('authToken');
       if (!token) {
         throw new Error('Authentication required to save maps');
       }
 
-      const response = await apiClient.post<ApiResponse<{ success: boolean; mapId?: string; message?: string }>>(
+      const response = await apiClient.post<
+        ApiResponse<{ success: boolean; mapId?: string; message?: string }>
+      >(
         '/maps/save',
         {
           id: map.id,
@@ -244,13 +209,13 @@ export const apiService = {
           tiles: map.tiles,
           name: name || map.name,
           description,
-          metadata: map.metadata || {}
+          metadata: map.metadata || {},
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
 
       if (!response.data.success) {
@@ -259,7 +224,7 @@ export const apiService = {
 
       return {
         success: true,
-        mapId: response.data.data?.mapId
+        mapId: response.data.data?.mapId,
       };
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -304,22 +269,23 @@ export const apiService = {
         return [];
       }
 
-      const response = await apiClient.get<ApiResponse<TacticalMapResponse[]>>(
-        '/maps/my-maps',
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      const response = await apiClient.get<ApiResponse<TacticalMapResponse[]>>('/maps/my-maps', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.data.success || !response.data.data) {
         return [];
       }
 
-      return response.data.data.map(mapData => mapResponseToGeneratedMap(mapData, undefined));
+      return response.data.data.map((mapData) => mapResponseToGeneratedMap(mapData, undefined));
     } catch (error) {
-      logger.error('Failed to get user maps', { component: 'ApiService', operation: 'getUserMaps' }, { error });
+      logger.error(
+        'Failed to get user maps',
+        { component: 'ApiService', operation: 'getUserMaps' },
+        { error },
+      );
       return [];
     }
   },
@@ -329,7 +295,9 @@ export const apiService = {
       const response = await apiClient.get<ApiResponse<string>>('/maps/health');
       return response.data.data || 'OK';
     } catch (error) {
-      throw new Error(`Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   },
 
@@ -347,19 +315,21 @@ export const apiService = {
     };
   }> {
     try {
-      const response = await apiClient.post<ApiResponse<{
-        valid: boolean;
-        normalizedSeed?: number;
-        error?: string;
-        warnings?: string[];
-        metadata: {
-          originalValue: string | number;
-          inputType: 'string' | 'number';
-          wasNormalized: boolean;
-          algorithmVersion: string;
-          timestamp: string;
-        };
-      }>>('/maps/seeds/validate', { seed });
+      const response = await apiClient.post<
+        ApiResponse<{
+          valid: boolean;
+          normalizedSeed?: number;
+          error?: string;
+          warnings?: string[];
+          metadata: {
+            originalValue: string | number;
+            inputType: 'string' | 'number';
+            wasNormalized: boolean;
+            algorithmVersion: string;
+            timestamp: string;
+          };
+        }>
+      >('/maps/seeds/validate', { seed });
 
       if (!response.data.success || !response.data.data) {
         throw new Error(response.data.error || 'Failed to validate seed');

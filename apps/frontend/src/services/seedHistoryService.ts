@@ -3,20 +3,7 @@
  */
 
 import { logger } from './LoggerService';
-
-export interface SeedHistoryEntry {
-  id: string;
-  seed: string | number;
-  normalizedSeed?: number;
-  mapName: string;
-  timestamp: string;
-  generationSuccess: boolean;
-  metadata?: {
-    dimensions: { width: number; height: number };
-    algorithmVersion?: string;
-    cellSize?: number;
-  };
-}
+import type { SeedHistoryEntry } from '../types';
 
 export class SeedHistoryService {
   private readonly STORAGE_KEY = 'lazy-map-seed-history';

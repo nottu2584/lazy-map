@@ -11,4 +11,6 @@ export * from './progress';
 export * from './scroll-area';
 export * from './slider';
 export * from './SliderInput';
+export * from './sonner';
+export * from './table';
 export * from './TooltipHelp';

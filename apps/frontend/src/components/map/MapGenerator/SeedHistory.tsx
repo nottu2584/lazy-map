@@ -38,10 +38,10 @@ export function SeedHistory({ onApplySeed }: SeedHistoryProps) {
         variant="ghost"
         size="sm"
         onClick={() => setShowSeedHistory(!showSeedHistory)}
-        className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 h-auto p-0"
+        className="flex items-center"
       >
         <ChevronRight
-          className={`h-4 w-4 transform transition-transform ${showSeedHistory ? 'rotate-90' : ''}`}
+          className={`transform transition-transform ${showSeedHistory ? 'rotate-90' : ''}`}
         />
         Recent Seeds ({seedHistory.length})
       </Button>
@@ -58,30 +58,31 @@ export function SeedHistory({ onApplySeed }: SeedHistoryProps) {
                   <Button
                     type="button"
                     variant="ghost"
+                    size="sm"
                     onClick={() => {
                       onApplySeed(entry);
                       setShowSeedHistory(false);
                     }}
-                    className="flex-1 text-left h-auto py-1 px-2 min-w-0 justify-start"
+                    className="flex-1 justify-start min-w-0"
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">
+                      <p className="text-sm font-medium truncate">
                         {entry.mapName}
-                      </div>
-                      <div className="text-xs text-muted-foreground truncate">
+                      </p>
+                      <p className="text-sm text-muted-foreground truncate">
                         Seed:{' '}
                         {typeof entry.seed === 'string'
                           ? `"${entry.seed}"`
                           : entry.seed}
                         {entry.metadata?.dimensions &&
                           ` • ${entry.metadata.dimensions.width}×${entry.metadata.dimensions.height}`}
-                      </div>
+                      </p>
                     </div>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="left" className="max-w-xs">
                   <p className="font-medium">{entry.mapName}</p>
-                  <p className="text-xs">
+                  <p className="text-sm">
                     Seed: {typeof entry.seed === 'string' ? `"${entry.seed}"` : entry.seed}
                     {entry.metadata?.dimensions &&
                       ` • ${entry.metadata.dimensions.width}×${entry.metadata.dimensions.height}`}
@@ -93,9 +94,10 @@ export function SeedHistory({ onApplySeed }: SeedHistoryProps) {
                 variant="ghost"
                 size="icon"
                 onClick={() => removeSeedFromHistory(entry.id)}
-                className="ml-2 text-muted-foreground hover:text-destructive flex-shrink-0 h-6 w-6"
+                className="ml-2 flex-shrink-0"
+                aria-label="Remove from history"
               >
-                <X className="h-4 w-4" />
+                <X />
               </Button>
             </div>
           ))}
@@ -105,7 +107,7 @@ export function SeedHistory({ onApplySeed }: SeedHistoryProps) {
               variant="ghost"
               size="sm"
               onClick={clearAllHistory}
-              className="w-full text-muted-foreground hover:text-destructive pt-2 border-t h-auto"
+              className="w-full border-t"
             >
               Clear All History
             </Button>

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import {
   Field,
@@ -15,6 +16,15 @@ interface MapBasicSettingsProps {
   onHeightChange: (height: number) => void;
 }
 
+const MIN_SIZE = 10;
+const MAX_SIZE = 100;
+
+function clampSize(value: string): number {
+  const numValue = parseInt(value);
+  if (isNaN(numValue)) return MIN_SIZE;
+  return Math.max(MIN_SIZE, Math.min(MAX_SIZE, numValue));
+}
+
 export function MapBasicSettings({
   name,
   width,
@@ -23,6 +33,38 @@ export function MapBasicSettings({
   onWidthChange,
   onHeightChange,
 }: MapBasicSettingsProps) {
+  const [widthInput, setWidthInput] = useState(String(width));
+  const [heightInput, setHeightInput] = useState(String(height));
+
+  // Sync internal state when props change (e.g., from presets or history)
+  useEffect(() => {
+    setWidthInput(String(width));
+  }, [width]);
+
+  useEffect(() => {
+    setHeightInput(String(height));
+  }, [height]);
+
+  const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setWidthInput(e.target.value);
+  };
+
+  const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setHeightInput(e.target.value);
+  };
+
+  const handleWidthBlur = () => {
+    const clampedValue = clampSize(widthInput);
+    setWidthInput(String(clampedValue));
+    onWidthChange(clampedValue);
+  };
+
+  const handleHeightBlur = () => {
+    const clampedValue = clampSize(heightInput);
+    setHeightInput(String(clampedValue));
+    onHeightChange(clampedValue);
+  };
+
   return (
     <FieldGroup>
       <Field>
@@ -42,10 +84,11 @@ export function MapBasicSettings({
           <Input
             id="map-width"
             type="number"
-            min="10"
-            max="100"
-            value={width}
-            onChange={(e) => onWidthChange(parseInt(e.target.value))}
+            min={MIN_SIZE}
+            max={MAX_SIZE}
+            value={widthInput}
+            onChange={handleWidthChange}
+            onBlur={handleWidthBlur}
           />
           <FieldDescription>10-100 tiles</FieldDescription>
         </Field>
@@ -54,10 +97,11 @@ export function MapBasicSettings({
           <Input
             id="map-height"
             type="number"
-            min="10"
-            max="100"
-            value={height}
-            onChange={(e) => onHeightChange(parseInt(e.target.value))}
+            min={MIN_SIZE}
+            max={MAX_SIZE}
+            value={heightInput}
+            onChange={handleHeightChange}
+            onBlur={handleHeightBlur}
           />
           <FieldDescription>10-100 tiles</FieldDescription>
         </Field>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { apiService } from '../services';
+import { apiService, logger } from '../services';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Field, FieldLabel } from './ui/field';
@@ -23,10 +23,24 @@ export function LoginForm() {
       if (response.success && response.data) {
         login(response.data.user, response.data.token);
       } else {
-        setError(response.error || 'Login failed');
+        // Log technical error details
+        logger.error('Login failed', {
+          component: 'LoginForm',
+          operation: 'handleSubmit',
+          metadata: { error: response.error },
+        });
+        // Show user-friendly message
+        setError('Invalid email or password. Try demo@example.com / demo');
       }
-    } catch (_err) {
-      setError('Invalid credentials. Try demo@example.com / demo');
+    } catch (err) {
+      // Log technical error details
+      logger.error('Login error', {
+        component: 'LoginForm',
+        operation: 'handleSubmit',
+        metadata: { error: err instanceof Error ? err.message : 'Unknown error' },
+      });
+      // Show user-friendly message
+      setError('Unable to sign in. Try demo@example.com / demo');
     }
 
     setIsLoading(false);
@@ -70,9 +84,9 @@ export function LoginForm() {
         {isLoading ? 'Signing in...' : 'Sign In'}
       </Button>
 
-      <div className="text-sm text-muted-foreground text-center">
+      <p className="text-sm text-center">
         Demo credentials: demo@example.com / demo
-      </div>
+      </p>
     </form>
   );
 }

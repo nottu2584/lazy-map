@@ -19,10 +19,10 @@ export function MapError({ error, onClear }: MapErrorProps) {
           variant="ghost"
           size="icon"
           onClick={onClear}
-          className="ml-3 h-6 w-6 hover:bg-destructive/20"
+          className="ml-3"
           aria-label="Close error"
         >
-          <X className="h-4 w-4" />
+          <X />
         </Button>
       </div>
     </Alert>

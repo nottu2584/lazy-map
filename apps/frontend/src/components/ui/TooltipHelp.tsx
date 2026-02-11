@@ -17,7 +17,7 @@ export function TooltipHelp({ content, children, side = 'top' }: TooltipHelpProp
           <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
         </TooltipTrigger>
         <TooltipContent side={side}>
-          <p className="max-w-xs">{content}</p>
+          <p className="text-sm max-w-xs text-inherit">{content}</p>
         </TooltipContent>
       </Tooltip>
     </div>

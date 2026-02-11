@@ -174,13 +174,6 @@ export function MapCanvas({ map }: MapCanvasProps) {
     });
   };
 
-  // Export canvas as data URL for PDF or other uses
-  const handleExportPDF = () => {
-    // Placeholder for future PDF export implementation
-    // Will use jsPDF or similar library
-    alert('PDF export functionality will be implemented in a future update');
-  };
-
   return (
     <div className="space-y-4">
       {/* Map Info */}
@@ -227,17 +220,8 @@ export function MapCanvas({ map }: MapCanvasProps) {
 
       {/* Export Options */}
       <div className="flex gap-4">
-        <Button
-          onClick={handleExportPNG}
-          variant="default"
-        >
+        <Button onClick={handleExportPNG} variant="default">
           Export PNG
-        </Button>
-        <Button
-          onClick={handleExportPDF}
-          variant="secondary"
-        >
-          Export PDF
         </Button>
       </div>
     </div>

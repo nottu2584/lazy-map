@@ -41,9 +41,15 @@ export interface GeneratedMap {
   }>;
 }
 
-export interface SeedValidationResult {
+export interface SeedValidation {
   valid: boolean;
   error?: string;
   warnings?: string[];
   normalizedSeed?: number;
+}
+
+export interface MapPreset {
+  name: string;
+  description: string;
+  settings: AdvancedMapSettings;
 }

@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import { apiService } from '../services';
-import type { SeedValidationResult } from '@/types';
+import type { SeedValidation } from '@/types';
 
 export function useSeedValidation(seed: string | undefined) {
   const [validation, setValidation] = useState<
-    SeedValidationResult & { isValidating: boolean }
+    SeedValidation & { isValidating: boolean }
   >({
     isValidating: false,
     valid: true,

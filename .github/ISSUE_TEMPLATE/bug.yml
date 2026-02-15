@@ -1,37 +1,38 @@
-name: Bug Report
-description: Report a bug or security issue
-title: "[BUG] "
-labels: ["bug"]
+name: 🐛 Bug Report
+description: Report something that isn't working
+title: "bug: "
+labels: ["bug", "needs-triage"]
 body:
-  - type: dropdown
-    id: severity
+  - type: markdown
     attributes:
-      label: Severity
-      description: How severe is this issue?
+      value: |
+        Thanks for reporting a bug! Please search existing issues before creating a new one.
+
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue?
+      description: Please search existing issues to avoid duplicates
       options:
-        - "🔴 Critical (Security/Data Loss)"
-        - "🟡 High (Broken Feature)"
-        - "🟢 Medium (Degraded Experience)"
-        - "⚪ Low (Minor Issue)"
-    validations:
-      required: true
+        - label: I have searched existing issues
+          required: true
 
   - type: textarea
     id: description
     attributes:
-      label: Bug Description
-      description: Clear description of the problem
+      label: What's wrong?
+      description: Clear description of the bug
+      placeholder: Map generation fails when...
     validations:
       required: true
 
   - type: textarea
     id: reproduce
     attributes:
-      label: Steps to Reproduce
-      description: How can we reproduce this issue?
-      value: |
-        1. Go to '...'
-        2. Click on '...'
+      label: Steps to reproduce
+      description: How can we reproduce this?
+      placeholder: |
+        1. Go to...
+        2. Click...
         3. See error
     validations:
       required: true
@@ -39,24 +40,46 @@ body:
   - type: textarea
     id: expected
     attributes:
-      label: Expected Behavior
+      label: Expected behavior
       description: What should happen instead?
+      placeholder: Map should generate successfully
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How severe is this issue?
+      options:
+        - low
+        - medium
+        - high
+        - critical
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Which area is affected?
+      options:
+        - backend
+        - frontend
+        - domain
+        - application
+        - infrastructure
+        - docs
+        - ci
     validations:
       required: true
 
   - type: textarea
-    id: actual
+    id: context
     attributes:
-      label: Actual Behavior
-      description: What actually happens?
-    validations:
-      required: true
-
-  - type: textarea
-    id: logs
-    attributes:
-      label: Error Logs
-      description: Any relevant error messages or logs
+      label: Additional context
+      description: Logs, screenshots, environment details, etc.
+      placeholder: |
+        Error logs, browser console output, screenshots...
       render: shell
-    validations:
-      required: false

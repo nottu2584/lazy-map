@@ -12,11 +12,11 @@ import {
 } from '@lazy-map/domain';
 
 /**
- * Creates tile data combining vegetation properties
+ * Generates tile data combining vegetation properties
  * Handles forest patch extraction and statistics calculation
  */
 @Injectable()
-export class TileDataService {
+export class TileGenerationService {
   constructor(
     @Optional() @Inject('ILogger') private readonly logger?: ILogger
   ) {}

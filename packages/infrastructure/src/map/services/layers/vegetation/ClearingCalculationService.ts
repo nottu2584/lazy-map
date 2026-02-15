@@ -7,11 +7,11 @@ import {
 } from '@lazy-map/domain';
 
 /**
- * Identifies natural clearings and meadows within forested areas
- * Uses spatial analysis to detect open spaces surrounded by trees
+ * Calculates natural clearings and meadows within forested areas
+ * Identifies open spaces surrounded by trees and calculates basal area
  */
 @Injectable()
-export class ClearingAnalysisService {
+export class ClearingCalculationService {
   constructor(
     @Optional() @Inject('ILogger') private readonly logger?: ILogger
   ) {}

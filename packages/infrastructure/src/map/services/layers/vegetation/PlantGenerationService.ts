@@ -22,11 +22,11 @@ import {
 } from '@lazy-map/domain';
 
 /**
- * Distributes individual plants based on forest distribution and environmental conditions
+ * Generates individual plants based on forest distribution and environmental conditions
  * Handles tree placement, understory vegetation, and ground cover
  */
 @Injectable()
-export class PlantDistributionService {
+export class PlantGenerationService {
   constructor(
     @Optional() @Inject('ILogger') private readonly logger?: ILogger
   ) {}

@@ -10,16 +10,16 @@ import {
   HydrologyLayerData,
   type ILogger
 } from '@lazy-map/domain';
-import { ClearingAnalysisService } from './ClearingAnalysisService';
+import { ClearingCalculationService } from './ClearingCalculationService';
 
 /**
  * Calculates tactical properties of vegetation
  * Includes canopy height, density, and vegetation type classification
  */
 @Injectable()
-export class TacticalPropertiesService {
+export class TacticalCalculationService {
   constructor(
-    private readonly clearingAnalysisService: ClearingAnalysisService,
+    private readonly clearingCalculationService: ClearingCalculationService,
     @Optional() @Inject('ILogger') private readonly logger?: ILogger
   ) {}
 
@@ -60,7 +60,7 @@ export class TacticalPropertiesService {
         canopyHeight[y][x] = maxHeight;
 
         // Calculate density using basal area survey
-        const basalArea = this.clearingAnalysisService.calculateBasalArea(x, y, plants, width, height);
+        const basalArea = this.clearingCalculationService.calculateBasalArea(x, y, plants, width, height);
         const densityClass = VegetationConfig.classifyDensity(basalArea);
 
         // Convert basal area classification to canopy density (0-1)

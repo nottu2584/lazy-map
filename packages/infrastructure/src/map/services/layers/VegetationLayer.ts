@@ -12,41 +12,41 @@ import {
   HydrologyLayerData
 } from '@lazy-map/domain';
 
-import { VegetationPotentialService } from './vegetation/VegetationPotentialService';
+import { PotentialCalculationService } from './vegetation/PotentialCalculationService';
 import { ForestGenerationService } from './vegetation/ForestGenerationService';
-import { PlantDistributionService } from './vegetation/PlantDistributionService';
-import { ClearingAnalysisService } from './vegetation/ClearingAnalysisService';
-import { TacticalPropertiesService } from './vegetation/TacticalPropertiesService';
-import { TileDataService } from './vegetation/TileDataService';
+import { PlantGenerationService } from './vegetation/PlantGenerationService';
+import { ClearingCalculationService } from './vegetation/ClearingCalculationService';
+import { TacticalCalculationService } from './vegetation/TacticalCalculationService';
+import { TileGenerationService } from './vegetation/TileGenerationService';
 
 /**
  * Vegetation Layer - Orchestrates vegetation generation
  * Delegates to specialized services for each generation phase
  *
  * Refactored from 921-line monolith into lightweight orchestrator pattern
- * Services handle: potential calculation, forest generation, plant distribution,
- * clearing identification, tactical properties, and tile data creation
+ * Services handle: potential calculation, forest generation, plant generation,
+ * clearing calculation, tactical calculation, and tile generation
  */
 @Injectable()
 export class VegetationLayer implements IVegetationLayerService {
   constructor(
-    @Inject(VegetationPotentialService)
-    private readonly potentialService: VegetationPotentialService,
+    @Inject(PotentialCalculationService)
+    private readonly potentialService: PotentialCalculationService,
 
     @Inject(ForestGenerationService)
     private readonly forestService: ForestGenerationService,
 
-    @Inject(PlantDistributionService)
-    private readonly plantService: PlantDistributionService,
+    @Inject(PlantGenerationService)
+    private readonly plantService: PlantGenerationService,
 
-    @Inject(ClearingAnalysisService)
-    private readonly clearingService: ClearingAnalysisService,
+    @Inject(ClearingCalculationService)
+    private readonly clearingService: ClearingCalculationService,
 
-    @Inject(TacticalPropertiesService)
-    private readonly tacticalService: TacticalPropertiesService,
+    @Inject(TacticalCalculationService)
+    private readonly tacticalService: TacticalCalculationService,
 
-    @Inject(TileDataService)
-    private readonly tileDataService: TileDataService,
+    @Inject(TileGenerationService)
+    private readonly tileService: TileGenerationService,
 
     @Optional() @Inject('ILogger')
     private readonly logger?: ILogger
@@ -125,7 +125,7 @@ export class VegetationLayer implements IVegetationLayerService {
     );
 
     // 6. Create tile data
-    const tiles = this.tileDataService.createTileData(
+    const tiles = this.tileService.createTileData(
       plantDistribution,
       tacticalProperties,
       hydrology,
@@ -134,10 +134,10 @@ export class VegetationLayer implements IVegetationLayerService {
     );
 
     // 7. Extract forest patches for visualization
-    const forestPatches = this.tileDataService.extractForestPatches(tiles, width, height);
+    const forestPatches = this.tileService.extractForestPatches(tiles, width, height);
 
     // 8. Calculate statistics
-    const stats = this.tileDataService.calculateStatistics(tiles, width, height);
+    const stats = this.tileService.calculateStatistics(tiles, width, height);
 
     this.logger?.debug('Vegetation generation complete', {
       component: 'VegetationLayer',

@@ -14,7 +14,7 @@ import {
  * Based on biome type, moisture, slope, soil depth, and elevation
  */
 @Injectable()
-export class VegetationPotentialService {
+export class PotentialCalculationService {
   constructor(
     @Optional() @Inject('ILogger') private readonly logger?: ILogger
   ) {}

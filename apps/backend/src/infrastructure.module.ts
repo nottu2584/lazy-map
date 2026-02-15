@@ -31,12 +31,12 @@ import {
   TopographyCalculationService,
   TopographyLayer,
   VegetationLayer,
-  VegetationPotentialService,
+  PotentialCalculationService,
   ForestGenerationService,
-  PlantDistributionService,
-  ClearingAnalysisService,
-  TacticalPropertiesService,
-  TileDataService,
+  PlantGenerationService,
+  ClearingCalculationService,
+  TacticalCalculationService,
+  TileGenerationService,
 } from '@lazy-map/infrastructure';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -77,12 +77,12 @@ const shouldUseDatabase = () => {
     TopographyCalculationService,
 
     // Vegetation internal services
-    VegetationPotentialService,
+    PotentialCalculationService,
     ForestGenerationService,
-    PlantDistributionService,
-    ClearingAnalysisService,
-    TacticalPropertiesService,
-    TileDataService,
+    PlantGenerationService,
+    ClearingCalculationService,
+    TacticalCalculationService,
+    TileGenerationService,
 
     // Output port implementations
     // Only provide IMapPersistencePort when NOT using database

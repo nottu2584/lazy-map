@@ -36,7 +36,6 @@ import {
   PlantGenerationService,
   ClearingCalculationService,
   TacticalCalculationService,
-  TileGenerationService,
   FlowCalculationService,
   SpringGenerationService,
   StreamCalculationService,
@@ -48,7 +47,7 @@ import {
   RoadGenerationService,
   BridgeGenerationService,
   DecorationGenerationService,
-  TileGenerationService,
+  StructureTileGenerationService,
 } from '@lazy-map/infrastructure';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -94,7 +93,6 @@ const shouldUseDatabase = () => {
     PlantGenerationService,
     ClearingCalculationService,
     TacticalCalculationService,
-    TileGenerationService,
 
     // Hydrology internal services
     FlowCalculationService,
@@ -110,7 +108,7 @@ const shouldUseDatabase = () => {
     RoadGenerationService,
     BridgeGenerationService,
     DecorationGenerationService,
-    TileGenerationService,
+    StructureTileGenerationService,
 
     // Output port implementations
     // Only provide IMapPersistencePort when NOT using database

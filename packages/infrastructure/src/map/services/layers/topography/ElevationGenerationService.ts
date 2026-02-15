@@ -1,17 +1,16 @@
-import { Injectable, Inject, Optional } from '@nestjs/common';
 import {
-  TacticalMapContext,
-  Seed,
-  NoiseGenerator,
-  TerrainFeature,
   ElevationZone,
-  HydrologyType,
-  type ILogger,
   GeologyLayerData,
+  NoiseGenerator,
   RockType,
+  Seed,
+  TacticalMapContext,
+  TerrainFeature,
   TopographyConfig,
-  TopographyConstants
+  TopographyConstants,
+  type ILogger
 } from '@lazy-map/domain';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 
 /**
  * Physical dimensions and scale information

@@ -69,7 +69,7 @@ export class ConfigurationCalculationService {
   /**
    * Select foundation type based on slope
    */
-  selectFoundation(slope: number, material: BuildingMaterial): Foundation {
+  selectFoundation(slope: number, _material: BuildingMaterial): Foundation {
     if (slope < 5) {
       return Foundation.FLAT;
     } else if (slope < 15) {

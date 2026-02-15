@@ -93,17 +93,4 @@ export interface IBuildingGenerationService {
     requirements: SpaceRequirements,
     seed: Seed
   ): Promise<Building>;
-
-  /**
-   * Generate room layout for a floor
-   * @param floorArea Total floor area
-   * @param requirements Room requirements
-   * @param seed Seed for deterministic generation
-   * @returns Array of rooms
-   */
-  generateRoomLayout(
-    floorArea: number,
-    requirements: RoomRequirements[],
-    seed: Seed
-  ): Promise<Room[]>;
 }

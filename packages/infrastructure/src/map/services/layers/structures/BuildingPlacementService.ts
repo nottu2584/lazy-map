@@ -21,14 +21,13 @@ import { BuildingGenerationService } from '../../../../contexts/artificial/servi
  */
 @Injectable()
 export class BuildingPlacementService {
-  private buildingGenerator: IBuildingGenerationService;
-
   constructor(
+    @Inject(BuildingGenerationService)
+    private readonly buildingGenerator: IBuildingGenerationService,
+
     @Optional() @Inject('ILogger')
     private readonly logger?: ILogger
-  ) {
-    this.buildingGenerator = new BuildingGenerationService(logger);
-  }
+  ) {}
 
   /**
    * Place buildings based on development level

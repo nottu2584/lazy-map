@@ -18,7 +18,7 @@ import { BridgeLocation } from './BridgeGenerationService';
  * Handles material conversion and tile property assignment
  */
 @Injectable()
-export class TileGenerationService {
+export class StructureTileGenerationService {
   constructor(
     @Optional() @Inject('ILogger')
     private readonly logger?: ILogger

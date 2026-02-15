@@ -18,7 +18,7 @@ import { BuildingPlacementService } from './structures/BuildingPlacementService'
 import { RoadGenerationService } from './structures/RoadGenerationService';
 import { BridgeGenerationService, BridgeLocation } from './structures/BridgeGenerationService';
 import { DecorationGenerationService } from './structures/DecorationGenerationService';
-import { TileGenerationService } from './structures/TileGenerationService';
+import { StructureTileGenerationService } from './structures/StructureTileGenerationService';
 
 /**
  * Structures Layer - Orchestrates artificial structure generation
@@ -46,8 +46,8 @@ export class StructuresLayer implements IStructuresLayerService {
     @Inject(DecorationGenerationService)
     private readonly decorationService: DecorationGenerationService,
 
-    @Inject(TileGenerationService)
-    private readonly tileService: TileGenerationService,
+    @Inject(StructureTileGenerationService)
+    private readonly tileService: StructureTileGenerationService,
 
     @Optional() @Inject('ILogger')
     private readonly logger?: ILogger

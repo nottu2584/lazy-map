@@ -14,7 +14,13 @@ import {
 } from '@/components/ui/empty';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { useMapGeneration } from '@/hooks';
-import type { AdvancedMapSettings, MapSettings, SeedHistoryEntry, MapPreset } from '@/types';
+import type {
+  AdvancedMapSettings,
+  MapContextSettings,
+  MapSettings,
+  SeedHistoryEntry,
+  MapPreset,
+} from '@/types';
 import { ChevronDown, Lightbulb, Map, Settings, Settings2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -22,6 +28,7 @@ import { seedHistoryService } from '../../../services';
 import { MapCanvas } from '../../MapCanvas';
 import { EnvironmentSheet } from './EnvironmentSheet';
 import { MapBasicSettings } from './MapBasicSettings';
+import { MapContextControls } from './MapContextControls';
 import { MapError } from './MapError';
 import { MapProgress } from './MapProgress';
 import { SeedHistorySheet } from './SeedHistorySheet';
@@ -36,6 +43,7 @@ export function MapGenerator() {
   const [seedInput, setSeedInput] = useState('');
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const [contextSettings, setContextSettings] = useState<MapContextSettings>({});
   const [advancedSettings, setAdvancedSettings] = useState<Omit<MapSettings, 'seed'>>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     const defaultSettings = {
@@ -80,11 +88,15 @@ export function MapGenerator() {
   const handleSubmit = (e: React.FormEvent, useAdvancedSettings: boolean) => {
     e.preventDefault();
 
+    // Include context settings if any are set (even from quick generate)
+    const hasContext = Object.values(contextSettings).some((v) => v !== undefined);
+
     const settings: MapSettings = useAdvancedSettings
       ? {
           ...advancedSettings,
           seed: seedInput,
           name: advancedSettings.name || seedInput || 'Tactical Map',
+          contextSettings: hasContext ? contextSettings : undefined,
         }
       : {
           name: seedInput || 'Tactical Map',
@@ -92,6 +104,7 @@ export function MapGenerator() {
           height: 50,
           cellSize: 5,
           seed: seedInput,
+          contextSettings: hasContext ? contextSettings : undefined,
         };
 
     if (seedInput) {
@@ -143,10 +156,11 @@ export function MapGenerator() {
       ...prev,
       advancedSettings: preset.settings,
     }));
+    // Don't override context - presets are now general terrain styles
+    // User's biome/climate selection is preserved
     setActivePreset(preset.name);
 
-    // Show toast notification
-    toast.success(`${preset.name} preset applied`);
+    toast.success(`${preset.name} terrain style applied`);
   };
 
   return (
@@ -243,17 +257,40 @@ export function MapGenerator() {
                       {/* Divider */}
                       <Separator />
 
-                      {/* Environment Controls */}
+                      {/* Map Environment */}
                       <div>
                         <div className="flex items-center justify-between mb-4">
-                          <h3>Environment Control</h3>
+                          <h3>Environment</h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Choose your map's environment. "Auto" lets the seed decide. Expand for detailed control.
+                        </p>
+                        <MapContextControls
+                          settings={contextSettings}
+                          onChange={(ctx) => {
+                            setContextSettings(ctx);
+                            if (activePreset) {
+                              setActivePreset(null);
+                              toast.info('Settings customized');
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {/* Divider */}
+                      <Separator />
+
+                      {/* Terrain Style */}
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3>Terrain Style</h3>
                           <EnvironmentSheet />
                         </div>
 
                         {/* Terrain Presets */}
                         <div className="space-y-3">
                           <p className="text-sm text-muted-foreground">
-                            Start with a preset or customize manually:
+                            Choose terrain difficulty. Works with any climate selected above:
                           </p>
                           <ButtonGroup className="w-full">
                             {MAP_PRESETS.map((preset) => (
@@ -309,10 +346,9 @@ export function MapGenerator() {
                           About Map Generation
                         </AlertTitle>
                         <AlertDescription className="text-sm">
-                          The map's biome, elevation, and hydrology are automatically determined
-                          from the seed value. The environment controls provide fine-tuned
-                          customization: adjust terrain roughness, water feature frequency, and
-                          forest coverage while maintaining deterministic generation.
+                          Pick your Environment (forest, desert, underground, etc.), then choose a Terrain Style (gentle, balanced, challenging).
+                          Presets work with any environment - try "Desert + Gentle" for rolling dunes or "Mountain + Challenging" for dramatic cliffs.
+                          "Auto" settings are derived from the seed. Same seed + same settings = identical map.
                         </AlertDescription>
                       </Alert>
 

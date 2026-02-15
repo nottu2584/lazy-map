@@ -152,7 +152,6 @@ export class BuildingGenerationService implements IBuildingGenerationService {
     requirements: RoomRequirements[],
     seed: Seed
   ): Promise<Room[]> {
-    const random = this.createSeededRandom(seed.getValue());
     const rooms: Room[] = [];
 
     // Sort requirements by priority (larger rooms first)

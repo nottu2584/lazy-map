@@ -25,22 +25,9 @@ export class MapRepositoryAdapter implements IMapRepository {
   }
 
   async findByQuery(query: MapQuery): Promise<PaginatedMapResult> {
-    // Convert MapQuery to criteria format expected by IMapPersistencePort
-    const criteria = {
-      authorFilter: query.authorFilter,
-      tagFilter: query.tagFilter,
-      nameFilter: query.nameFilter,
-      ownerFilter: query.ownerFilter,
-      sizeFilter: query.sizeFilter,
-      createdAfter: query.createdAfter,
-      createdBefore: query.createdBefore,
-      limit: query.limit,
-      offset: query.offset
-    };
-
-    // Since listMaps returns MapMetadata[] which doesn't contain full map data,
-    // we need to fetch all maps and filter them based on the query
-    // This is a temporary implementation - in production, you'd want to optimize this
+    // TODO: Implement proper querying with criteria when IMapPersistencePort supports it
+    // Query parameters: authorFilter, tagFilter, nameFilter, ownerFilter, sizeFilter,
+    // createdAfter, createdBefore, limit, offset
     const allMaps: MapGrid[] = [];
 
     // Current limitation: IMapPersistencePort lacks full querying capability

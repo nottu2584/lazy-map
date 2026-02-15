@@ -286,6 +286,23 @@ export class VegetationLayer implements IVegetationLayerService {
     const treeProbability = config.getTreeProbability();
     const understoryProbability = config.getUnderstoryProbability();
 
+    // Diagnostic: Count forest tiles
+    let forestTileCount = 0;
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        if (forestDistribution[y][x]) forestTileCount++;
+      }
+    }
+    this.logger?.info('Vegetation distribution', {
+      metadata: {
+        forestTiles: forestTileCount,
+        totalTiles: this.width * this.height,
+        forestPercent: (forestTileCount / (this.width * this.height) * 100).toFixed(1),
+        treeProbability: (treeProbability * 100).toFixed(1) + '%',
+        expectedTrees: Math.round(forestTileCount * treeProbability)
+      }
+    });
+
     for (let y = 0; y < this.height; y++) {
       plants[y] = [];
       for (let x = 0; x < this.width; x++) {
@@ -300,9 +317,9 @@ export class VegetationLayer implements IVegetationLayerService {
 
         if (isForest) {
           // Forest tile - probability-based tree placement
-          // Use noise for deterministic but natural-looking distribution
-          const treeChance = plantNoise.generateAt(x * 0.5, y * 0.5);
-          if (treeChance < treeProbability) {
+          // Use deterministic hash-based random for proper probability distribution
+          const tileHash = Math.abs((x * 374761393 + y * 668265263 + seed.getValue()) % 1000000) / 1000000;
+          if (tileHash < treeProbability) {
             // Place EXACTLY ONE tree (realistic for 5x5ft tile)
             const species = this.selectTreeSpecies(context.biome, moisture, seed.getValue() + x + y);
             const size = this.selectPlantSize(species, growthPotential, seed.getValue());
@@ -310,8 +327,8 @@ export class VegetationLayer implements IVegetationLayerService {
           }
 
           // Add understory (shrubs and bushes)
-          const shrubChance = plantNoise.generateAt(x * 0.3, y * 0.3);
-          if (shrubChance < understoryProbability) {
+          const shrubHash = Math.abs((x * 668265263 + y * 374761393 + seed.getValue() * 2) % 1000000) / 1000000;
+          if (shrubHash < understoryProbability) {
             const shrubSpecies = this.selectShrubSpecies(context.biome, moisture, seed.getValue() + x * y);
             plants[y][x].push(this.createShrub(shrubSpecies, PlantSize.MEDIUM, x, y, 0));
           }

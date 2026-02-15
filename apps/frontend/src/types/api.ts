@@ -15,7 +15,21 @@ export interface GenerateMapRequest {
     height: number;
   };
   seed?: string | number;
-  cellSize?: number;
+
+  // Context parameters (override seed-derived defaults)
+  biome?: string;
+  elevation?: string;
+  hydrology?: string;
+  development?: string;
+  season?: string;
+  requiredFeatures?: {
+    hasRoad?: boolean;
+    hasBridge?: boolean;
+    hasRuins?: boolean;
+    hasCave?: boolean;
+    hasWater?: boolean;
+    hasCliff?: boolean;
+  };
 
   // Advanced settings
   terrainRuggedness?: number; // 0.5-2.0: Controls terrain detail and roughness
@@ -24,38 +38,33 @@ export interface GenerateMapRequest {
 }
 
 /**
- * Response from tactical map generation endpoint
+ * Response from tactical map generation endpoint.
+ *
+ * The backend returns layer data at the map level (2D tile arrays per layer),
+ * NOT nested inside each individual tile.
  */
 export interface TacticalMapResponse {
   map: {
     width: number;
     height: number;
-    tiles: Array<{
-      position: {
-        x: number;
-        y: number;
-      };
-      terrain: {
-        type: string;
-        movementCost: number;
-        isPassable: boolean;
-      };
-      elevation: number;
-      layers: {
-        geology?: any;
-        topography?: any;
-        hydrology?: any;
-        vegetation?: any;
-        structures?: any;
-        features?: any;
-      };
-    }>;
-    context?: {
+    seed: number;
+    context: {
       biome: string;
       elevation: string;
+      hydrology: string;
       development: string;
-      description?: string;
+      season: string;
+      requiredFeatures?: Record<string, boolean>;
     };
+    layers: {
+      geology: import('./layers').GeologyLayerDataDTO;
+      topography: import('./layers').TopographyLayerDataDTO;
+      hydrology: import('./layers').HydrologyLayerDataDTO;
+      vegetation: import('./layers').VegetationLayerDataDTO;
+      structures: import('./layers').StructuresLayerDataDTO;
+      features: import('./layers').FeaturesLayerDataDTO;
+    };
+    generationTime: number;
   };
   width: number;
   height: number;

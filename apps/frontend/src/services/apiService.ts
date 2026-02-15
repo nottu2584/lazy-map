@@ -58,24 +58,32 @@ function mapSettingsToRequest(settings: MapSettings): GenerateMapRequest {
     width: settings.width,
     height: settings.height,
     seed: settings.seed || Math.floor(Math.random() * 1000000),
-    cellSize: settings.cellSize,
   };
+
+  // Add context settings if provided
+  if (settings.contextSettings) {
+    const { biome, elevation, hydrology, development, season, requiredFeatures } =
+      settings.contextSettings;
+    if (biome) request.biome = biome;
+    if (elevation) request.elevation = elevation;
+    if (hydrology) request.hydrology = hydrology;
+    if (development) request.development = development;
+    if (season) request.season = season;
+    if (requiredFeatures) request.requiredFeatures = requiredFeatures;
+  }
 
   // Add advanced settings if provided
   if (settings.advancedSettings) {
     const { terrainRuggedness, waterAbundance, vegetationMultiplier } = settings.advancedSettings;
 
-    // Terrain ruggedness multiplier
     if (terrainRuggedness !== undefined) {
       request.terrainRuggedness = terrainRuggedness;
     }
 
-    // Water abundance multiplier
     if (waterAbundance !== undefined) {
       request.waterAbundance = waterAbundance;
     }
 
-    // Vegetation density multiplier
     if (vegetationMultiplier !== undefined) {
       request.vegetationMultiplier = vegetationMultiplier;
     }
@@ -89,43 +97,74 @@ function mapResponseToGeneratedMap(
   response: TacticalMapResponse,
   seed?: string | number,
 ): GeneratedMap {
-  const tiles = response.map.tiles.map((tile) => {
-    // Extract features from layers
-    const features: string[] = [];
+  const { layers } = response.map;
+  const width = response.width;
+  const height = response.height;
 
-    // Add vegetation features
-    if (tile.layers.vegetation?.type) {
-      features.push(tile.layers.vegetation.type);
+  // Build tiles from layer data for backward compat with MapCanvas
+  const tiles: GeneratedMap['tiles'] = [];
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const features: string[] = [];
+
+      // Extract vegetation type
+      const vegTile = layers?.vegetation?.tiles?.[y]?.[x];
+      if (vegTile?.vegetationType && vegTile.vegetationType !== 'none') {
+        features.push(vegTile.vegetationType);
+      }
+
+      // Extract structure type
+      const structTile = layers?.structures?.tiles?.[y]?.[x];
+      if (structTile?.hasStructure && structTile.structureType) {
+        features.push(structTile.structureType);
+      }
+
+      // Extract tactical features
+      const featTile = layers?.features?.tiles?.[y]?.[x];
+      if (featTile?.hasFeature && featTile.featureType) {
+        features.push(featTile.featureType);
+      }
+
+      // Derive terrain from geology rock type
+      const geoTile = layers?.geology?.tiles?.[y]?.[x];
+      const topoTile = layers?.topography?.tiles?.[y]?.[x];
+      const hydroTile = layers?.hydrology?.tiles?.[y]?.[x];
+
+      let terrain = 'grass';
+      if (hydroTile?.waterDepth && hydroTile.waterDepth > 0) {
+        terrain = 'water';
+      } else if (hydroTile?.moisture === 'saturated' || hydroTile?.moisture === 'wet') {
+        terrain = 'marsh';
+      } else if (geoTile?.formation?.rockType === 'evaporite') {
+        terrain = 'sand';
+      } else if (topoTile?.slope && topoTile.slope > 45) {
+        terrain = 'stone';
+      } else if (geoTile?.soilDepth !== undefined && geoTile.soilDepth < 0.5) {
+        terrain = 'stone';
+      } else if (vegTile?.vegetationType === 'none' && geoTile?.soilDepth !== undefined && geoTile.soilDepth < 1) {
+        terrain = 'dirt';
+      }
+
+      tiles.push({
+        x,
+        y,
+        terrain,
+        elevation: topoTile?.elevation ?? 0,
+        features,
+      });
     }
-
-    // Add structure features
-    if (tile.layers.structures?.type) {
-      features.push(tile.layers.structures.type);
-    }
-
-    // Add tactical features
-    if (tile.layers.features?.cover) {
-      features.push(`cover_${tile.layers.features.cover}`);
-    }
-
-    return {
-      x: tile.position.x,
-      y: tile.position.y,
-      terrain: tile.terrain.type,
-      elevation: tile.elevation,
-      features,
-    };
-  });
+  }
 
   return {
-    id: `tactical-${Date.now()}`, // Generate temporary ID
+    id: `tactical-${Date.now()}`,
     name: response.context || 'Tactical Map',
-    width: response.width,
-    height: response.height,
-    cellSize: 5, // Default cell size for tactical maps
+    width,
+    height,
+    cellSize: 5,
     seed,
     metadata: response.map.context,
     tiles,
+    layers,
   };
 }
 

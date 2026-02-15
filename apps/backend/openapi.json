@@ -1616,6 +1616,35 @@
           "height"
         ]
       },
+      "RequiredFeaturesDto": {
+        "type": "object",
+        "properties": {
+          "hasRoad": {
+            "type": "boolean",
+            "description": "Require a road on the map"
+          },
+          "hasBridge": {
+            "type": "boolean",
+            "description": "Require a bridge on the map"
+          },
+          "hasRuins": {
+            "type": "boolean",
+            "description": "Require ruins on the map"
+          },
+          "hasCave": {
+            "type": "boolean",
+            "description": "Require a cave on the map"
+          },
+          "hasWater": {
+            "type": "boolean",
+            "description": "Require water features on the map"
+          },
+          "hasCliff": {
+            "type": "boolean",
+            "description": "Require a cliff on the map"
+          }
+        }
+      },
       "GenerateMapDto": {
         "type": "object",
         "properties": {
@@ -1646,6 +1675,72 @@
           "seed": {
             "type": "object",
             "description": "Seed for deterministic generation"
+          },
+          "biome": {
+            "type": "string",
+            "description": "Map biome/climate type. When omitted, derived from seed.",
+            "enum": [
+              "forest",
+              "mountain",
+              "plains",
+              "swamp",
+              "desert",
+              "coastal",
+              "underground"
+            ]
+          },
+          "elevation": {
+            "type": "string",
+            "description": "Elevation zone. When omitted, derived from seed.",
+            "enum": [
+              "lowland",
+              "foothills",
+              "highland",
+              "alpine"
+            ]
+          },
+          "hydrology": {
+            "type": "string",
+            "description": "Water/hydrology type. When omitted, derived from seed.",
+            "enum": [
+              "arid",
+              "seasonal",
+              "stream",
+              "river",
+              "lake",
+              "coastal",
+              "wetland"
+            ]
+          },
+          "development": {
+            "type": "string",
+            "description": "Development level of the area. When omitted, derived from seed.",
+            "enum": [
+              "wilderness",
+              "frontier",
+              "rural",
+              "settled",
+              "urban",
+              "ruins"
+            ]
+          },
+          "season": {
+            "type": "string",
+            "description": "Season. When omitted, derived from seed.",
+            "enum": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ]
+          },
+          "requiredFeatures": {
+            "description": "Features that must appear on the generated map",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RequiredFeaturesDto"
+              }
+            ]
           },
           "vegetationMultiplier": {
             "type": "number",

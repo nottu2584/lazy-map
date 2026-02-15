@@ -1,8 +1,8 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
-  - name: Documentation
+  - name: 📚 Documentation
     url: https://github.com/nottu2584/lazy-map/tree/main/docs
-    about: Check the documentation for guides and API references
-  - name: Discussions
+    about: Check documentation for guides and API references
+  - name: 💬 Discussions
     url: https://github.com/nottu2584/lazy-map/discussions
-    about: Ask questions and discuss ideas with the community
+    about: Questions and ideas go here, not issues

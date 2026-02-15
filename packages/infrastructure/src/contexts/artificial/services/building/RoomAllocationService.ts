@@ -26,8 +26,8 @@ export class RoomAllocationService {
   allocateRoomsToFloor(
     floorLevel: number,
     requirements: SpaceRequirements,
-    buildingType: BuildingType,
-    random: () => number
+    _buildingType: BuildingType,
+    _random: () => number
   ): RoomRequirements[] {
     const floorRooms: RoomRequirements[] = [];
 

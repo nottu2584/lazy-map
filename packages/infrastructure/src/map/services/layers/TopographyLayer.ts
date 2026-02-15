@@ -5,6 +5,7 @@ import {
   TerrainFeature,
   AspectDirection,
   ElevationZone,
+  HydrologyType,
   MapGenerationErrors,
   type ILogger,
   // Import from domain layer service interfaces
@@ -81,17 +82,21 @@ export class TopographyLayer implements ITopographyLayerService {
       const baseElevations = this.generateBaseElevations(geology, context, seed, config);
       this.logger?.debug('Generated base elevations');
 
-      // 2. Apply differential erosion based on rock resistance
-      const erodedElevations = this.applyDifferentialErosion(baseElevations, geology, seed);
+      // 2. Apply differential erosion based on scientific model
+      const erodedElevations = this.applyDifferentialErosion(baseElevations, geology, context, seed, config);
       this.logger?.debug('Applied differential erosion');
 
       // 3. Apply geology-specific features (karst, granite needles, badlands, etc.)
+      // Gated by ruggedness - only for dramatic terrain
       const params = this.calculateElevationParameters(context, config);
-      this.applyGeologicalFeatures(erodedElevations, geology, seed, params.max);
-      this.logger?.debug('Applied geological features');
+      const ruggedness = config?.terrainRuggedness ?? 1.0;
+      if (ruggedness >= 1.5) {
+        this.applyGeologicalFeatures(erodedElevations, geology, seed, params.max);
+        this.logger?.debug('Applied geological features');
+      }
 
-      // 4. Smooth elevations for realism
-      const smoothedElevations = this.smoothElevations(erodedElevations);
+      // 4. Smooth elevations variably based on erosion susceptibility and topographic position
+      const smoothedElevations = this.smoothElevationsVariable(erodedElevations, geology, context, config);
       this.logger?.debug('Smoothed elevations');
 
       // 5. Calculate slopes and aspects
@@ -125,9 +130,21 @@ export class TopographyLayer implements ITopographyLayerService {
     }
   }
 
+  // ============================================================================
+  // TODO (#116): Extract to ElevationGenerationService
+  // Methods: generateBaseElevations, calculateThreeLayerScales,
+  //          generateMacroGradient, generateTacticalUndulations,
+  //          generateGeologicalTexture, calculateTextureIntensity,
+  //          calculateElevationParameters, modifyElevationByFeatures
+  // ============================================================================
+
   /**
-   * Generate base elevations from geological features
-   * Uses scale-adaptive elevation range
+   * Generate base elevations using three-layer system
+   * Represents tactical section of larger terrain, not complete miniature landscape
+   *
+   * Layer 1 (Macro): Large-scale gradient - "what part of mountain/hill are we on?"
+   * Layer 2 (Tactical): Medium-scale undulations - tactically significant features
+   * Layer 3 (Texture): Small-scale detail - geological character
    */
   private generateBaseElevations(
     geology: GeologyLayerData,
@@ -136,51 +153,241 @@ export class TopographyLayer implements ITopographyLayerService {
     config?: TopographyConfig
   ): number[][] {
     const elevations: number[][] = [];
-    const elevationNoise = NoiseGenerator.create(seed.getValue());
+
+    // Create separate noise generators for each layer
+    const macroNoise = NoiseGenerator.create(seed.getValue());
+    const tacticalNoise = NoiseGenerator.create(seed.getValue() * 3);
+    const textureNoise = NoiseGenerator.create(seed.getValue() * 7);
 
     // Calculate scale-adaptive elevation parameters
     const params = this.calculateElevationParameters(context, config);
 
-    // Get noise generation parameters from config (with defaults)
-    const octaves = config?.getNoiseOctaves() ?? TopographyConstants.DEFAULT_OCTAVES;
-    const persistence = config?.getNoisePersistence() ?? TopographyConstants.DEFAULT_PERSISTENCE;
-    const scale = config?.getNoiseScale() ?? TopographyConstants.NOISE_SCALE;
+    // Calculate scales for three layers
+    const scales = this.calculateThreeLayerScales(context, config);
 
-    // First pass: generate noise values and find actual range
-    const noiseValues: number[][] = [];
-    let minNoise = Infinity;
-    let maxNoise = -Infinity;
-
-    for (let y = 0; y < this.height; y++) {
-      noiseValues[y] = [];
-      for (let x = 0; x < this.width; x++) {
-        const noise = elevationNoise.generateOctaves(x * scale, y * scale, octaves, persistence);
-        noiseValues[y][x] = noise;
-        minNoise = Math.min(minNoise, noise);
-        maxNoise = Math.max(maxNoise, noise);
+    this.logger?.debug('Generating three-layer topography', {
+      metadata: {
+        macroScale: scales.macro.toFixed(5),
+        tacticalScale: scales.tactical.toFixed(3),
+        textureScale: scales.texture.toFixed(3),
+        macroSpan: `~${Math.round(1 / scales.macro)} tiles`,
+        tacticalSpan: `~${Math.round(1 / scales.tactical)} tiles`
       }
-    }
+    });
 
-    // Second pass: normalize noise to 0-1 and apply elevation range
+    const ruggedness = config?.terrainRuggedness ?? 1.0;
+
+    // LAYER 1: Generate macro gradient (represents section of larger terrain)
+    const macroValues = this.generateMacroGradient(macroNoise, scales.macro, params, ruggedness);
+
+    // LAYER 2: Generate tactical undulations (knolls, depressions, ridges)
+    const tacticalValues = this.generateTacticalUndulations(tacticalNoise, scales.tactical, params, ruggedness);
+
+    // LAYER 3: Generate geological texture (rock-type detail)
+    const textureValues = this.generateGeologicalTexture(textureNoise, scales.texture);
+
+    // Combine all three layers with geology-aware weighting
     for (let y = 0; y < this.height; y++) {
       elevations[y] = [];
       for (let x = 0; x < this.width; x++) {
         const geoTile = geology.tiles[y][x];
 
-        // Normalize noise to 0-1 range
-        const normalizedNoise = (noiseValues[y][x] - minNoise) / (maxNoise - minNoise);
+        // Layer contributions (weighted by elevation parameters)
+        const macroContribution = macroValues[y][x];
+        const tacticalContribution = tacticalValues[y][x];
 
-        // Apply elevation range
-        let elevation = params.min + normalizedNoise * (params.max - params.min);
+        // Texture intensity based on rock type and ruggedness
+        // Texture contribution scales with ruggedness:
+        // Low ruggedness (0.5): 2% contribution (heavily smoothed texture)
+        // Medium ruggedness (1.0): 5% contribution (moderate texture)
+        // High ruggedness (2.0): 10% contribution (sharp texture)
+        const textureScale = 0.02 + (ruggedness - 0.5) * 0.053; // 0.02 to 0.10
+        const textureIntensity = this.calculateTextureIntensity(geoTile.formation.rockType, config);
+        const textureContribution = textureValues[y][x] * textureIntensity * params.max * textureScale;
 
-        // Modify based on geological features (with scaling)
-        elevation = this.modifyElevationByFeatures(elevation, geoTile.features, x, y, elevationNoise, params.max);
+        // Combine layers (features will be applied later in applyGeologicalFeatures step)
+        const elevation = macroContribution + tacticalContribution + textureContribution;
 
-        elevations[y][x] = elevation;
+        // Ensure minimum elevation
+        elevations[y][x] = Math.max(params.min, elevation);
       }
     }
 
     return elevations;
+  }
+
+  /**
+   * Calculate scales for three-layer system - ruggedness adaptive
+   * Low ruggedness = large features (old eroded terrain)
+   * High ruggedness = small features (young sharp terrain)
+   */
+  private calculateThreeLayerScales(
+    context: TacticalMapContext,
+    config?: TopographyConfig
+  ): { macro: number; tactical: number; texture: number } {
+    const ruggedness = config?.terrainRuggedness ?? 1.0;
+
+    // Macro scale: always very low frequency (beyond map bounds)
+    // Target: gradient spans 500-1000 tiles (map shows a section)
+    const macro = 0.001;
+
+    // Tactical scale: varies significantly with ruggedness
+    // Low ruggedness (0.5): Large smooth features (span 60-80 tiles)
+    // Medium ruggedness (1.0): Moderate features (span 35-45 tiles)
+    // High ruggedness (2.0): Small sharp features (span 20-25 tiles)
+    const tacticalBase = 0.015; // Base scale for ruggedness 1.0
+    const tactical = tacticalBase * (0.7 + 0.6 * ruggedness); // 0.0105 to 0.024
+
+    // Texture scale: varies with ruggedness
+    // Low ruggedness: Large smooth texture (old erosion)
+    // High ruggedness: Fine sharp texture (young terrain)
+    const textureBase = 0.02;
+    const texture = textureBase * (0.5 + 0.75 * ruggedness); // 0.01 to 0.03
+
+    return { macro, tactical, texture };
+  }
+
+  /**
+   * Generate macro gradient layer - ruggedness adaptive
+   * Low ruggedness: Dominant smooth gradient (old eroded terrain)
+   * High ruggedness: Less dominant, allows tactical features to dominate
+   */
+  private generateMacroGradient(
+    noise: NoiseGenerator,
+    scale: number,
+    params: ElevationParameters,
+    ruggedness: number
+  ): number[][] {
+    const values: number[][] = [];
+    let min = Infinity;
+    let max = -Infinity;
+
+    // Generate noise values - always smooth (2 octaves)
+    for (let y = 0; y < this.height; y++) {
+      values[y] = [];
+      for (let x = 0; x < this.width; x++) {
+        const noise_val = noise.generateOctaves(x * scale, y * scale, 2, 0.6);
+        values[y][x] = noise_val;
+        min = Math.min(min, noise_val);
+        max = Math.max(max, noise_val);
+      }
+    }
+
+    // Normalize and apply elevation range
+    // Contribution scales inversely with ruggedness:
+    // Low ruggedness (0.5): 70% contribution (smooth rolling hills)
+    // Medium ruggedness (1.0): 50% contribution (balanced)
+    // High ruggedness (2.0): 30% contribution (tactical features dominate)
+    const macroContribution = 0.7 - (ruggedness - 0.5) * 0.2; // 0.7 to 0.3
+    const macroRange = (params.max - params.min) * macroContribution;
+
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        const normalized = (values[y][x] - min) / (max - min);
+        values[y][x] = params.min + normalized * macroRange;
+      }
+    }
+
+    return values;
+  }
+
+  /**
+   * Generate tactical undulations layer - ruggedness adaptive
+   * Low ruggedness: Minimal undulations (smooth eroded terrain)
+   * High ruggedness: Dominant sharp features (young terrain)
+   */
+  private generateTacticalUndulations(
+    noise: NoiseGenerator,
+    scale: number,
+    params: ElevationParameters,
+    ruggedness: number
+  ): number[][] {
+    const values: number[][] = [];
+    let min = Infinity;
+    let max = -Infinity;
+
+    // Octave count varies with ruggedness:
+    // Low ruggedness (0.5): 1 octave (very smooth)
+    // Medium ruggedness (1.0): 2 octaves (moderate detail)
+    // High ruggedness (2.0): 3-4 octaves (sharp features)
+    const octaves = Math.round(1 + ruggedness * 1.5); // 1 to 4 octaves
+    const persistence = 0.5;
+
+    // Generate noise values
+    for (let y = 0; y < this.height; y++) {
+      values[y] = [];
+      for (let x = 0; x < this.width; x++) {
+        const noise_val = noise.generateOctaves(x * scale, y * scale, octaves, persistence);
+        values[y][x] = noise_val;
+        min = Math.min(min, noise_val);
+        max = Math.max(max, noise_val);
+      }
+    }
+
+    // Normalize and apply elevation range
+    // Contribution scales with ruggedness:
+    // Low ruggedness (0.5): 15% contribution (minimal undulations)
+    // Medium ruggedness (1.0): 35% contribution (balanced)
+    // High ruggedness (2.0): 55% contribution (dominant features)
+    const tacticalContribution = 0.15 + (ruggedness - 0.5) * 0.267; // 0.15 to 0.55
+    const tacticalRange = (params.max - params.min) * tacticalContribution;
+
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        const normalized = (values[y][x] - min) / (max - min);
+        // Center around 0 for undulations
+        values[y][x] = (normalized - 0.5) * tacticalRange;
+      }
+    }
+
+    return values;
+  }
+
+  /**
+   * Generate geological texture layer
+   * Creates rock-type specific detail (boulders, ledges, pinnacles)
+   */
+  private generateGeologicalTexture(
+    noise: NoiseGenerator,
+    scale: number
+  ): number[][] {
+    const values: number[][] = [];
+
+    // Generate high-frequency detail
+    for (let y = 0; y < this.height; y++) {
+      values[y] = [];
+      for (let x = 0; x < this.width; x++) {
+        // Use 2 octaves for fine detail
+        const texture = noise.generateOctaves(x * scale, y * scale, 2, 0.5);
+        // Center around 0, will be scaled by intensity later
+        values[y][x] = (texture - 0.5);
+      }
+    }
+
+    return values;
+  }
+
+  /**
+   * Calculate texture intensity based on rock type
+   * Karst and volcanic = high texture, sedimentary plains = low texture
+   */
+  private calculateTextureIntensity(rockType: RockType, config?: TopographyConfig): number {
+    // Base intensity by rock type
+    const baseIntensities: Record<RockType, number> = {
+      [RockType.CARBONATE]: 0.8,      // Karst: pinnacles, sinkholes (high texture)
+      [RockType.VOLCANIC]: 0.7,       // Basalt: columns, domes (high texture)
+      [RockType.METAMORPHIC]: 0.5,    // Schist/gneiss: moderate texture
+      [RockType.GRANITIC]: 0.6,       // Granite: boulders, domes (moderate-high)
+      [RockType.CLASTIC]: 0.3,        // Sandstone: moderate texture
+      [RockType.EVAPORITE]: 0.2       // Salt flats: minimal texture
+    };
+
+    const baseIntensity = baseIntensities[rockType] ?? 0.4;
+
+    // Scale by terrainRuggedness config
+    const ruggednessMult = config?.terrainRuggedness ?? 1.0;
+
+    return baseIntensity * ruggednessMult;
   }
 
   /**
@@ -222,7 +429,15 @@ export class TopographyLayer implements ITopographyLayerService {
     // Apply variance adjustment from config
     const baseZoneMultiplier = baseZoneMultipliers[context.elevation] || 0.5;
     const varianceAdjustment = config?.getZoneMultiplierAdjustment() ?? TopographyConstants.DEFAULT_VARIANCE;
-    const multiplier = baseZoneMultiplier * varianceAdjustment;
+
+    // Apply ruggedness scaling to elevation range
+    // Low ruggedness (0.5): 0.7x range (gentle hills need less relief)
+    // Medium ruggedness (1.0): 1.0x range (baseline)
+    // High ruggedness (2.0): 1.5x range (dramatic terrain needs more relief)
+    const ruggedness = config?.terrainRuggedness ?? 1.0;
+    const ruggednessFactor = 0.4 + ruggedness * 0.6; // 0.7 to 1.6
+
+    const multiplier = baseZoneMultiplier * varianceAdjustment * ruggednessFactor;
     const maxElevation = baseRange * multiplier;
 
     this.logger?.debug('Calculated elevation parameters', {
@@ -312,38 +527,151 @@ export class TopographyLayer implements ITopographyLayerService {
     return Math.max(0, elevation); // Don't go below 0
   }
 
+  // ============================================================================
+  // TODO (#116): Extract to ErosionModelService
+  // Methods: applyDifferentialErosion, calculateClimateWetness,
+  //          calculateErosionSusceptibility, calculateSlopesArray, calculateSlopeAtPoint
+  // ============================================================================
+
   /**
-   * Apply differential erosion based on rock resistance
+   * Apply differential erosion based on scientific model
+   * Erosion = f(rock hardness, slope, fractures, climate, terrain age)
    */
   private applyDifferentialErosion(
     elevations: number[][],
     geology: GeologyLayerData,
-    seed: Seed
+    context: TacticalMapContext,
+    seed: Seed,
+    config?: TopographyConfig
   ): number[][] {
     const eroded: number[][] = [];
     const erosionNoise = NoiseGenerator.create(seed.getValue() * 5);
+    const ruggedness = config?.terrainRuggedness ?? 1.0;
+    const climateWetness = this.calculateClimateWetness(context.hydrology);
+
+    // First pass: calculate slopes (needed for erosion calculation)
+    const slopes = this.calculateSlopesArray(elevations);
 
     for (let y = 0; y < this.height; y++) {
       eroded[y] = [];
       for (let x = 0; x < this.width; x++) {
         const geoTile = geology.tiles[y][x];
-        const resistance = geoTile.formation.properties.getErosionResistance();
+        const slope = slopes[y][x];
 
-        // More resistant rocks erode less
-        const erosionFactor = 1 - resistance * 0.5; // 0.5 to 1.0
-        const erosionAmount = erosionNoise.generateAt(x * 0.1, y * 0.1) * 10 * erosionFactor;
+        // Calculate erosion susceptibility
+        const susceptibility = this.calculateErosionSusceptibility(
+          geoTile,
+          slope,
+          climateWetness,
+          ruggedness
+        );
+
+        // Apply spatial variation with noise
+        const noiseVariation = 0.7 + erosionNoise.generateAt(x * 0.1, y * 0.1) * 0.6; // 0.7 to 1.3
+
+        // Erosion amount scales with max elevation (proportional to relief)
+        const maxElev = Math.max(...elevations.flat());
+        const erosionAmount = susceptibility * noiseVariation * (maxElev / 50) * 8; // Scale to ~8ft at 50ft relief
 
         eroded[y][x] = Math.max(0, elevations[y][x] - erosionAmount);
-
-        // Fractures increase erosion
-        if (geoTile.fractureIntensity > 0.5) {
-          eroded[y][x] *= (1 - geoTile.fractureIntensity * 0.2);
-        }
       }
     }
 
     return eroded;
   }
+
+  /**
+   * Calculate climate wetness factor from hydrology type
+   * Wet climates cause more chemical weathering and erosion
+   */
+  private calculateClimateWetness(hydrologyType: HydrologyType): number {
+    const wetnessMap: Record<HydrologyType, number> = {
+      [HydrologyType.ARID]: 0.3,
+      [HydrologyType.SEASONAL]: 0.6,
+      [HydrologyType.STREAM]: 0.7,
+      [HydrologyType.RIVER]: 0.8,
+      [HydrologyType.LAKE]: 0.75,
+      [HydrologyType.COASTAL]: 0.9,
+      [HydrologyType.WETLAND]: 1.0
+    };
+    return wetnessMap[hydrologyType] ?? 0.6;
+  }
+
+  /**
+   * Calculate erosion susceptibility per tile
+   * Returns 0-1 value representing how much this tile erodes
+   */
+  private calculateErosionSusceptibility(
+    geoTile: any,
+    slope: number,
+    climateWetness: number,
+    ruggedness: number
+  ): number {
+    // Rock resistance (0 = soft, 1 = hard)
+    const resistance = geoTile.formation.properties.getErosionResistance();
+    const rockFactor = 1 - resistance; // Invert: soft rocks erode more
+
+    // Slope factor (steeper slopes erode more, but plateau at extreme angles)
+    const slopeFactor = Math.min(1.5, 1 + slope / 60); // 1.0 to 1.5
+
+    // Fracture factor (more fractures = more erosion)
+    const fractureFactor = 1 + geoTile.fractureIntensity * 0.5; // 1.0 to 1.5
+
+    // Ruggedness factor (low ruggedness = old terrain = more time to erode)
+    // Inverted relationship: low ruggedness = high erosion
+    const terrainAgeFactor = 2.0 - ruggedness; // 0.5 to 1.5 (inverted)
+
+    // Combine all factors
+    const susceptibility =
+      0.3 * rockFactor +          // 30% weight
+      0.2 * (slopeFactor - 1) +   // 20% weight
+      0.2 * (fractureFactor - 1) + // 20% weight
+      0.15 * (climateWetness - 0.5) + // 15% weight
+      0.15 * (terrainAgeFactor - 1);  // 15% weight
+
+    // Normalize to 0-1 range
+    return Math.max(0, Math.min(1, susceptibility));
+  }
+
+  /**
+   * Calculate slopes for elevation array (helper for erosion)
+   */
+  private calculateSlopesArray(elevations: number[][]): number[][] {
+    const slopes: number[][] = [];
+    for (let y = 0; y < this.height; y++) {
+      slopes[y] = [];
+      for (let x = 0; x < this.width; x++) {
+        slopes[y][x] = this.calculateSlopeAtPoint(elevations, x, y);
+      }
+    }
+    return slopes;
+  }
+
+  /**
+   * Calculate slope at a specific point
+   */
+  private calculateSlopeAtPoint(elevations: number[][], x: number, y: number): number {
+    const current = elevations[y][x];
+
+    // Get neighbor elevations
+    const north = y > 0 ? elevations[y-1][x] : current;
+    const south = y < this.height-1 ? elevations[y+1][x] : current;
+    const east = x < this.width-1 ? elevations[y][x+1] : current;
+    const west = x > 0 ? elevations[y][x-1] : current;
+
+    // Calculate gradients (rise over run, where run is 5 feet per tile)
+    const dx = (east - west) / 10; // Divide by 2 tiles * 5 feet
+    const dy = (south - north) / 10;
+
+    // Calculate slope in degrees
+    return Math.atan(Math.sqrt(dx * dx + dy * dy)) * 180 / Math.PI;
+  }
+
+  // ============================================================================
+  // TODO (#116): Extract to GeologicalFeaturesService
+  // Methods: applyGeologicalFeatures, applyDissolutionFeatures,
+  //          applyFractureFeatures, applyWashFeatures, applyLayeredFeatures
+  // ============================================================================
 
   /**
    * Apply geology-specific erosional features
@@ -516,33 +844,164 @@ export class TopographyLayer implements ITopographyLayerService {
   /**
    * Smooth elevations using averaging filter
    */
-  private smoothElevations(elevations: number[][]): number[][] {
+  // ============================================================================
+  // TODO (#116): Extract to TerrainSmoothingService
+  // Methods: smoothElevationsVariable, identifyTopographicPosition, applySmoothingPass
+  // ============================================================================
+
+  /**
+   * Variable smoothing based on erosion susceptibility and topographic position
+   * High erosion areas (old gentle hills) → more smoothing
+   * Low erosion areas (young cliffs) → minimal smoothing
+   * Valleys receive extra smoothing (simulates sediment accumulation)
+   * Ridges preserve sharpness (sediment sheds off)
+   */
+  private smoothElevationsVariable(
+    elevations: number[][],
+    geology: GeologyLayerData,
+    context: TacticalMapContext,
+    config?: TopographyConfig
+  ): number[][] {
+    const ruggedness = config?.terrainRuggedness ?? 1.0;
+    const climateWetness = this.calculateClimateWetness(context.hydrology);
+
+    // Calculate slopes for each tile
+    const slopes = this.calculateSlopesArray(elevations);
+
+    // Calculate erosion susceptibility map
+    const erosionMap: number[][] = [];
+    for (let y = 0; y < this.height; y++) {
+      erosionMap[y] = [];
+      for (let x = 0; x < this.width; x++) {
+        const geoTile = geology.tiles[y][x];
+        erosionMap[y][x] = this.calculateErosionSusceptibility(
+          geoTile,
+          slopes[y][x],
+          climateWetness,
+          ruggedness
+        );
+      }
+    }
+
+    // Identify valleys and ridges for topographic position bonus
+    const topoPosition = this.identifyTopographicPosition(elevations);
+
+    // Calculate smoothing passes per tile - more dramatic variation
+    // Low ruggedness (0.5): 4-5 passes (aggressive smoothing → gentle slopes)
+    // Medium ruggedness (1.0): 2-3 passes (moderate smoothing)
+    // High ruggedness (2.0): 0 passes (no smoothing → preserve sharp features)
+    const maxPasses = Math.max(0, Math.round(6 - ruggedness * 3)); // 4.5→5 at rug=0.5, 3 at rug=1.0, 0 at rug=2.0
+    const smoothingPasses: number[][] = [];
+
+    for (let y = 0; y < this.height; y++) {
+      smoothingPasses[y] = [];
+      for (let x = 0; x < this.width; x++) {
+        // Base passes from erosion susceptibility
+        let passes = Math.floor(erosionMap[y][x] * maxPasses);
+
+        // Topographic position adjustment
+        if (topoPosition[y][x] === 'valley') {
+          passes += 1; // Extra smoothing (simulates sediment accumulation)
+        } else if (topoPosition[y][x] === 'ridge') {
+          passes = Math.max(0, passes - 1); // Less smoothing (material sheds off)
+        }
+
+        smoothingPasses[y][x] = Math.max(0, passes);
+      }
+    }
+
+    // Apply variable smoothing
+    let result = elevations;
+    for (let pass = 0; pass < maxPasses + 1; pass++) {
+      result = this.applySmoothingPass(result, smoothingPasses, pass);
+    }
+
+    return result;
+  }
+
+  /**
+   * Identify topographic position (valley, ridge, or neutral)
+   */
+  private identifyTopographicPosition(elevations: number[][]): string[][] {
+    const position: string[][] = [];
+
+    for (let y = 0; y < this.height; y++) {
+      position[y] = [];
+      for (let x = 0; x < this.width; x++) {
+        const elev = elevations[y][x];
+        let lowerCount = 0;
+        let higherCount = 0;
+        let totalNeighbors = 0;
+
+        // Check 3x3 neighborhood
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            if (dx === 0 && dy === 0) continue;
+            const nx = x + dx;
+            const ny = y + dy;
+            if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height) {
+              totalNeighbors++;
+              if (elevations[ny][nx] < elev) lowerCount++;
+              if (elevations[ny][nx] > elev) higherCount++;
+            }
+          }
+        }
+
+        // Valley: Most neighbors are higher
+        if (higherCount >= totalNeighbors * 0.6) {
+          position[y][x] = 'valley';
+        }
+        // Ridge: Most neighbors are lower
+        else if (lowerCount >= totalNeighbors * 0.6) {
+          position[y][x] = 'ridge';
+        }
+        else {
+          position[y][x] = 'neutral';
+        }
+      }
+    }
+
+    return position;
+  }
+
+  /**
+   * Apply one smoothing pass, but only to tiles that need it
+   */
+  private applySmoothingPass(
+    elevations: number[][],
+    passesNeeded: number[][],
+    currentPass: number
+  ): number[][] {
     const smoothed: number[][] = [];
 
     for (let y = 0; y < this.height; y++) {
       smoothed[y] = [];
       for (let x = 0; x < this.width; x++) {
-        let sum = elevations[y][x] * 4; // Weight center more
-        let count = 4;
+        // Only smooth if this tile needs this many passes
+        if (passesNeeded[y][x] >= currentPass) {
+          let sum = elevations[y][x] * 4; // Weight center
+          let count = 4;
 
-        // Average with neighbors
-        const neighbors = [
-          { dx: -1, dy: 0 },
-          { dx: 1, dy: 0 },
-          { dx: 0, dy: -1 },
-          { dx: 0, dy: 1 }
-        ];
+          // Average with neighbors
+          const neighbors = [
+            { dx: -1, dy: 0 }, { dx: 1, dy: 0 },
+            { dx: 0, dy: -1 }, { dx: 0, dy: 1 }
+          ];
 
-        for (const n of neighbors) {
-          const nx = x + n.dx;
-          const ny = y + n.dy;
-          if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height) {
-            sum += elevations[ny][nx];
-            count++;
+          for (const n of neighbors) {
+            const nx = x + n.dx;
+            const ny = y + n.dy;
+            if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height) {
+              sum += elevations[ny][nx];
+              count++;
+            }
           }
-        }
 
-        smoothed[y][x] = sum / count;
+          smoothed[y][x] = sum / count;
+        } else {
+          // Don't smooth - preserve sharp feature
+          smoothed[y][x] = elevations[y][x];
+        }
       }
     }
 

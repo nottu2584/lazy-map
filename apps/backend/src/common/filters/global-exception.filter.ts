@@ -290,30 +290,38 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   }
 
   /**
-   * Sanitizes request body
+   * Sanitizes request body for logging
+   * Returns sanitized string representation to avoid prototype pollution concerns
    */
-  private sanitizeBody(body: any): any {
-    if (!body) return body;
+  private sanitizeBody(body: any): string | null {
+    if (!body) return null;
 
-    const sanitized = { ...body };
-    const sensitiveFields = ['password', 'token', 'secret', 'apiKey', 'creditCard'];
+    try {
+      // Convert to JSON string for safe logging
+      const jsonString = JSON.stringify(body);
 
-    const recursiveSanitize = (obj: any): any => {
-      if (typeof obj !== 'object' || obj === null) return obj;
+      // Redact sensitive fields using regex
+      const sensitivePatterns = [
+        /"password"\s*:\s*"[^"]*"/gi,
+        /"token"\s*:\s*"[^"]*"/gi,
+        /"secret"\s*:\s*"[^"]*"/gi,
+        /"apiKey"\s*:\s*"[^"]*"/gi,
+        /"creditCard"\s*:\s*"[^"]*"/gi,
+      ];
 
-      Object.keys(obj).forEach(key => {
-        if (sensitiveFields.some(field =>
-          key.toLowerCase().includes(field.toLowerCase()))) {
-          obj[key] = '[REDACTED]';
-        } else if (typeof obj[key] === 'object') {
-          obj[key] = recursiveSanitize(obj[key]);
-        }
-      });
+      let sanitized = jsonString;
+      for (const pattern of sensitivePatterns) {
+        sanitized = sanitized.replace(pattern, (match) => {
+          const key = match.split(':')[0];
+          return `${key}:"[REDACTED]"`;
+        });
+      }
 
-      return obj;
-    };
-
-    return recursiveSanitize(sanitized);
+      return sanitized;
+    } catch (error) {
+      // If JSON serialization fails, return safe fallback
+      return '[Unable to sanitize body]';
+    }
   }
 
   /**

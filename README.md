@@ -17,28 +17,28 @@ Generate reproducible tactical-scale maps for D&D 5e and other tabletop RPGs. Cr
 
 ### Prerequisites
 
-- **Node.js 18+**
-- **pnpm** (required - npm/yarn will not work)
+- **Node.js 20.11.0 or higher**
+- **pnpm 8.0.0 or higher** (required - npm/yarn will not work)
 - **Docker** (optional, for PostgreSQL)
 
 ### Installation
 
 ```bash
-# Install pnpm globally if you haven't already
+# Install pnpm globally if you haven't already (version 8.0.0+)
 npm install -g pnpm
 
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/nottu2584/lazy-map.git
 cd lazy-map
 
-# Install dependencies
+# Install dependencies and build packages
 pnpm install
 
 # Set up environment files
 cp apps/backend/.env.example apps/backend/.env
 cp apps/frontend/.env.example apps/frontend/.env
 
-# Start development servers
+# Start development servers (frontend + backend)
 pnpm dev
 ```
 
@@ -51,61 +51,86 @@ pnpm dev
 
 ### Basic Map Generation
 
-```typescript
-// Generate tactical encounter map
-const map = await mapApi.generateTacticalMap({
-  name: "Tavern Brawl",
-  seed: "tavern-brawl-01",
-  context: {
-    biome: "temperate",
-    elevation: "lowland",
-    hydrology: "normal",
-    development: "settled",  // Generates buildings
-    season: "summer"
-  }
-});
-
-// Forest ambush encounter
-const map = await mapApi.generateTacticalMap({
-  seed: "goblin-ambush",
-  context: {
-    biome: "forest",
-    development: "wilderness",
-    vegetationDensity: 0.8
-  }
-});
+```bash
+# Generate via API (POST /api/maps/generate)
+curl -X POST http://localhost:3000/api/maps/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Tavern Brawl",
+    "seed": "tavern-brawl-01",
+    "biome": "forest",
+    "elevation": "lowland",
+    "hydrology": "stream",
+    "development": "settled",
+    "season": "summer",
+    "width": 50,
+    "height": 50
+  }'
 ```
+
+### Available Options
+
+**Biome Types**: `forest`, `mountain`, `plains`, `swamp`, `desert`, `coastal`, `underground`
+**Elevation Zones**: `lowland`, `foothills`, `highland`, `alpine`
+**Hydrology Types**: `arid`, `seasonal`, `stream`, `river`, `lake`, `coastal`, `wetland`
+**Development Levels**: `wilderness`, `frontier`, `rural`, `settled`, `urban`, `ruins`
+**Seasons**: `spring`, `summer`, `autumn`, `winter`
+
+### Configuration Multipliers
+
+Fine-tune map generation with optional multipliers:
+
+```json
+{
+  "seed": "goblin-ambush",
+  "biome": "forest",
+  "terrainRuggedness": 1.5,     // 0.5-2.0 (default: 1.0)
+  "waterAbundance": 0.8,         // 0.5-2.0 (default: 1.0)
+  "vegetationMultiplier": 1.2   // 0.0-2.0 (default: 1.0)
+}
+```
+
+- **terrainRuggedness**: Controls elevation variance (0.5 = smooth, 2.0 = extreme)
+- **waterAbundance**: Controls frequency of water features (0.5 = arid, 2.0 = abundant)
+- **vegetationMultiplier**: Controls forest coverage (0.0 = none, 2.0 = maximum density)
 
 ### Deterministic Seeds
 
 ```typescript
 // String seeds for memorable, shareable maps
-const map1 = await generateMap({ seed: "dragon-lair" });
-const map2 = await generateMap({ seed: "dragon-lair" });
+const map1 = await fetch('/api/maps/generate', {
+  body: JSON.stringify({ seed: "dragon-lair" })
+});
+const map2 = await fetch('/api/maps/generate', {
+  body: JSON.stringify({ seed: "dragon-lair" })
+});
 // map1 and map2 are identical
 
 // Numeric seeds for testing
-const testMap = await generateMap({ seed: 12345 });
+const testMap = await fetch('/api/maps/generate', {
+  body: JSON.stringify({ seed: 12345 })
+});
 ```
 
-### Export Formats
+### Saving Maps (Authenticated Users Only)
 
-```typescript
-// PNG for virtual tabletops
-await mapApi.export(mapId, {
-  format: 'png',
-  scale: 2.0,
-  includeGrid: true
-});
+```bash
+# Save a generated map (requires JWT token)
+curl -X POST http://localhost:3000/api/maps/save \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "map-uuid",
+    "name": "My Tavern Fight",
+    "seed": "tavern-01",
+    "width": 50,
+    "height": 50,
+    "tiles": [...]
+  }'
 
-// PDF for printing
-await mapApi.export(mapId, {
-  format: 'pdf',
-  includeCoordinates: true
-});
-
-// JSON for data analysis
-const mapData = await mapApi.export(mapId, { format: 'json' });
+# Get your saved maps
+curl -X GET http://localhost:3000/api/maps/my-maps \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
 ## 🏗️ Architecture
@@ -258,7 +283,7 @@ See [api-contracts README](./packages/api-contracts/README.md) for full document
 
 ```bash
 # Development
-pnpm dev              # Start frontend + backend
+pnpm dev              # Start frontend + backend with Turbo
 pnpm dev:backend      # Backend only (port 3000)
 pnpm dev:frontend     # Frontend only (port 5173)
 
@@ -267,29 +292,39 @@ pnpm generate         # Generate TypeScript types from OpenAPI spec
 pnpm generate:watch   # Auto-regenerate on openapi.json changes
 
 # Testing
-pnpm test            # Run all tests
-pnpm test:domain     # Domain unit tests (pure)
-pnpm test:e2e        # End-to-end tests
+pnpm test             # Run all tests across all packages
+
+# Per-package testing
+pnpm --filter @lazy-map/domain test          # Domain unit tests (pure)
+pnpm --filter @lazy-map/application test     # Application tests
+pnpm --filter @lazy-map/infrastructure test  # Infrastructure tests
 
 # Building
-pnpm build           # Build all packages
-pnpm build:domain    # Build domain layer only
+pnpm build            # Build all packages with Turbo
+pnpm setup            # Install deps + build all packages
 
 # Code Quality
-pnpm lint            # ESLint + Prettier
-pnpm typecheck       # TypeScript validation
-pnpm format          # Auto-format code
+pnpm lint             # ESLint + oxlint
+pnpm lint:fix         # Auto-fix lint issues
+pnpm format           # Auto-format with Prettier
 ```
 
 ### Database Options
 
-#### Option 1: In-Memory (Default)
+The application uses a **hybrid persistence strategy**:
+- **Anonymous users**: Always use in-memory storage (ephemeral, never persists)
+- **Authenticated users**: Use database storage when `USE_DATABASE=true`
+
+This approach respects privacy (anonymous data is temporary) while providing persistence for authenticated users.
+
+#### Option 1: In-Memory Only (Default)
 ```bash
 # No setup needed - just run the app
+# All users use in-memory storage (data lost on restart)
 pnpm dev
 ```
 
-#### Option 2: PostgreSQL
+#### Option 2: PostgreSQL for Authenticated Users
 ```bash
 # Start PostgreSQL with Docker
 docker-compose up -d
@@ -306,6 +341,21 @@ DB_NAME=lazy_map
 pnpm dev
 ```
 
+With `USE_DATABASE=true`:
+- Anonymous users: Still use in-memory storage (no DB pollution)
+- Authenticated users: Maps persist to PostgreSQL
+
+### Frontend Styling
+
+This project uses **Tailwind CSS v4** with the new simplified import system:
+
+```css
+/* apps/frontend/src/index.css */
+@import "tailwindcss";  /* New v4 syntax - no PostCSS config needed */
+```
+
+Tailwind v4 handles PostCSS internally through Vite - no separate `postcss.config.js` required.
+
 ### Environment Variables
 
 **Backend** (`apps/backend/.env`):
@@ -313,15 +363,34 @@ pnpm dev
 # Application
 NODE_ENV=development
 PORT=3000
+API_PREFIX=api
 
-# Database (optional)
+# Database
 USE_DATABASE=false  # Set true for PostgreSQL
 
-# Authentication
-JWT_SECRET=your-secret-key-here
+# JWT Authentication (required)
+JWT_SECRET=your-secret-key-here-change-in-production
 
 # Google OAuth (optional)
 GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_OAUTH_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
+
+# Discord OAuth (optional)
+DISCORD_CLIENT_ID=your-discord-client-id
+DISCORD_CLIENT_SECRET=your-discord-client-secret
+DISCORD_OAUTH_REDIRECT_URI=http://localhost:3000/api/auth/discord/callback
+
+# OAuth Configuration
+ALLOWED_FRONTEND_URLS=http://localhost:5173,http://localhost:3001
+OAUTH_TOKEN_ENCRYPTION_KEY=your-64-character-hex-string-here
+
+# PostgreSQL (when USE_DATABASE=true)
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+DB_NAME=lazy_map
 ```
 
 **Frontend** (`apps/frontend/.env`):
@@ -340,6 +409,7 @@ pnpm --filter @lazy-map/domain test
 - No mocks needed
 - Test business logic in isolation
 - Fast execution
+- Tests: Value objects, entities, domain services
 
 ### Application Tests
 ```bash
@@ -348,24 +418,42 @@ pnpm --filter @lazy-map/application test
 - Mock repositories
 - Test use case orchestration
 - Verify workflows
+- Tests: Use cases, determinism validation
 
-### Integration Tests
+### Infrastructure Tests
 ```bash
-pnpm test:e2e
+pnpm --filter @lazy-map/infrastructure test
 ```
-- Full system testing
-- Real database connections
-- API endpoint validation
+- Test layer generation services
+- Test repository adapters
+- Validate external integrations
+- Tests: Layer generation, integrated scenarios
+
+### Run All Tests
+```bash
+pnpm test   # Runs tests across all packages via Turbo
+```
 
 ## 📚 Documentation
 
-Full documentation available in `/docs`:
+Full documentation available in [`/docs`](./docs/README.md):
 
-- **[Getting Started](./docs/getting-started/installation.md)** - Installation and setup
-- **[Architecture Overview](./docs/architecture/overview.md)** - System design and patterns
-- **[Map Generation](./docs/architecture/map-generation.md)** - 6-layer generation system
-- **[Building System](./docs/architecture/building-system.md)** - Building generation with interiors
-- **[Roadmap](./docs/roadmap.md)** - Development priorities
+### Getting Started
+- **[Installation](./docs/getting-started/installation.md)** - Setup and run your first map
+- **[Configuration](./docs/getting-started/configuration.md)** - Environment variables and options
+- **[First Map](./docs/getting-started/first-map.md)** - Generate your first tactical map
+
+### Architecture
+- **[Overview](./docs/architecture/overview.md)** - Clean Architecture and system design
+- **[Map Generation](./docs/architecture/map-generation.md)** - 6-layer generation system explained
+- **[Conventions](./docs/architecture/conventions.md)** - Code style and naming guidelines
+- **[Security](./docs/architecture/security.md)** - Security practices and considerations
+
+### Guides
+- **[Geological Formations](./docs/guides/geological-formations.md)** - Rock types and terrain features
+- **[Database Setup](./docs/guides/database-setup.md)** - PostgreSQL configuration
+- **[OAuth Setup](./docs/guides/oauth-setup.md)** - Google and Discord authentication
+- **[Commit Message Standards](./docs/guides/commit-message-generation.md)** - Conventional commits with AI
 
 For AI agents and contributors: See [CLAUDE.md](./CLAUDE.md) for architecture rules and patterns.
 

@@ -13,6 +13,7 @@ import {
   GeologicalFeaturesService,
   GeologyLayer,
   HtmlTemplateService,
+  HybridMapRepository,
   HydrologyLayer,
   InMemoryArtificialRepository,
   InMemoryCulturalRepository,
@@ -175,22 +176,34 @@ const shouldUseDatabase = () => {
     },
 
     // Repository implementations
-    // When USE_DATABASE=true, DatabaseModule will provide these via its exports
+    // When USE_DATABASE=true, DatabaseModule provides database repositories
     // When USE_DATABASE=false, we use in-memory implementations
     ...(shouldUseDatabase()
       ? []
       : [
           { provide: 'IUserRepository', useClass: InMemoryUserRepository },
           { provide: 'IOAuthTokenRepository', useClass: InMemoryOAuthTokenRepository },
-          // Map Repository Adapter - bridges IMapRepository (domain) with IMapPersistencePort (application)
-          {
-            provide: 'IMapRepository',
-            useFactory: (mapPersistencePort: IMapPersistencePort) => {
-              return new MapRepositoryAdapter(mapPersistencePort);
-            },
-            inject: ['IMapPersistencePort'],
-          },
         ]),
+
+    // Hybrid Map Repository - always provided
+    // Routes anonymous users → in-memory storage (never persists to DB)
+    // Routes authenticated users → database storage (when USE_DATABASE=true)
+    {
+      provide: 'IMapRepository',
+      useFactory: (mapPersistencePort: IMapPersistencePort, logger?: any) => {
+        // Always create in-memory repository for anonymous users
+        const inMemoryRepo = new MapRepositoryAdapter(new InMemoryMapPersistence());
+
+        // If database is enabled, get database repository for authenticated users
+        const databaseRepo = shouldUseDatabase()
+          ? new MapRepositoryAdapter(mapPersistencePort)
+          : null;
+
+        // Return hybrid repository that routes based on authentication
+        return new HybridMapRepository(inMemoryRepo, databaseRepo, logger);
+      },
+      inject: ['IMapPersistencePort', { token: 'ILogger', optional: true }],
+    },
 
     { provide: 'IMapHistoryRepository', useClass: InMemoryMapHistoryRepository },
 

@@ -158,7 +158,7 @@ export class StructuresLayer implements IStructuresLayerService {
       for (let x = 2; x < this.width - 2; x++) {
         // Check basic suitability
         if (hydrology.tiles[y][x].waterDepth > 0) continue;
-        if (topography.tiles[y][x].slope > 20) continue;
+        if (topography.tiles[y][x].slope > 35) continue;
         if (vegetation.tiles[y][x].vegetationType === VegetationType.DENSE_TREES) continue;
 
         // Calculate site quality
@@ -222,7 +222,7 @@ export class StructuresLayer implements IStructuresLayerService {
 
         if (nx >= this.width || ny >= this.height) return false;
         if (hydrology.tiles[ny][nx].waterDepth > 0) return false;
-        if (topography.tiles[ny][nx].slope > 30) return false;
+        if (topography.tiles[ny][nx].slope > 45) return false;
         if (vegetation.tiles[ny][nx].vegetationType === VegetationType.DENSE_TREES) return false;
       }
     }

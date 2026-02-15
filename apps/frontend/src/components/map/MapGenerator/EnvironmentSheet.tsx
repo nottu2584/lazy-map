@@ -28,52 +28,103 @@ export function EnvironmentSheet({ trigger }: EnvironmentSheetProps) {
       </SheetTrigger>
       <SheetContent className="overflow-y-auto sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle>Environment Controls</SheetTitle>
+          <SheetTitle>Map Generation Guide</SheetTitle>
           <SheetDescription>
-            Fine-tune terrain generation while maintaining deterministic results
+            Understand how context and environment controls shape your map
           </SheetDescription>
         </SheetHeader>
 
         <div className="space-y-6 py-6">
-          {/* Terrain Ruggedness */}
+          {/* Map Context */}
           <div className="space-y-3">
-            <h5 className="font-semibold">Terrain Ruggedness</h5>
+            <h5 className="font-semibold">Map Context</h5>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Controls terrain detail and elevation variance. Affects both the complexity of terrain
-              features and the height differences across the map.
+              Context parameters define the map's character: what kind of terrain, water, and
+              structures appear. When set to "Auto", the seed determines these values. When you
+              choose a specific option, it overrides the seed for that parameter only.
+            </p>
+
+            <div className="space-y-2 text-sm">
+              <div className="rounded-lg border bg-card p-3">
+                <p className="font-medium mb-1">Environment</p>
+                <p className="text-muted-foreground">
+                  The primary environment type: forest, mountain, plains, swamp, desert, coastal, or
+                  underground caves. Affects rock types, vegetation species, visibility, and overall feel.
+                </p>
+              </div>
+              <div className="rounded-lg border bg-card p-3">
+                <p className="font-medium mb-1">Elevation</p>
+                <p className="text-muted-foreground">
+                  Altitude zone from lowland to alpine. Controls elevation range and terrain
+                  relief magnitude.
+                </p>
+              </div>
+              <div className="rounded-lg border bg-card p-3">
+                <p className="font-medium mb-1">Water</p>
+                <p className="text-muted-foreground">
+                  Hydrology type from arid to river/lake. Controls stream formation thresholds
+                  and water feature placement.
+                </p>
+              </div>
+              <div className="rounded-lg border bg-card p-3">
+                <p className="font-medium mb-1">Development</p>
+                <p className="text-muted-foreground">
+                  From wilderness (no structures) to urban (dense buildings). Controls building
+                  count, road networks, and bridges.
+                </p>
+              </div>
+              <div className="rounded-lg border bg-card p-3">
+                <p className="font-medium mb-1">Season</p>
+                <p className="text-muted-foreground">
+                  Affects vegetation appearance and water behavior. Winter reduces foliage,
+                  spring increases growth.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-muted/50 p-2 text-sm text-muted-foreground leading-relaxed border">
+              <p className="text-sm font-medium mb-1">Constraint rules:</p>
+              <p className="text-sm">
+                Some combinations are invalid: desert cannot have rivers or lakes, swamp must
+                have wetland hydrology, coastal must have coastal hydrology. Invalid options are
+                automatically disabled when you select a climate.
+              </p>
+            </div>
+          </div>
+
+          {/* Terrain Style & Ruggedness */}
+          <div className="space-y-3">
+            <h5 className="font-semibold">Terrain Style</h5>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Controls slope steepness and terrain features. Presets work with any climate - combine "Gentle" with "Mountain" for rolling foothills, or "Challenging" with "Plains" for dramatic badlands.
             </p>
 
             <div className="grid grid-cols-[4.5rem,1fr] gap-x-4 gap-y-2 text-sm">
               <div className="flex items-start">
-                <div className="font-mono text-sm bg-muted px-2 py-0.5 rounded">0.5-0.8</div>
+                <div className="font-mono text-sm bg-muted px-2 py-0.5 rounded">0.5</div>
               </div>
               <div className="text-muted-foreground">
-                <span className="font-medium text-foreground">Gentle terrain:</span> Smooth rolling
-                hills, minimal elevation changes, easy traversal for all units
+                <span className="font-medium text-foreground">Gentle Hills:</span> ~15° average slopes, rolling farmland, pastoral valleys. Easy traversal, suitable for all unit types.
               </div>
 
               <div className="flex items-start">
                 <div className="font-mono text-sm bg-muted px-2 py-0.5 rounded">1.0</div>
               </div>
               <div className="text-muted-foreground">
-                <span className="font-medium text-foreground">Normal terrain:</span> Realistic
-                variation with moderate hills and valleys, balanced challenge
+                <span className="font-medium text-foreground">Balanced Terrain:</span> ~25° average slopes, varied features with tactical interest. Mix of gentle and challenging areas.
               </div>
 
               <div className="flex items-start">
-                <div className="font-mono text-sm bg-muted px-2 py-0.5 rounded">1.5-2.0</div>
+                <div className="font-mono text-sm bg-muted px-2 py-0.5 rounded">1.8-2.0</div>
               </div>
               <div className="text-muted-foreground">
-                <span className="font-medium text-foreground">Rugged terrain:</span> Dramatic cliffs
-                and valleys, complex elevation, difficult navigation, tactical chokepoints
+                <span className="font-medium text-foreground">Dramatic Cliffs:</span> ~40° average slopes, mountain faces, canyon walls. Vertical encounters, natural chokepoints, climber-friendly.
               </div>
             </div>
 
-            <div className="rounded-lg bg-muted/50 p-2 text-sm text-muted-foreground leading-relaxed border">
-              <p className="text-sm font-medium mb-1">Technical effects:</p>
+            <div className="rounded-lg bg-muted/50 p-2 text-sm text-muted-foreground leading-relaxed border mt-3">
               <p className="text-sm">
-                Adjusts noise octaves (2-6) and persistence (0.4-0.8) for terrain generation,
-                creating more or less detailed elevation patterns
+                <span className="font-medium">Modular design:</span> Terrain style is independent of climate. "Desert + Gentle" creates rolling dunes. "Forest + Challenging" creates mountainous woods. Mix and match!
               </p>
             </div>
           </div>
@@ -111,14 +162,6 @@ export function EnvironmentSheet({ trigger }: EnvironmentSheetProps) {
                 networks, frequent springs, standing water, creates natural barriers and cover
               </div>
             </div>
-
-            <div className="rounded-lg bg-muted/50 p-2 text-sm text-muted-foreground leading-relaxed border">
-              <p className="text-sm font-medium mb-1">Technical effects:</p>
-              <p className="text-sm">
-                Modifies stream threshold (0.5×-1.5×), spring placement (65%-95%), and pool
-                formation rates to control water feature density
-              </p>
-            </div>
           </div>
 
           {/* Vegetation Density */}
@@ -153,69 +196,15 @@ export function EnvironmentSheet({ trigger }: EnvironmentSheetProps) {
                 limited visibility, abundant cover, difficult movement
               </div>
             </div>
-
-            <div className="rounded-lg bg-muted/50 p-2 text-sm text-muted-foreground leading-relaxed border">
-              <p className="text-sm font-medium mb-1">Technical effects:</p>
-              <p className="text-sm">
-                Scales vegetation placement thresholds and basal area (0-30 m²/ha), affecting total
-                forest coverage and tree density per tile
-              </p>
-            </div>
-          </div>
-
-          {/* Example Combinations */}
-          <div className="space-y-3">
-            <h5 className="font-semibold">Example Combinations</h5>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Try these preset combinations for different tactical scenarios:
-            </p>
-
-            <div className="space-y-3">
-              <div className="rounded-lg border bg-card p-3">
-                <p className="text-sm font-medium mb-1">Gentle Valley</p>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Easy traversal, abundant resources, good for low-level encounters
-                </p>
-                <div className="flex flex-wrap gap-2 text-sm">
-                  <span className="bg-muted px-2 py-0.5 rounded">Terrain: 0.6</span>
-                  <span className="bg-muted px-2 py-0.5 rounded">Water: 1.4</span>
-                  <span className="bg-muted px-2 py-0.5 rounded">Vegetation: 1.6</span>
-                </div>
-              </div>
-
-              <div className="rounded-lg border bg-card p-3">
-                <p className="text-sm font-medium mb-1">Mountain Pass</p>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Challenging terrain, tactical chokepoints, resource scarcity
-                </p>
-                <div className="flex flex-wrap gap-2 text-sm">
-                  <span className="bg-muted px-2 py-0.5 rounded">Terrain: 1.8</span>
-                  <span className="bg-muted px-2 py-0.5 rounded">Water: 1.3</span>
-                  <span className="bg-muted px-2 py-0.5 rounded">Vegetation: 0.6</span>
-                </div>
-              </div>
-
-              <div className="rounded-lg border bg-card p-3">
-                <p className="text-sm font-medium mb-1">Desert Wasteland</p>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Sparse resources, open sight lines, water as key objective
-                </p>
-                <div className="flex flex-wrap gap-2 text-sm">
-                  <span className="bg-muted px-2 py-0.5 rounded">Terrain: 1.2</span>
-                  <span className="bg-muted px-2 py-0.5 rounded">Water: 0.5</span>
-                  <span className="bg-muted px-2 py-0.5 rounded">Vegetation: 0.2</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Technical Note */}
           <div className="rounded-lg bg-muted p-3 text-sm text-muted-foreground leading-relaxed">
-            <p className="text-sm font-medium mb-1">Deterministic Generation:</p>
+            <p className="text-sm font-medium mb-1">Deterministic generation:</p>
             <p className="text-sm">
-              All parameters maintain deterministic generation. The same seed with identical
-              settings will always produce the same map. Parameters are independent and can be
-              combined freely to create unique tactical scenarios.
+              The same seed with identical context and environment settings always produces the
+              same map. The seed controls the pseudo-random noise that shapes the terrain; the
+              parameters control what kind of terrain is generated.
             </p>
           </div>
         </div>

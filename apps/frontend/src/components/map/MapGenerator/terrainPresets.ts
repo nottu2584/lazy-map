@@ -1,18 +1,23 @@
 import type { MapPreset } from '@/types';
 
+/**
+ * General terrain style presets
+ * These set terrain characteristics (ruggedness, water, vegetation) but don't lock climate/biome
+ * Users can combine any preset with any biome for modular map generation
+ */
 export const MAP_PRESETS: MapPreset[] = [
   {
     name: 'Gentle',
-    description: 'Smooth rolling hills, abundant water, dense forests',
+    description: 'Rolling hills and easy terrain - perfect for farmland or pastoral settings',
     settings: {
-      terrainRuggedness: 0.6,
-      waterAbundance: 1.4,
-      vegetationMultiplier: 1.6,
+      terrainRuggedness: 0.5,
+      waterAbundance: 1.0,
+      vegetationMultiplier: 1.2,
     },
   },
   {
-    name: 'Normal',
-    description: 'Balanced terrain with realistic variation',
+    name: 'Balanced',
+    description: 'Varied terrain with tactical features - good mix of gentle and challenging areas',
     settings: {
       terrainRuggedness: 1.0,
       waterAbundance: 1.0,
@@ -21,11 +26,11 @@ export const MAP_PRESETS: MapPreset[] = [
   },
   {
     name: 'Challenging',
-    description: 'Rugged broken terrain, sparse water and vegetation',
+    description: 'Dramatic cliffs and steep slopes - ideal for vertical encounters',
     settings: {
       terrainRuggedness: 1.8,
-      waterAbundance: 1.3,
-      vegetationMultiplier: 0.6,
+      waterAbundance: 0.8,
+      vegetationMultiplier: 0.8,
     },
   },
 ];

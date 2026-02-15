@@ -3,6 +3,13 @@ import { GeologyLayer } from '../map/services/layers/GeologyLayer';
 import { TopographyLayer } from '../map/services/layers/TopographyLayer';
 import { HydrologyLayer } from '../map/services/layers/HydrologyLayer';
 import {
+  ElevationGenerationService,
+  ErosionModelService,
+  GeologicalFeaturesService,
+  TerrainSmoothingService,
+  TopographyCalculationService
+} from '../map/services/layers/topography';
+import {
   TacticalMapContext,
   BiomeType,
   ElevationZone,
@@ -16,7 +23,22 @@ import {
 
 describe('Integrated Layer Generation', () => {
   const geologicalGenerator = new GeologyLayer();
-  const topographicGenerator = new TopographyLayer();
+
+  // Create topography services
+  const elevationService = new ElevationGenerationService();
+  const erosionService = new ErosionModelService();
+  const geologicalFeaturesService = new GeologicalFeaturesService();
+  const smoothingService = new TerrainSmoothingService(erosionService);
+  const calculationService = new TopographyCalculationService();
+
+  const topographicGenerator = new TopographyLayer(
+    elevationService,
+    erosionService,
+    geologicalFeaturesService,
+    smoothingService,
+    calculationService
+  );
+
   const hydrologicalGenerator = new HydrologyLayer();
 
   describe('Full layer stack generation', () => {

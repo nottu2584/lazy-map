@@ -36,7 +36,6 @@ import {
   PlantGenerationService,
   ClearingCalculationService,
   TacticalCalculationService,
-  TileGenerationService,
   FlowCalculationService,
   SpringGenerationService,
   StreamCalculationService,
@@ -48,7 +47,8 @@ import {
   RoadGenerationService,
   BridgeGenerationService,
   DecorationGenerationService,
-  TileGenerationService,
+  StructureTileGenerationService,
+  BuildingGenerationService,
   ConfigurationCalculationService,
   RoomAllocationService,
   LayoutGenerationService,
@@ -97,7 +97,6 @@ const shouldUseDatabase = () => {
     PlantGenerationService,
     ClearingCalculationService,
     TacticalCalculationService,
-    TileGenerationService,
 
     // Hydrology internal services
     FlowCalculationService,
@@ -113,9 +112,10 @@ const shouldUseDatabase = () => {
     RoadGenerationService,
     BridgeGenerationService,
     DecorationGenerationService,
-    TileGenerationService,
+    StructureTileGenerationService,
 
     // Building internal services
+    BuildingGenerationService,
     ConfigurationCalculationService,
     RoomAllocationService,
     LayoutGenerationService,

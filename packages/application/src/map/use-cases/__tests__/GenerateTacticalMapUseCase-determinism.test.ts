@@ -18,17 +18,38 @@ import {
   HydrologyLayer,
   VegetationLayer,
   StructuresLayer,
-  FeaturesLayer
+  FeaturesLayer,
+  ElevationGenerationService,
+  ErosionModelService,
+  GeologicalFeaturesService,
+  TerrainSmoothingService,
+  TopographyCalculationService
 } from '@lazy-map/infrastructure';
 
 describe('GenerateTacticalMapUseCase - Determinism with Configs', () => {
   let useCase: GenerateTacticalMapUseCase;
 
   beforeEach(() => {
+    // Create topography services
+    const elevationService = new ElevationGenerationService();
+    const erosionService = new ErosionModelService();
+    const geologicalFeaturesService = new GeologicalFeaturesService();
+    const smoothingService = new TerrainSmoothingService(erosionService);
+    const calculationService = new TopographyCalculationService();
+
+    // Create topography layer with services
+    const topographyLayer = new TopographyLayer(
+      elevationService,
+      erosionService,
+      geologicalFeaturesService,
+      smoothingService,
+      calculationService
+    );
+
     // Create use case with actual layer implementations
     useCase = new GenerateTacticalMapUseCase(
       new GeologyLayer(),
-      new TopographyLayer(),
+      topographyLayer,
       new HydrologyLayer(),
       new VegetationLayer(),
       new StructuresLayer(),

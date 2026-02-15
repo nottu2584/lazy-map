@@ -19,6 +19,8 @@ export { HydrologyLayer } from './HydrologyLayer';
 
 // Vegetation growth layer implementation
 export { VegetationLayer } from './VegetationLayer';
+// Vegetation internal services
+export * from './vegetation';
 
 // Artificial structures layer implementation
 export { StructuresLayer } from './StructuresLayer';

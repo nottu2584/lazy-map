@@ -6,7 +6,7 @@ Deterministic tactical battlemap generator for tabletop RPGs.
 
 - **[Getting Started](./getting-started/installation.md)** - Setup and run your first map
 - **[Architecture](./architecture/overview.md)** - How the system works
-- **[Roadmap](./roadmap.md)** - What's coming next
+- **[Conventions](./architecture/conventions.md)** - Code style and naming guidelines
 
 ## Documentation Structure
 
@@ -18,13 +18,16 @@ Deterministic tactical battlemap generator for tabletop RPGs.
 ### Architecture
 - [Overview](./architecture/overview.md) - Clean Architecture principles
 - [Map Generation](./architecture/map-generation.md) - The 6-layer system
-- [Building System](./architecture/building-system.md) - Buildings with interiors
 - [Conventions](./architecture/conventions.md) - Code style and naming
+- [Security](./architecture/security.md) - Security practices and considerations
+- [Conventional Commits](./architecture/conventional-commits.md) - Commit message format
 
 ### Guides
 - [Geological Formations](./guides/geological-formations.md) - Rock types and terrain features
 - [Database Setup](./guides/database-setup.md) - PostgreSQL configuration
-- [OAuth Setup](./guides/oauth-setup.md) - Google authentication
+- [OAuth Setup](./guides/oauth-setup.md) - Google and Discord authentication
+- [Commit Message Generation](./guides/commit-message-generation.md) - AI-powered conventional commits
+- [Typography Standards](./guides/typography-standards.md) - Font system and design tokens
 
 ## Key Concepts
 

@@ -43,6 +43,12 @@ import {
   WaterDepthCalculationService,
   MoistureCalculationService,
   SegmentGenerationService,
+  SiteCalculationService,
+  BuildingPlacementService,
+  RoadGenerationService,
+  BridgeGenerationService,
+  DecorationGenerationService,
+  TileGenerationService,
 } from '@lazy-map/infrastructure';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -97,6 +103,14 @@ const shouldUseDatabase = () => {
     WaterDepthCalculationService,
     MoistureCalculationService,
     SegmentGenerationService,
+
+    // Structures internal services
+    SiteCalculationService,
+    BuildingPlacementService,
+    RoadGenerationService,
+    BridgeGenerationService,
+    DecorationGenerationService,
+    TileGenerationService,
 
     // Output port implementations
     // Only provide IMapPersistencePort when NOT using database

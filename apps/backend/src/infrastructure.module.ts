@@ -1,39 +1,49 @@
+import { IMapPersistencePort } from '@lazy-map/application';
 import {
+  AesTokenEncryptionService,
+  BackLoggingService,
   BcryptPasswordService,
   ConsoleNotificationService,
-  createGoogleOAuthService,
   createDiscordOAuthService,
-  AesTokenEncryptionService,
-  HtmlTemplateService,
+  createGoogleOAuthService,
   DatabaseModule,
-  InMemoryMapHistoryRepository,
-  InMemoryMapPersistence,
-  InMemoryUserRepository,
-  InMemoryOAuthTokenRepository,
-  InMemoryReliefRepository,
-  InMemoryNaturalRepository,
+  ElevationGenerationService,
+  ErosionModelService,
+  FeaturesLayer,
+  GeologicalFeaturesService,
+  GeologyLayer,
+  HtmlTemplateService,
+  HybridMapRepository,
+  HydrologyLayer,
   InMemoryArtificialRepository,
   InMemoryCulturalRepository,
+  InMemoryMapHistoryRepository,
+  InMemoryMapPersistence,
+  InMemoryNaturalRepository,
+  InMemoryOAuthTokenRepository,
+  InMemoryReliefRepository,
+  InMemoryUserRepository,
   JwtAuthenticationService,
   LoggingModule,
-  BackLoggingService,
-  GeologyLayer,
-  TopographyLayer,
-  HydrologyLayer,
-  VegetationLayer,
-  StructuresLayer,
-  FeaturesLayer,
   MapRepositoryAdapter,
-  HybridMapRepository,
+  StructuresLayer,
+  TerrainSmoothingService,
+  TopographyCalculationService,
+  TopographyLayer,
+  VegetationLayer,
 } from '@lazy-map/infrastructure';
-import { IMapPersistencePort } from '@lazy-map/application';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // Create a function to determine if database should be used
 const shouldUseDatabase = () => {
   const useDb = process.env.USE_DATABASE === 'true';
-  console.log('[InfrastructureModule] USE_DATABASE:', process.env.USE_DATABASE, '-> shouldUseDatabase:', useDb);
+  console.log(
+    '[InfrastructureModule] USE_DATABASE:',
+    process.env.USE_DATABASE,
+    '-> shouldUseDatabase:',
+    useDb,
+  );
   return useDb;
 };
 
@@ -53,11 +63,18 @@ const shouldUseDatabase = () => {
     { provide: 'IStructuresLayerService', useClass: StructuresLayer },
     { provide: 'IFeaturesLayerService', useClass: FeaturesLayer },
 
+    // Topography internal services
+    ElevationGenerationService,
+    ErosionModelService,
+    GeologicalFeaturesService,
+    TerrainSmoothingService,
+    TopographyCalculationService,
+
     // Output port implementations
     // Only provide IMapPersistencePort when NOT using database
-    ...(shouldUseDatabase() ? [] : [
-      { provide: 'IMapPersistencePort', useClass: InMemoryMapPersistence },
-    ]),
+    ...(shouldUseDatabase()
+      ? []
+      : [{ provide: 'IMapPersistencePort', useClass: InMemoryMapPersistence }]),
     { provide: 'INotificationPort', useClass: ConsoleNotificationService },
 
     // User infrastructure services
@@ -68,7 +85,10 @@ const shouldUseDatabase = () => {
       provide: 'IAuthenticationPort',
       useFactory: (configService: ConfigService) => {
         const jwtSecret = configService.get<string>('JWT_SECRET', 'your-secret-key');
-        console.log('[InfrastructureModule JwtAuthenticationService] JWT_SECRET:', jwtSecret?.substring(0, 20) + '...');
+        console.log(
+          '[InfrastructureModule JwtAuthenticationService] JWT_SECRET:',
+          jwtSecret?.substring(0, 20) + '...',
+        );
         const logger = new BackLoggingService('JwtAuthenticationService');
         return new JwtAuthenticationService(jwtSecret, logger);
       },
@@ -92,11 +112,14 @@ const shouldUseDatabase = () => {
       useFactory: (configService: ConfigService) => {
         // Templates are located in apps/backend/src/templates
         const templatesPath = require('path').join(__dirname, 'templates');
-        
+
         // Get allowed frontend URLs from environment
-        const allowedUrlsStr = configService.get<string>('ALLOWED_FRONTEND_URLS', 'http://localhost:5173');
-        const allowedOrigins = allowedUrlsStr.split(',').map(url => url.trim());
-        
+        const allowedUrlsStr = configService.get<string>(
+          'ALLOWED_FRONTEND_URLS',
+          'http://localhost:5173',
+        );
+        const allowedOrigins = allowedUrlsStr.split(',').map((url) => url.trim());
+
         return new HtmlTemplateService(templatesPath, allowedOrigins);
       },
       inject: [ConfigService],
@@ -136,7 +159,9 @@ const shouldUseDatabase = () => {
         const logger = new BackLoggingService('DiscordOAuthService');
 
         if (!clientId || !clientSecret) {
-          logger.warn('Discord OAuth not configured - DISCORD_CLIENT_ID or DISCORD_CLIENT_SECRET is missing');
+          logger.warn(
+            'Discord OAuth not configured - DISCORD_CLIENT_ID or DISCORD_CLIENT_SECRET is missing',
+          );
           return null;
         }
 

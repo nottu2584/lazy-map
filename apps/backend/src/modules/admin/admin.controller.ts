@@ -13,8 +13,8 @@ import {
   ValidationPipe
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { AdminGuard as AdminRoleGuard } from '../auth/admin.guard';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AuthRolesGuard } from '../auth/guards/auth-roles.guard';
+import { RequireAdmin } from '../auth/decorators/roles.decorator';
 import { AdminService } from './admin.service';
 import {
   AdminActionResponseDto,
@@ -31,7 +31,8 @@ import {
 @ApiTags('administration')
 @ApiBearerAuth()
 @Controller('admin/users')
-@UseGuards(JwtAuthGuard, AdminRoleGuard)
+@RequireAdmin()
+@UseGuards(AuthRolesGuard)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 

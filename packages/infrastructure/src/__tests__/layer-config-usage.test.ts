@@ -3,6 +3,13 @@ import { TopographyLayer } from '../map/services/layers/TopographyLayer';
 import { HydrologyLayer } from '../map/services/layers/HydrologyLayer';
 import { GeologyLayer } from '../map/services/layers/GeologyLayer';
 import {
+  ElevationGenerationService,
+  ErosionModelService,
+  GeologicalFeaturesService,
+  TerrainSmoothingService,
+  TopographyCalculationService
+} from '../map/services/layers/topography';
+import {
   TacticalMapContext,
   BiomeType,
   ElevationZone,
@@ -16,7 +23,22 @@ import {
 
 describe('Layer Config Usage', () => {
   const geologyLayer = new GeologyLayer();
-  const topographyLayer = new TopographyLayer();
+
+  // Create topography services
+  const elevationService = new ElevationGenerationService();
+  const erosionService = new ErosionModelService();
+  const geologicalFeaturesService = new GeologicalFeaturesService();
+  const smoothingService = new TerrainSmoothingService(erosionService);
+  const calculationService = new TopographyCalculationService();
+
+  const topographyLayer = new TopographyLayer(
+    elevationService,
+    erosionService,
+    geologicalFeaturesService,
+    smoothingService,
+    calculationService
+  );
+
   const hydrologyLayer = new HydrologyLayer();
 
   const testContext = TacticalMapContext.create(

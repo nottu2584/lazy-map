@@ -16,9 +16,13 @@ export * from './topography';
 
 // Hydrological flow layer implementation
 export { HydrologyLayer } from './HydrologyLayer';
+// Hydrology internal services
+export * from './hydrology';
 
 // Vegetation growth layer implementation
 export { VegetationLayer } from './VegetationLayer';
+// Vegetation internal services
+export * from './vegetation';
 
 // Artificial structures layer implementation
 export { StructuresLayer } from './StructuresLayer';

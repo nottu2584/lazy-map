@@ -26,6 +26,8 @@ export * from './vegetation';
 
 // Artificial structures layer implementation
 export { StructuresLayer } from './StructuresLayer';
+// Structures internal services
+export * from './structures';
 
 // Features and points of interest layer implementation
 export { FeaturesLayer } from './FeaturesLayer';

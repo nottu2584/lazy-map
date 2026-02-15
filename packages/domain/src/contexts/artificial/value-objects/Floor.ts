@@ -127,12 +127,10 @@ export class Floor {
    * Check if a room can fit on this floor
    */
   private canAccommodateRoom(room: Room): boolean {
-    // Check if room boundary is within floor footprint
-    const roomBounds = room.getBounds();
+    // Simple check: room area must be less than remaining floor area
+    // TODO: Check if room bounds fit within floor footprint bounds
     const floorArea = this.footprint.getArea();
     const roomArea = room.getArea();
-
-    // Simple check: room area must be less than remaining floor area
     const usedArea = this.rooms.reduce((sum, r) => sum + r.getArea(), 0);
     return (usedArea + roomArea) <= floorArea;
   }

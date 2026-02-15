@@ -11,6 +11,8 @@ export { GeologyLayer } from './GeologyLayer';
 
 // Topographic expression layer implementation
 export { TopographyLayer } from './TopographyLayer';
+// Topography internal services
+export * from './topography';
 
 // Hydrological flow layer implementation
 export { HydrologyLayer } from './HydrologyLayer';

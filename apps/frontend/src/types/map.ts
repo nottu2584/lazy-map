@@ -1,3 +1,21 @@
+export interface RequiredFeaturesSettings {
+  hasRoad?: boolean;
+  hasBridge?: boolean;
+  hasRuins?: boolean;
+  hasCave?: boolean;
+  hasWater?: boolean;
+  hasCliff?: boolean;
+}
+
+export interface MapContextSettings {
+  biome?: string;
+  elevation?: string;
+  hydrology?: string;
+  development?: string;
+  season?: string;
+  requiredFeatures?: RequiredFeaturesSettings;
+}
+
 export interface MapSettings {
   // Basic settings (always required)
   name: string;
@@ -5,6 +23,9 @@ export interface MapSettings {
   height: number;
   cellSize: number;
   seed?: string;
+
+  // Context settings (optional, controls map character)
+  contextSettings?: MapContextSettings;
 
   // Advanced settings (optional, collapsed by default)
   advancedSettings?: AdvancedMapSettings;
@@ -39,6 +60,7 @@ export interface GeneratedMap {
     elevation: number;
     features: string[];
   }>;
+  layers?: import('./layers').TacticalMapLayersDTO;
 }
 
 export interface SeedValidation {
@@ -52,4 +74,5 @@ export interface MapPreset {
   name: string;
   description: string;
   settings: AdvancedMapSettings;
+  context?: MapContextSettings;
 }

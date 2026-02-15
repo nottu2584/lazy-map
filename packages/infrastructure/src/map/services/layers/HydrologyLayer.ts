@@ -454,9 +454,14 @@ export class HydrologyLayer implements IHydrologyLayerService {
         }
 
         // Check for pools in depressions - use config-driven threshold
-        if (topography.tiles[y][x].isValley &&
-            topography.tiles[y][x].slope < 5 &&
-            context.hydrology !== HydrologyType.ARID) {
+        // Support both valley detection (discrete features) and gradient-based detection (low elevation)
+        const isLowElevation = topography.tiles[y][x].elevation <=
+          topography.minElevation + (topography.maxElevation - topography.minElevation) * 0.3;
+        const isPoolSite = (topography.tiles[y][x].isValley || isLowElevation) &&
+                          topography.tiles[y][x].slope < 5 &&
+                          context.hydrology !== HydrologyType.ARID;
+
+        if (isPoolSite) {
           const poolChance = poolNoise.generateAt(x * 0.2, y * 0.2);
           // Use config-driven threshold (lower threshold = more pools)
           if (poolChance > poolThreshold) {

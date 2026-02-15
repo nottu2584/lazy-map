@@ -11,14 +11,19 @@ import {
   ValidateSeedUseCase,
 } from '@lazy-map/application';
 import {
+  BiomeType,
+  DevelopmentLevel,
   Dimensions,
+  ElevationZone,
   HydrologyConfig,
+  HydrologyType,
   ILogger,
   MapGrid,
   MapId,
   MapMetadata,
   MapTile,
   Position,
+  Season,
   Seed,
   TacticalMapContext,
   Terrain,
@@ -31,6 +36,7 @@ import { Body, Controller, Get, Inject, Param, Post, Request, UseGuards } from '
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GenerateMapDto, SaveMapDto, SaveMapResponseDto, ValidateSeedDto } from './dto';
+import { serializeTacticalMapResult } from './serializers';
 
 @ApiTags('maps')
 @Controller('maps')
@@ -86,8 +92,16 @@ export class MapsController {
             ? Seed.fromNumber(Number(seedValue))
             : Seed.fromString(seedValue);
 
-      // Generate context from seed
-      const context = TacticalMapContext.fromSeed(seed);
+      // Build context: user-provided params override seed-derived defaults
+      const seedContext = TacticalMapContext.fromSeed(seed);
+      const context = TacticalMapContext.create(
+        (dto.biome as BiomeType) ?? seedContext.biome,
+        (dto.elevation as ElevationZone) ?? seedContext.elevation,
+        (dto.hydrology as HydrologyType) ?? seedContext.hydrology,
+        (dto.development as DevelopmentLevel) ?? seedContext.development,
+        (dto.season as Season) ?? seedContext.season,
+        dto.requiredFeatures,
+      );
 
       // Create topography config if provided
       let topographyConfig: TopographyConfig | undefined;
@@ -129,10 +143,12 @@ export class MapsController {
         },
       });
 
+      const serializedMap = serializeTacticalMapResult(result);
+
       return {
         success: true,
         data: {
-          map: result,
+          map: serializedMap,
           width: result.width,
           height: result.height,
           context: result.context?.getDescription(),

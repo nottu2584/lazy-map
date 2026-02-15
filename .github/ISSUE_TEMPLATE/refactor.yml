@@ -1,12 +1,12 @@
-name: 🚀 Feature Request
-description: Suggest a new feature or enhancement
-title: "feat: "
-labels: ["enhancement", "needs-triage"]
+name: ♻️ Refactor
+description: Technical debt or code improvement
+title: "refactor: "
+labels: ["refactor", "technical-debt", "needs-triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for suggesting a feature! Please search existing issues before creating a new one.
+        Thanks for improving the codebase! Please search existing issues before creating a new one.
 
   - type: checkboxes
     attributes:
@@ -19,9 +19,9 @@ body:
   - type: textarea
     id: problem
     attributes:
-      label: Problem
-      description: What problem does this solve?
-      placeholder: Users can't easily share maps outside the application
+      label: Current state
+      description: What needs refactoring and why?
+      placeholder: TopographyLayer.ts has grown to 1123 lines with 28 methods...
     validations:
       required: true
 
@@ -29,8 +29,8 @@ body:
     id: solution
     attributes:
       label: Proposed solution
-      description: What would you like to see?
-      placeholder: Add export button that generates PDF
+      description: How should this be refactored?
+      placeholder: Split into separate service classes following single responsibility...
     validations:
       required: true
 
@@ -38,7 +38,7 @@ body:
     id: priority
     attributes:
       label: Priority
-      description: How important is this feature?
+      description: How urgent is this refactor?
       options:
         - low
         - medium
@@ -51,7 +51,7 @@ body:
     id: scope
     attributes:
       label: Scope
-      description: Which area would this affect?
+      description: Which area needs refactoring?
       options:
         - backend
         - frontend
@@ -67,6 +67,6 @@ body:
     id: context
     attributes:
       label: Additional context
-      description: Implementation ideas, examples, references, etc.
+      description: Architecture concerns, breaking changes, migration notes, etc.
       placeholder: |
-        Links to similar features, technical considerations, mockups...
+        Files affected, dependencies, related issues...

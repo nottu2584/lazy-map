@@ -1,5 +1,5 @@
 import { Loader2 } from 'lucide-react';
-import { MapCanvas } from '../../MapCanvas';
+import { MapRenderer } from '../MapRenderer';
 import type { GeneratedMap } from '@/types';
 
 interface MapPreviewProps {
@@ -26,7 +26,7 @@ export function MapPreview({ map, isGenerating, progress }: MapPreviewProps) {
   }
 
   if (map) {
-    return <MapCanvas map={map} />;
+    return <MapRenderer map={map} />;
   }
 
   return (

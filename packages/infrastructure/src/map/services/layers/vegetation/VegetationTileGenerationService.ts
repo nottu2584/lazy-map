@@ -16,7 +16,7 @@ import {
  * Handles forest patch extraction and statistics calculation
  */
 @Injectable()
-export class TileGenerationService {
+export class VegetationTileGenerationService {
   constructor(
     @Optional() @Inject('ILogger') private readonly logger?: ILogger
   ) {}

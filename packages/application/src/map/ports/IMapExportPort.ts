@@ -80,8 +80,4 @@ export interface IMapExportPort {
    */
   estimateFileSize(map: MapGrid, options: ExportOptions): Promise<number>;
 
-  /**
-   * Exports map data only (without visual rendering)
-   */
-  exportMapData(map: MapGrid): Promise<ExportResult>;
 }

@@ -357,14 +357,4 @@ export class MapExportService implements IMapExportPort {
     }
   }
 
-  async exportMapData(map: MapGrid): Promise<ExportResult> {
-    // Export just the raw map data without visual formatting
-    return this.exportMap(map, {
-      format: ExportFormat.JSON,
-      includeFeatures: false,
-      includeTerrain: true,
-      includeGrid: false,
-      includeCoordinates: true
-    });
-  }
 }

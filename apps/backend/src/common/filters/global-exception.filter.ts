@@ -318,7 +318,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
 
       return sanitized;
-    } catch (error) {
+    } catch {
       // If JSON serialization fails, return safe fallback
       return '[Unable to sanitize body]';
     }

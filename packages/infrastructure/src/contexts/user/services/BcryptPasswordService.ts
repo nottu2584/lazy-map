@@ -62,7 +62,7 @@ export class BcryptPasswordService implements IPasswordService {
 
       // Need rehash if version is outdated or rounds are too low
       return version !== this.currentVersion || rounds < this.saltRounds;
-    } catch (error) {
+    } catch {
       // If we can't parse the hash, assume it needs rehashing
       return true;
     }

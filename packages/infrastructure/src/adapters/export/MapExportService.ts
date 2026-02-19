@@ -101,7 +101,7 @@ export class MapExportService implements IMapExportPort {
     };
   }
 
-  async exportToCsv(map: MapGrid, options: ExportOptions): Promise<ExportResult> {
+  async exportToCsv(map: MapGrid, _options: ExportOptions): Promise<ExportResult> {
     const delimiter = ',';
     const includeHeaders = true;
 

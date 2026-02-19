@@ -2,7 +2,6 @@ import { Injectable, Inject, Optional } from '@nestjs/common';
 import {
   TacticalMapContext,
   Seed,
-  Building,
   Bridge,
   type ILogger,
   // Import from domain layer service interfaces
@@ -16,7 +15,7 @@ import {
 import { SiteCalculationService } from './structures/SiteCalculationService';
 import { BuildingPlacementService } from './structures/BuildingPlacementService';
 import { RoadGenerationService } from './structures/RoadGenerationService';
-import { BridgeGenerationService, BridgeLocation } from './structures/BridgeGenerationService';
+import { BridgeGenerationService } from './structures/BridgeGenerationService';
 import { DecorationGenerationService } from './structures/DecorationGenerationService';
 import { StructureTileGenerationService } from './structures/StructureTileGenerationService';
 

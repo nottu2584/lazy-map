@@ -91,7 +91,7 @@ export class TileGenerationService {
     const visited: boolean[][] = [];
 
     for (let y = 0; y < height; y++) {
-      visited[y] = new Array(width).fill(false);
+      visited[y] = Array.from({ length: width }, () => false);
     }
 
     for (let y = 0; y < height; y++) {

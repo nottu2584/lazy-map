@@ -33,7 +33,7 @@ export class SegmentGenerationService {
 
     // Initialize visited array
     for (let y = 0; y < height; y++) {
-      visited[y] = new Array(width).fill(false);
+      visited[y] = Array.from({ length: width }, () => false);
     }
 
     // Find all stream starting points

@@ -108,7 +108,7 @@ export class JwtAuthenticationService implements IAuthenticationPort {
 
       const now = Math.floor(Date.now() / 1000);
       return decoded.exp < now;
-    } catch (error) {
+    } catch {
       return true;
     }
   }
@@ -133,7 +133,7 @@ export class JwtAuthenticationService implements IAuthenticationPort {
         userId: decoded.sub,
         email: decoded.email
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }

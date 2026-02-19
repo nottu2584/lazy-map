@@ -2,7 +2,6 @@ import { Building } from '../entities/Building';
 import { BuildingType } from '../value-objects/BuildingMaterial';
 import { Position } from '../../../common/value-objects/Position';
 import { Seed } from '../../../common/value-objects/Seed';
-import { Room } from '../value-objects/Room';
 
 /**
  * Building site information for generation

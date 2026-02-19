@@ -1,5 +1,4 @@
 import { MapGrid, MapId } from '../entities';
-import { SpatialBounds } from '../../common/value-objects/SpatialBounds';
 import { UserId } from '../../contexts/user/value-objects/UserId';
 
 /**
@@ -49,11 +48,6 @@ export interface IMapRepository {
    * Finds maps based on query parameters
    */
   findByQuery(query: MapQuery): Promise<PaginatedMapResult>;
-
-  /**
-   * Finds maps that intersect with a given area
-   */
-  findByArea(area: SpatialBounds): Promise<MapGrid[]>;
 
   /**
    * Deletes a map by its ID

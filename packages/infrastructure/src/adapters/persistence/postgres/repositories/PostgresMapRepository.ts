@@ -7,7 +7,6 @@ import {
   PaginatedMapResult,
   MapGrid,
   MapId,
-  SpatialBounds,
   UserId,
   ILogger,
   Seed,
@@ -150,12 +149,6 @@ export class PostgresMapRepository implements IMapRepository {
       total,
       hasMore: offset + limit < total
     };
-  }
-
-  async findByArea(_area: SpatialBounds): Promise<MapGrid[]> {
-    // This would need custom spatial queries if we stored actual tile data
-    // For now, return empty array as we don't store spatial data
-    return [];
   }
 
   async delete(id: MapId): Promise<boolean> {

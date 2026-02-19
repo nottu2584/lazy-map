@@ -46,14 +46,14 @@ export class TacticalCalculationService {
 
         // Calculate canopy height (tallest plant)
         let maxHeight = 0;
-        let treeCount = 0;
+        let _treeCount = 0;
         let shrubCount = 0;
 
         for (const plant of tilePlants) {
           const height = this.getPlantHeight(plant);
           maxHeight = Math.max(maxHeight, height);
 
-          if (plant instanceof TreePlant) treeCount++;
+          if (plant instanceof TreePlant) _treeCount++;
           else if (plant instanceof ShrubPlant) shrubCount++;
         }
 

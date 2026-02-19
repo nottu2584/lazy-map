@@ -57,7 +57,7 @@ export class Plateau extends MapFeature {
   /**
    * Determines if the plateau is accessible from a specific direction
    */
-  isAccessibleFrom(direction: 'north' | 'south' | 'east' | 'west'): boolean {
+  isAccessibleFrom(_direction: 'north' | 'south' | 'east' | 'west'): boolean {
     // Gentle and eroded edges are more accessible
     if (this.edgeType === PlateauEdge.GENTLE || this.edgeType === PlateauEdge.ERODED) {
       return true;

@@ -5,7 +5,6 @@ import {
   UserId,
   MapQuery,
   PaginatedMapResult,
-  SpatialBounds
 } from '@lazy-map/domain';
 import { IMapPersistencePort } from '@lazy-map/application';
 
@@ -38,12 +37,6 @@ export class MapRepositoryAdapter implements IMapRepository {
       total: allMaps.length,
       hasMore: query.limit ? allMaps.length >= query.limit : false
     };
-  }
-
-  async findByArea(_area: SpatialBounds): Promise<MapGrid[]> {
-    // Current limitation: IMapPersistencePort lacks spatial query capability
-    // Returns empty array until spatial queries are implemented
-    return [];
   }
 
   async delete(id: MapId): Promise<boolean> {

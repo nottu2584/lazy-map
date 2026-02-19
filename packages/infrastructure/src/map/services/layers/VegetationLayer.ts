@@ -17,7 +17,7 @@ import { ForestGenerationService } from './vegetation/ForestGenerationService';
 import { PlantGenerationService } from './vegetation/PlantGenerationService';
 import { ClearingCalculationService } from './vegetation/ClearingCalculationService';
 import { TacticalCalculationService } from './vegetation/TacticalCalculationService';
-import { TileGenerationService } from './vegetation/TileGenerationService';
+import { VegetationTileGenerationService } from './vegetation/VegetationTileGenerationService';
 
 /**
  * Vegetation Layer - Orchestrates vegetation generation
@@ -45,8 +45,8 @@ export class VegetationLayer implements IVegetationLayerService {
     @Inject(TacticalCalculationService)
     private readonly tacticalService: TacticalCalculationService,
 
-    @Inject(TileGenerationService)
-    private readonly tileService: TileGenerationService,
+    @Inject(VegetationTileGenerationService)
+    private readonly tileService: VegetationTileGenerationService,
 
     @Optional() @Inject('ILogger')
     private readonly logger?: ILogger

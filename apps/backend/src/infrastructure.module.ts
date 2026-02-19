@@ -36,6 +36,7 @@ import {
   PlantGenerationService,
   ClearingCalculationService,
   TacticalCalculationService,
+  VegetationTileGenerationService,
   FlowCalculationService,
   SpringGenerationService,
   StreamCalculationService,
@@ -97,6 +98,7 @@ const shouldUseDatabase = () => {
     PlantGenerationService,
     ClearingCalculationService,
     TacticalCalculationService,
+    VegetationTileGenerationService,
 
     // Hydrology internal services
     FlowCalculationService,

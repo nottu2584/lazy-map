@@ -40,7 +40,7 @@ export class MapRepositoryAdapter implements IMapRepository {
     };
   }
 
-  async findByArea(area: SpatialBounds): Promise<MapGrid[]> {
+  async findByArea(_area: SpatialBounds): Promise<MapGrid[]> {
     // Current limitation: IMapPersistencePort lacks spatial query capability
     // Returns empty array until spatial queries are implemented
     return [];

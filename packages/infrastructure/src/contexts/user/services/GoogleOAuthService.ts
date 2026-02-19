@@ -52,7 +52,7 @@ export class GoogleOAuthService implements IGoogleOAuthPort {
   /**
    * Exchange authorization code for tokens
    */
-  async exchangeCodeForTokens(code: string, redirectUri: string): Promise<OAuthTokens> {
+  async exchangeCodeForTokens(code: string, _redirectUri: string): Promise<OAuthTokens> {
     // Use configured redirect URI, ignore user input
     try {
       const { tokens } = await this.client.getToken({

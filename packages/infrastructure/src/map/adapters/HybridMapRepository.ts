@@ -5,7 +5,6 @@ import {
   UserId,
   MapQuery,
   PaginatedMapResult,
-  SpatialBounds,
   type ILogger
 } from '@lazy-map/domain';
 
@@ -106,16 +105,6 @@ export class HybridMapRepository implements IMapRepository {
     return primaryRepo.findByQuery(query);
   }
 
-  async findByArea(area: SpatialBounds): Promise<MapGrid[]> {
-    const repositories = await this.getRepositoryForRetrieval();
-
-    // Combine results from all repositories
-    const results = await Promise.all(
-      repositories.map(repo => repo.findByArea(area))
-    );
-
-    return results.flat();
-  }
 
   async delete(id: MapId): Promise<boolean> {
     const repositories = await this.getRepositoryForRetrieval();

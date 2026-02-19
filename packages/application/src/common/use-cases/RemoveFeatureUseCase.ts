@@ -1,6 +1,16 @@
 import { FeatureId } from '@lazy-map/domain';
-import { RemoveFeatureCommand, FeatureOperationResult } from '../ports/IFeatureManagementPort';
 import { INotificationPort } from '../ports';
+
+export interface RemoveFeatureCommand {
+  featureId: string;
+  mapId?: string;
+}
+
+export interface FeatureOperationResult {
+  success: boolean;
+  error?: string;
+  warnings?: string[];
+}
 import { IMapPersistencePort } from '../../map/ports';
 
 /**

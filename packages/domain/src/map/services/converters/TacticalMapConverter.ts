@@ -24,8 +24,8 @@ export class TacticalMapConverter implements ITacticalMapConverter {
     width: number,
     height: number,
     layers: TacticalMapLayers,
-    context: TacticalMapContext,
-    seed: Seed
+    _context: TacticalMapContext,
+    _seed: Seed
   ): MapTile[][] {
     const tiles: MapTile[][] = [];
 
@@ -93,7 +93,7 @@ export class TacticalMapConverter implements ITacticalMapConverter {
     hydrology: any,
     vegetation: any,
     topography: any,
-    geology: any
+    _geology: any
   ): Terrain {
     // Priority 1: Structures
     if (structure.hasStructure) {

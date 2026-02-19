@@ -500,7 +500,7 @@ export class FeaturesLayer implements IFeaturesLayerService {
     resources: ResourceLocation[],
     landmarks: LandmarkLocation[],
     tacticalFeatures: TacticalFeatureLocation[],
-    layers: {
+    _layers: {
       geology: GeologyLayerData;
       topography: TopographyLayerData;
       hydrology: HydrologyLayerData;

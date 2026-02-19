@@ -47,7 +47,7 @@ export class DiscordOAuthService implements IDiscordOAuthPort {
   /**
    * Exchange authorization code for tokens
    */
-  async exchangeCodeForTokens(code: string, redirectUri: string): Promise<OAuthTokens> {
+  async exchangeCodeForTokens(code: string, _redirectUri: string): Promise<OAuthTokens> {
     // Use configured redirect URI, ignore user input
     try {
       const response = await fetch(`${this.authBase}/token`, {

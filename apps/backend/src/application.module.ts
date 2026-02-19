@@ -122,7 +122,7 @@ const shouldUseDatabase = () => {
                 loadMap: (mapId: any) => mapRepository.findById(mapId),
                 deleteMap: (mapId: any) => mapRepository.delete(mapId),
                 mapExists: (mapId: any) => mapRepository.exists(mapId),
-                findByOwner: (userId: any, limit?: number) => mapRepository.findByOwnerId(userId),
+                findByOwner: (userId: any, _limit?: number) => mapRepository.findByOwnerId(userId),
                 getMapCount: () => mapRepository.count(),
                 // Feature methods - not implemented in PostgresMapRepository yet
                 saveFeature: async () => { throw new Error('Not implemented'); },

@@ -49,8 +49,8 @@ export class StreamCalculationService {
 
     // Initialize arrays
     for (let y = 0; y < height; y++) {
-      isStream[y] = new Array(width).fill(false);
-      streamOrder[y] = new Array(width).fill(0);
+      isStream[y] = Array.from({ length: width }, () => false);
+      streamOrder[y] = Array.from({ length: width }, () => 0);
     }
 
     // Mark streams based on accumulation threshold

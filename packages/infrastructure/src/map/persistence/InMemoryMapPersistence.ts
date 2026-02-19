@@ -137,7 +137,7 @@ export class InMemoryMapPersistence implements IMapPersistencePort {
       this.features.delete(featureId.value);
       
       // Remove from all map associations
-      this.mapFeatures.forEach((featureSet, mapId) => {
+      this.mapFeatures.forEach((featureSet, _mapId) => {
         featureSet.delete(featureId.value);
       });
     }

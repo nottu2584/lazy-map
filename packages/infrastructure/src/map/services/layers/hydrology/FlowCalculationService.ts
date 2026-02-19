@@ -84,8 +84,8 @@ export class FlowCalculationService {
 
     // Initialize arrays
     for (let y = 0; y < height; y++) {
-      accumulation[y] = new Array(width).fill(1); // Each cell contributes 1
-      visited[y] = new Array(width).fill(false);
+      accumulation[y] = Array.from({ length: width }, () => 1); // Each cell contributes 1
+      visited[y] = Array.from({ length: width }, () => false);
     }
 
     // Calculate accumulation for each cell

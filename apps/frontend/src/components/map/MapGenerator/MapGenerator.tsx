@@ -60,7 +60,7 @@ export function MapGenerator() {
           ...defaultSettings,
           advancedSettings: parsed,
         };
-      } catch (e) {
+      } catch {
         return defaultSettings;
       }
     }

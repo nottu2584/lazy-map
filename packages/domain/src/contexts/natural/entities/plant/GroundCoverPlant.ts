@@ -29,7 +29,7 @@ export class GroundCoverPlant extends Plant {
     return 2;
   }
 
-  canCoexistWith(other: Plant): boolean {
+  canCoexistWith(_other: Plant): boolean {
     // Mosses can grow almost anywhere
     return true;
   }

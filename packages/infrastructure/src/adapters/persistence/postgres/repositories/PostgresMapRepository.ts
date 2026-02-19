@@ -152,7 +152,7 @@ export class PostgresMapRepository implements IMapRepository {
     };
   }
 
-  async findByArea(area: SpatialBounds): Promise<MapGrid[]> {
+  async findByArea(_area: SpatialBounds): Promise<MapGrid[]> {
     // This would need custom spatial queries if we stored actual tile data
     // For now, return empty array as we don't store spatial data
     return [];

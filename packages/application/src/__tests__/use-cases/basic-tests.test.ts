@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { Position, Dimensions } from '@lazy-map/domain';
 
 describe('Application Layer Basic Tests', () => {
   describe('Use Cases', () => {
@@ -9,8 +10,6 @@ describe('Application Layer Basic Tests', () => {
     });
 
     it('should have proper imports after restructuring', () => {
-      // Verify that basic domain imports work
-      const { Position, Dimensions } = require('@lazy-map/domain');
       expect(Position).toBeDefined();
       expect(Dimensions).toBeDefined();
     });

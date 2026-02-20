@@ -9,7 +9,12 @@ import {
   DatabaseModule,
   ElevationGenerationService,
   ErosionModelService,
+  FeatureTileGenerationService,
   FeaturesLayer,
+  HazardPlacementService,
+  LandmarkPlacementService,
+  ResourcePlacementService,
+  TacticalFeaturePlacementService,
   GeologicalFeaturesService,
   GeologyLayer,
   HtmlTemplateService,
@@ -121,6 +126,13 @@ const shouldUseDatabase = () => {
     ConfigurationCalculationService,
     RoomAllocationService,
     LayoutGenerationService,
+
+    // Features internal services
+    HazardPlacementService,
+    ResourcePlacementService,
+    LandmarkPlacementService,
+    TacticalFeaturePlacementService,
+    FeatureTileGenerationService,
 
     // Output port implementations
     // Only provide IMapPersistencePort when NOT using database

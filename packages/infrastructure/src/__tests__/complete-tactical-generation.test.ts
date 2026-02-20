@@ -29,15 +29,17 @@ import {
   BridgeGenerationService,
   DecorationGenerationService,
   StructureTileGenerationService,
-  BuildingGenerationService,
-  ConfigurationCalculationService,
-  RoomAllocationService,
-  LayoutGenerationService,
   HazardPlacementService,
   ResourcePlacementService,
   LandmarkPlacementService,
   FeatureTileGenerationService
 } from '../map/services/layers';
+import {
+  BuildingGenerationService,
+  ConfigurationCalculationService,
+  RoomAllocationService,
+  LayoutGenerationService
+} from '../contexts/artificial/services';
 import {
   TacticalMapContext,
   BiomeType,

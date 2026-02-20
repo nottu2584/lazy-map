@@ -65,13 +65,10 @@ function renderFeatureIcon(
     case 'landmark':
       drawLandmark(ctx, cx, cy, r, type);
       break;
-    case 'tactical':
-      drawTactical(ctx, cx, cy, r, type);
-      break;
   }
 }
 
-function getCategory(type: string): 'hazard' | 'resource' | 'landmark' | 'tactical' {
+function getCategory(type: string): 'hazard' | 'resource' | 'landmark' | null {
   if (
     ['quicksand', 'unstable_ground', 'poison_plants', 'insect_nest', 'animal_den'].includes(type)
   ) {
@@ -93,7 +90,7 @@ function getCategory(type: string): 'hazard' | 'resource' | 'landmark' | 'tactic
   ) {
     return 'landmark';
   }
-  return 'tactical';
+  return null;
 }
 
 // ─── Hazards: Warning shapes in yellow/red ──────────────────
@@ -243,104 +240,4 @@ function drawLandmark(
   ctx.restore();
 }
 
-// ─── Tactical: Directional arrows/eye icons ─────────────────
 
-function drawTactical(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  r: number,
-  type: string,
-) {
-  ctx.save();
-
-  switch (type) {
-    case 'high_ground':
-      // Upward arrow
-      ctx.fillStyle = 'rgba(33,150,243,0.7)';
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - r * 0.7);
-      ctx.lineTo(cx + r * 0.5, cy + r * 0.1);
-      ctx.lineTo(cx + r * 0.2, cy + r * 0.1);
-      ctx.lineTo(cx + r * 0.2, cy + r * 0.6);
-      ctx.lineTo(cx - r * 0.2, cy + r * 0.6);
-      ctx.lineTo(cx - r * 0.2, cy + r * 0.1);
-      ctx.lineTo(cx - r * 0.5, cy + r * 0.1);
-      ctx.closePath();
-      ctx.fill();
-      break;
-
-    case 'choke_point':
-      // Hourglass shape
-      ctx.fillStyle = 'rgba(255,152,0,0.7)';
-      ctx.beginPath();
-      ctx.moveTo(cx - r * 0.5, cy - r * 0.6);
-      ctx.lineTo(cx + r * 0.5, cy - r * 0.6);
-      ctx.lineTo(cx + r * 0.1, cy);
-      ctx.lineTo(cx + r * 0.5, cy + r * 0.6);
-      ctx.lineTo(cx - r * 0.5, cy + r * 0.6);
-      ctx.lineTo(cx - r * 0.1, cy);
-      ctx.closePath();
-      ctx.fill();
-      break;
-
-    case 'ambush_site':
-      // Eye shape
-      ctx.strokeStyle = 'rgba(244,67,54,0.8)';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(cx - r * 0.7, cy);
-      ctx.quadraticCurveTo(cx, cy - r * 0.6, cx + r * 0.7, cy);
-      ctx.quadraticCurveTo(cx, cy + r * 0.6, cx - r * 0.7, cy);
-      ctx.stroke();
-      // Pupil
-      ctx.fillStyle = 'rgba(244,67,54,0.8)';
-      ctx.beginPath();
-      ctx.arc(cx, cy, r * 0.15, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-
-    case 'vantage_point':
-      // Target crosshair
-      ctx.strokeStyle = 'rgba(33,150,243,0.7)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r * 0.5, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(cx - r * 0.7, cy);
-      ctx.lineTo(cx + r * 0.7, cy);
-      ctx.moveTo(cx, cy - r * 0.7);
-      ctx.lineTo(cx, cy + r * 0.7);
-      ctx.stroke();
-      break;
-
-    case 'escape_route':
-      // Arrow pointing right
-      ctx.fillStyle = 'rgba(76,175,80,0.7)';
-      ctx.beginPath();
-      ctx.moveTo(cx + r * 0.7, cy);
-      ctx.lineTo(cx, cy - r * 0.4);
-      ctx.lineTo(cx, cy - r * 0.15);
-      ctx.lineTo(cx - r * 0.5, cy - r * 0.15);
-      ctx.lineTo(cx - r * 0.5, cy + r * 0.15);
-      ctx.lineTo(cx, cy + r * 0.15);
-      ctx.lineTo(cx, cy + r * 0.4);
-      ctx.closePath();
-      ctx.fill();
-      break;
-
-    default:
-      // Generic diamond
-      ctx.fillStyle = 'rgba(158,158,158,0.6)';
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - r * 0.5);
-      ctx.lineTo(cx + r * 0.5, cy);
-      ctx.lineTo(cx, cy + r * 0.5);
-      ctx.lineTo(cx - r * 0.5, cy);
-      ctx.closePath();
-      ctx.fill();
-  }
-
-  ctx.restore();
-}

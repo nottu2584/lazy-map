@@ -110,11 +110,6 @@ function serializeFeaturesLayer(features: TacticalMapGenerationResult['layers'][
       significance: l.significance,
       lore: l.lore,
     })),
-    tacticalFeatures: features.tacticalFeatures.map((t) => ({
-      position: { x: t.position.x, y: t.position.y },
-      type: t.type,
-      controlRadius: t.controlRadius,
-    })),
     totalFeatureCount: features.totalFeatureCount,
   };
 }

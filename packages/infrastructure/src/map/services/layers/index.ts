@@ -33,3 +33,5 @@ export * from './structures';
 
 // Features and points of interest layer implementation
 export { FeaturesLayer } from './FeaturesLayer';
+// Features internal services
+export * from './features';

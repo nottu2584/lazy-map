@@ -10,6 +10,14 @@ import {
   TopographyCalculationService
 } from '../map/services/layers/topography';
 import {
+  FlowCalculationService,
+  SpringGenerationService,
+  StreamCalculationService,
+  WaterDepthCalculationService,
+  MoistureCalculationService,
+  SegmentGenerationService
+} from '../map/services/layers/hydrology';
+import {
   TacticalMapContext,
   BiomeType,
   ElevationZone,
@@ -39,7 +47,14 @@ describe('Integrated Layer Generation', () => {
     calculationService
   );
 
-  const hydrologicalGenerator = new HydrologyLayer();
+  const hydrologicalGenerator = new HydrologyLayer(
+    new FlowCalculationService(),
+    new SpringGenerationService(),
+    new StreamCalculationService(),
+    new WaterDepthCalculationService(),
+    new MoistureCalculationService(),
+    new SegmentGenerationService()
+  );
 
   describe('Full layer stack generation', () => {
     it('should generate all three layers successfully', async () => {

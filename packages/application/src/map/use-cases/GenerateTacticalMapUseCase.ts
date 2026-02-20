@@ -212,7 +212,6 @@ export class GenerateTacticalMapUseCase {
           hazards: features.hazards.length,
           resources: features.resources.length,
           landmarks: features.landmarks.length,
-          tacticalFeatures: features.tacticalFeatures.length,
           totalFeatures: features.totalFeatureCount
         }
       });

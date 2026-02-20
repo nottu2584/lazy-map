@@ -8,6 +8,8 @@
 
 // Geological foundation layer implementation
 export { GeologyLayer } from './GeologyLayer';
+// Geology internal services
+export * from './geology';
 
 // Topographic expression layer implementation
 export { TopographyLayer } from './TopographyLayer';

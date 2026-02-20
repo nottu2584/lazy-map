@@ -16,7 +16,6 @@ export interface FeaturesLayerData {
   hazards: HazardLocation[];
   resources: ResourceLocation[];
   landmarks: LandmarkLocation[];
-  tacticalFeatures: TacticalFeatureLocation[];
   totalFeatureCount: number;
 }
 
@@ -56,14 +55,7 @@ export enum FeatureType {
   STANDING_STONES = 'standing_stones',
   BATTLEFIELD_REMAINS = 'battlefield_remains',
   CAMPSITE = 'campsite',
-  CAVE_ENTRANCE = 'cave_entrance',
-
-  // Tactical features
-  HIGH_GROUND = 'high_ground',
-  CHOKE_POINT = 'choke_point',
-  AMBUSH_SITE = 'ambush_site',
-  ESCAPE_ROUTE = 'escape_route',
-  VANTAGE_POINT = 'vantage_point'
+  CAVE_ENTRANCE = 'cave_entrance'
 }
 
 /**
@@ -92,7 +84,6 @@ export enum VisibilityLevel {
  * How players can interact with the feature
  */
 export enum InteractionType {
-  PASSIVE = 'passive',        // No action needed
   INVESTIGATE = 'investigate', // Can be examined
   HARVEST = 'harvest',        // Can gather resources
   AVOID = 'avoid',           // Should be avoided
@@ -127,15 +118,6 @@ export interface LandmarkLocation {
   type: FeatureType;
   significance: number; // 0-1 importance
   lore: string; // Brief description
-}
-
-/**
- * Tactical feature location
- */
-export interface TacticalFeatureLocation {
-  position: Position;
-  type: FeatureType;
-  controlRadius: number; // Tiles of influence
 }
 
 /**

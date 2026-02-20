@@ -181,18 +181,11 @@ export interface LandmarkLocationDTO {
   lore: string;
 }
 
-export interface TacticalFeatureLocationDTO {
-  position: { x: number; y: number };
-  type: string;
-  controlRadius: number;
-}
-
 export interface FeaturesLayerDataDTO {
   tiles: FeatureTileDataDTO[][];
   hazards: HazardLocationDTO[];
   resources: ResourceLocationDTO[];
   landmarks: LandmarkLocationDTO[];
-  tacticalFeatures: TacticalFeatureLocationDTO[];
   totalFeatureCount: number;
 }
 

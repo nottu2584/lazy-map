@@ -10,6 +10,14 @@ import {
   TopographyCalculationService
 } from '../map/services/layers/topography';
 import {
+  FlowCalculationService,
+  SpringGenerationService,
+  StreamCalculationService,
+  WaterDepthCalculationService,
+  MoistureCalculationService,
+  SegmentGenerationService
+} from '../map/services/layers/hydrology';
+import {
   TacticalMapContext,
   BiomeType,
   ElevationZone,
@@ -39,7 +47,14 @@ describe('Layer Config Usage', () => {
     calculationService
   );
 
-  const hydrologyLayer = new HydrologyLayer();
+  const hydrologyLayer = new HydrologyLayer(
+    new FlowCalculationService(),
+    new SpringGenerationService(),
+    new StreamCalculationService(),
+    new WaterDepthCalculationService(),
+    new MoistureCalculationService(),
+    new SegmentGenerationService()
+  );
 
   const testContext = TacticalMapContext.create(
     BiomeType.FOREST,

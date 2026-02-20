@@ -23,37 +23,100 @@ import {
   ErosionModelService,
   GeologicalFeaturesService,
   TerrainSmoothingService,
-  TopographyCalculationService
+  TopographyCalculationService,
+  FlowCalculationService,
+  SpringGenerationService,
+  StreamCalculationService,
+  WaterDepthCalculationService,
+  MoistureCalculationService,
+  SegmentGenerationService,
+  PotentialCalculationService,
+  ForestGenerationService,
+  PlantGenerationService,
+  ClearingCalculationService,
+  TacticalCalculationService,
+  VegetationTileGenerationService,
+  SiteCalculationService,
+  BuildingPlacementService,
+  RoadGenerationService,
+  BridgeGenerationService,
+  DecorationGenerationService,
+  StructureTileGenerationService,
+  BuildingGenerationService,
+  ConfigurationCalculationService,
+  RoomAllocationService,
+  LayoutGenerationService,
+  HazardPlacementService,
+  ResourcePlacementService,
+  LandmarkPlacementService,
+  FeatureTileGenerationService
 } from '@lazy-map/infrastructure';
 
 describe('GenerateTacticalMapUseCase - Determinism with Configs', () => {
   let useCase: GenerateTacticalMapUseCase;
 
   beforeEach(() => {
-    // Create topography services
-    const elevationService = new ElevationGenerationService();
+    // Topography services
     const erosionService = new ErosionModelService();
-    const geologicalFeaturesService = new GeologicalFeaturesService();
-    const smoothingService = new TerrainSmoothingService(erosionService);
-    const calculationService = new TopographyCalculationService();
-
-    // Create topography layer with services
     const topographyLayer = new TopographyLayer(
-      elevationService,
+      new ElevationGenerationService(),
       erosionService,
-      geologicalFeaturesService,
-      smoothingService,
-      calculationService
+      new GeologicalFeaturesService(),
+      new TerrainSmoothingService(erosionService),
+      new TopographyCalculationService()
+    );
+
+    // Hydrology layer
+    const hydrologyLayer = new HydrologyLayer(
+      new FlowCalculationService(),
+      new SpringGenerationService(),
+      new StreamCalculationService(),
+      new WaterDepthCalculationService(),
+      new MoistureCalculationService(),
+      new SegmentGenerationService()
+    );
+
+    // Vegetation layer
+    const clearingService = new ClearingCalculationService();
+    const vegetationLayer = new VegetationLayer(
+      new PotentialCalculationService(),
+      new ForestGenerationService(),
+      new PlantGenerationService(),
+      clearingService,
+      new TacticalCalculationService(clearingService),
+      new VegetationTileGenerationService()
+    );
+
+    // Structures layer
+    const configService = new ConfigurationCalculationService();
+    const roomService = new RoomAllocationService();
+    const layoutService = new LayoutGenerationService();
+    const buildingGenService = new BuildingGenerationService(configService, roomService, layoutService);
+    const structuresLayer = new StructuresLayer(
+      new SiteCalculationService(),
+      new BuildingPlacementService(buildingGenService),
+      new RoadGenerationService(),
+      new BridgeGenerationService(),
+      new DecorationGenerationService(),
+      new StructureTileGenerationService()
+    );
+
+    // Features layer
+    const featuresLayer = new FeaturesLayer(
+      new HazardPlacementService(),
+      new ResourcePlacementService(),
+      new LandmarkPlacementService(),
+      new FeatureTileGenerationService()
     );
 
     // Create use case with actual layer implementations
     useCase = new GenerateTacticalMapUseCase(
       new GeologyLayer(),
       topographyLayer,
-      new HydrologyLayer(),
-      new VegetationLayer(),
-      new StructuresLayer(),
-      new FeaturesLayer()
+      hydrologyLayer,
+      vegetationLayer,
+      structuresLayer,
+      featuresLayer
     );
   });
 

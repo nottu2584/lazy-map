@@ -16,12 +16,11 @@ import {
   HazardPlacementService,
   ResourcePlacementService,
   LandmarkPlacementService,
-  TacticalFeaturePlacementService,
   FeatureTileGenerationService
 } from './features';
 
 /**
- * Generates interesting features, hazards, resources, and tactical points of interest
+ * Generates interesting features, hazards, resources, and landmarks
  * Final layer — adds gameplay detail on top of all other terrain layers
  *
  * Orchestrates feature generation by delegating to specialized services
@@ -37,9 +36,6 @@ export class FeaturesLayer implements IFeaturesLayerService {
 
     @Inject(LandmarkPlacementService)
     private readonly landmarkPlacementService: LandmarkPlacementService,
-
-    @Inject(TacticalFeaturePlacementService)
-    private readonly tacticalFeaturePlacementService: TacticalFeaturePlacementService,
 
     @Inject(FeatureTileGenerationService)
     private readonly tileGenerationService: FeatureTileGenerationService,
@@ -83,31 +79,23 @@ export class FeaturesLayer implements IFeaturesLayerService {
       const landmarks = this.landmarkPlacementService.placeLandmarks(width, height, layers, seed);
       this.logger?.debug('Placed landmarks', { metadata: { count: landmarks.length } });
 
-      // 4. Identify tactical features
-      const tacticalFeatures = this.tacticalFeaturePlacementService.identifyTacticalFeatures(
-        width, height, layers, seed
-      );
-      this.logger?.debug('Identified tactical features', { metadata: { count: tacticalFeatures.length } });
-
-      // 5. Create tile data
+      // 4. Create tile data
       const tiles = this.tileGenerationService.createTiles(
-        width, height, hazards, resources, landmarks, tacticalFeatures
+        width, height, hazards, resources, landmarks
       );
 
-      const totalFeatureCount =
-        hazards.length + resources.length + landmarks.length + tacticalFeatures.length;
+      const totalFeatureCount = hazards.length + resources.length + landmarks.length;
 
       this.logger?.info('Features layer generation complete', {
         metadata: {
           hazards: hazards.length,
           resources: resources.length,
           landmarks: landmarks.length,
-          tacticalFeatures: tacticalFeatures.length,
           totalFeatures: totalFeatureCount
         }
       });
 
-      return { tiles, hazards, resources, landmarks, tacticalFeatures, totalFeatureCount };
+      return { tiles, hazards, resources, landmarks, totalFeatureCount };
     } catch (error) {
       this.logger?.error('Failed to generate features layer', {
         metadata: { error: (error as Error).message }

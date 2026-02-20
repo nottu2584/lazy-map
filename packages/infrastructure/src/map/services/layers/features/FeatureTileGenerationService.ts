@@ -8,8 +8,7 @@ import {
   FeatureTileData,
   HazardLocation,
   ResourceLocation,
-  LandmarkLocation,
-  TacticalFeatureLocation
+  LandmarkLocation
 } from '@lazy-map/domain';
 
 @Injectable()
@@ -24,8 +23,7 @@ export class FeatureTileGenerationService {
     height: number,
     hazards: HazardLocation[],
     resources: ResourceLocation[],
-    landmarks: LandmarkLocation[],
-    tacticalFeatures: TacticalFeatureLocation[]
+    landmarks: LandmarkLocation[]
   ): FeatureTileData[][] {
     const tiles: FeatureTileData[][] = [];
 
@@ -95,22 +93,6 @@ export class FeatureTileGenerationService {
       };
     }
 
-    // Add tactical features (don't overwrite existing features)
-    for (const feature of tacticalFeatures) {
-      const { x, y } = feature.position;
-      if (!tiles[y][x].hasFeature) {
-        tiles[y][x] = {
-          hasFeature: true,
-          featureType: feature.type,
-          hazardLevel: HazardLevel.NONE,
-          resourceValue: 0,
-          visibility: VisibilityLevel.OBVIOUS,
-          interactionType: InteractionType.PASSIVE,
-          description: this.getTacticalDescription(feature.type)
-        };
-      }
-    }
-
     this.logger?.debug('Created feature tile data', { metadata: { width, height } });
 
     return tiles;
@@ -143,21 +125,6 @@ export class FeatureTileGenerationService {
         return `Exposed minerals worth ${quantity} gold pieces`;
       default:
         return "A valuable resource";
-    }
-  }
-
-  private getTacticalDescription(type: FeatureType): string {
-    switch (type) {
-      case FeatureType.HIGH_GROUND:
-        return "Elevated position providing tactical advantage";
-      case FeatureType.CHOKE_POINT:
-        return "Narrow passage that forces movement in single file";
-      case FeatureType.AMBUSH_SITE:
-        return "Natural concealment perfect for surprise attacks";
-      case FeatureType.VANTAGE_POINT:
-        return "Excellent visibility over the surrounding area";
-      default:
-        return "A tactically significant location";
     }
   }
 }

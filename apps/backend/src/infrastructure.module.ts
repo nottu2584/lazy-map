@@ -14,7 +14,6 @@ import {
   HazardPlacementService,
   LandmarkPlacementService,
   ResourcePlacementService,
-  TacticalFeaturePlacementService,
   GeologicalFeaturesService,
   GeologyLayer,
   HtmlTemplateService,
@@ -131,7 +130,6 @@ const shouldUseDatabase = () => {
     HazardPlacementService,
     ResourcePlacementService,
     LandmarkPlacementService,
-    TacticalFeaturePlacementService,
     FeatureTileGenerationService,
 
     // Output port implementations

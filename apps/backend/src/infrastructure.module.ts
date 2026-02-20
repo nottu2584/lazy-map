@@ -7,14 +7,19 @@ import {
   createDiscordOAuthService,
   createGoogleOAuthService,
   DatabaseModule,
+  BedrockPatternService,
   ElevationGenerationService,
   ErosionModelService,
   FeaturesLayer,
+  FormationSelectionService,
   GeologicalFeaturesService,
   GeologyLayer,
+  GeologyTileGenerationService,
   HtmlTemplateService,
   HybridMapRepository,
   HydrologyLayer,
+  SoilCalculationService,
+  WeatheringService,
   InMemoryArtificialRepository,
   InMemoryCulturalRepository,
   InMemoryMapHistoryRepository,
@@ -84,6 +89,13 @@ const shouldUseDatabase = () => {
     { provide: 'IVegetationLayerService', useClass: VegetationLayer },
     { provide: 'IStructuresLayerService', useClass: StructuresLayer },
     { provide: 'IFeaturesLayerService', useClass: FeaturesLayer },
+
+    // Geology internal services
+    FormationSelectionService,
+    BedrockPatternService,
+    WeatheringService,
+    SoilCalculationService,
+    GeologyTileGenerationService,
 
     // Topography internal services
     ElevationGenerationService,

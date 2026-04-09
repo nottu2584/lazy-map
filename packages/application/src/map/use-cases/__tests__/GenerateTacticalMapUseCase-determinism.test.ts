@@ -18,7 +18,6 @@ import {
   HydrologyLayer,
   VegetationLayer,
   StructuresLayer,
-  FeaturesLayer,
   ElevationGenerationService,
   ErosionModelService,
   GeologicalFeaturesService,
@@ -45,11 +44,7 @@ import {
   BuildingGenerationService,
   ConfigurationCalculationService,
   RoomAllocationService,
-  LayoutGenerationService,
-  HazardPlacementService,
-  ResourcePlacementService,
-  LandmarkPlacementService,
-  FeatureTileGenerationService
+  LayoutGenerationService
 } from '@lazy-map/infrastructure';
 
 describe('GenerateTacticalMapUseCase - Determinism with Configs', () => {
@@ -101,22 +96,13 @@ describe('GenerateTacticalMapUseCase - Determinism with Configs', () => {
       new StructureTileGenerationService()
     );
 
-    // Features layer
-    const featuresLayer = new FeaturesLayer(
-      new HazardPlacementService(),
-      new ResourcePlacementService(),
-      new LandmarkPlacementService(),
-      new FeatureTileGenerationService()
-    );
-
     // Create use case with actual layer implementations
     useCase = new GenerateTacticalMapUseCase(
       new GeologyLayer(),
       topographyLayer,
       hydrologyLayer,
       vegetationLayer,
-      structuresLayer,
-      featuresLayer
+      structuresLayer
     );
   });
 

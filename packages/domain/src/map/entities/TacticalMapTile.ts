@@ -1,5 +1,4 @@
 import { Position } from '../../common/value-objects/Position';
-import { FeatureId } from '../../common/value-objects/FeatureId';
 import {
   RockType,
   PermeabilityLevel,
@@ -93,9 +92,6 @@ export class TacticalMapTile {
   private hasStructure: boolean;
   private structureType?: string; // building, road, bridge, etc.
 
-  // === Layer 5: Feature Points ===
-  private features: FeatureId[];
-
   // === Tactical Properties (derived) ===
   private movementCost: number; // multiplier (1 = normal)
   private coverLevel: TacticalCoverLevel;
@@ -125,7 +121,6 @@ export class TacticalMapTile {
     this.canopyCover = 0;
 
     this.hasStructure = false;
-    this.features = [];
 
     // Calculate initial tactical properties
     this.movementCost = 1;
@@ -245,22 +240,6 @@ export class TacticalMapTile {
 
   getStructureType(): string | undefined {
     return this.structureType;
-  }
-
-  // === Feature Methods ===
-
-  addFeature(featureId: FeatureId): void {
-    if (!this.features.some(f => f.value === featureId.value)) {
-      this.features.push(featureId);
-    }
-  }
-
-  removeFeature(featureId: FeatureId): void {
-    this.features = this.features.filter(f => f.value !== featureId.value);
-  }
-
-  getFeatures(): FeatureId[] {
-    return [...this.features];
   }
 
   // === Tactical Properties ===

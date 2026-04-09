@@ -1,10 +1,22 @@
 {
-  "rules": {
+  "categories": {
     "correctness": "error",
-    "suspicious": "error",
-    "complexity": "off",
+    "suspicious": "error"
+  },
+  "rules": {
     "no-explicit-any": "off",
-    "no-empty-interface": "off"
+    "no-empty-interface": "off",
+    "no-extraneous-class": "off",
+    "no-unnecessary-type-arguments": "off",
+    "no-unneeded-ternary": "off",
+    "no-array-sort": "off",
+    "throw-new-error": "off",
+    "preserve-caught-error": "off",
+    "require-module-specifiers": "off",
+    "no-useless-constructor": "off",
+    "no-array-reverse": "off",
+    "approx-constant": "off",
+    "no-this-alias": "off"
   },
   "ignorePatterns": [
     "**/dist/**",

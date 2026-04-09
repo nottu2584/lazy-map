@@ -1,11 +1,14 @@
 {
-  "rules": {
+  "categories": {
     "correctness": "error",
-    "suspicious": "error",
-    "complexity": "off",
+    "suspicious": "error"
+  },
+  "rules": {
     "no-empty-interface": "off",
     "no-explicit-any": "off",
-    "no-console": "off"
+    "no-console": "off",
+    "no-extraneous-class": "off",
+    "no-unnecessary-type-arguments": "off"
   },
   "ignorePatterns": [
     "dist/**",

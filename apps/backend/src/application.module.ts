@@ -1,15 +1,10 @@
 import {
   CheckAdminAccessUseCase,
-  ClearAllFeaturesUseCase,
   CompleteDiscordSignInUseCase,
   CompleteGoogleSignInUseCase,
   DeleteUserUseCase,
   DiscordSignInUseCase,
   GenerateTacticalMapUseCase,
-  GetAllFeaturesUseCase,
-  GetFeatureByIdUseCase,
-  GetFeatureStatisticsUseCase,
-  GetMapTileUseCase,
   GetMapUseCase,
   GetUserMapsUseCase,
   GetUserPermissionsUseCase,
@@ -30,16 +25,14 @@ import {
   SaveMapUseCase,
   SuspendUserUseCase,
   UpdateUserUseCase,
-  ValidateMapSettingsUseCase,
   ValidateSeedUseCase,
 } from '@lazy-map/application';
-import { Module } from '@nestjs/common';
-import { InfrastructureModule } from './infrastructure.module';
-import { PostgresMapRepository } from '@lazy-map/infrastructure';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { MapEntity } from '@lazy-map/infrastructure';
-import { Repository } from 'typeorm';
 import { ILogger, ITacticalMapConverter, TacticalMapConverter } from '@lazy-map/domain';
+import { MapEntity, PostgresMapRepository } from '@lazy-map/infrastructure';
+import { Module } from '@nestjs/common';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { InfrastructureModule } from './infrastructure.module';
 
 // Helper function to check if database should be used
 const shouldUseDatabase = () => {
@@ -58,8 +51,7 @@ const shouldUseDatabase = () => {
         hydrologyService,
         vegetationService,
         structuresService,
-        featuresService,
-        logger
+        logger,
       ) => {
         return new GenerateTacticalMapUseCase(
           geologyService,
@@ -67,8 +59,7 @@ const shouldUseDatabase = () => {
           hydrologyService,
           vegetationService,
           structuresService,
-          featuresService,
-          logger
+          logger,
         );
       },
       inject: [
@@ -77,8 +68,7 @@ const shouldUseDatabase = () => {
         'IHydrologyLayerService',
         'IVegetationLayerService',
         'IStructuresLayerService',
-        'IFeaturesLayerService',
-        'ILogger'
+        'ILogger',
       ],
     },
 
@@ -99,16 +89,21 @@ const shouldUseDatabase = () => {
               mapEntityRepository: Repository<MapEntity>,
               generateMapUseCase: GenerateTacticalMapUseCase,
               tileConverter: ITacticalMapConverter,
-              logger: ILogger
+              logger: ILogger,
             ) => {
               return new PostgresMapRepository(
                 mapEntityRepository,
                 generateMapUseCase,
                 tileConverter,
-                logger
+                logger,
               );
             },
-            inject: [getRepositoryToken(MapEntity), GenerateTacticalMapUseCase, 'ITacticalMapConverter', 'ILogger'],
+            inject: [
+              getRepositoryToken(MapEntity),
+              GenerateTacticalMapUseCase,
+              'ITacticalMapConverter',
+              'ILogger',
+            ],
           },
           // Also provide IMapPersistencePort as a wrapper around PostgresMapRepository
           // This allows use cases that depend on IMapPersistencePort to work with PostgreSQL
@@ -124,16 +119,12 @@ const shouldUseDatabase = () => {
                 mapExists: (mapId: any) => mapRepository.exists(mapId),
                 findByOwner: (userId: any, _limit?: number) => mapRepository.findByOwnerId(userId),
                 getMapCount: () => mapRepository.count(),
-                // Feature methods - not implemented in PostgresMapRepository yet
-                saveFeature: async () => { throw new Error('Not implemented'); },
-                updateFeature: async () => { throw new Error('Not implemented'); },
-                loadFeature: async () => { throw new Error('Not implemented'); },
-                loadMapFeatures: async () => { throw new Error('Not implemented'); },
-                deleteFeature: async () => { throw new Error('Not implemented'); },
-                removeFeature: async () => { throw new Error('Not implemented'); },
-                listMaps: async () => { throw new Error('Not implemented'); },
-                beginTransaction: async () => { throw new Error('Not implemented'); },
-                getFeatureCount: async () => { throw new Error('Not implemented'); },
+                listMaps: async () => {
+                  throw new Error('Not implemented');
+                },
+                beginTransaction: async () => {
+                  throw new Error('Not implemented');
+                },
               };
             },
             inject: ['IMapRepository'],
@@ -141,12 +132,6 @@ const shouldUseDatabase = () => {
         ]
       : []),
 
-    {
-      provide: ValidateMapSettingsUseCase,
-      useFactory: () => {
-        return new ValidateMapSettingsUseCase();
-      },
-    },
     {
       provide: ValidateSeedUseCase,
       useFactory: () => {
@@ -163,13 +148,6 @@ const shouldUseDatabase = () => {
       provide: GetMapUseCase,
       useFactory: (mapPersistence) => {
         return new GetMapUseCase(mapPersistence);
-      },
-      inject: ['IMapPersistencePort'],
-    },
-    {
-      provide: GetMapTileUseCase,
-      useFactory: (mapPersistence) => {
-        return new GetMapTileUseCase(mapPersistence);
       },
       inject: ['IMapPersistencePort'],
     },
@@ -220,14 +198,24 @@ const shouldUseDatabase = () => {
     {
       provide: GoogleSignInUseCase,
       useFactory: (userRepository, googleOAuthService, authenticationService, logger) => {
-        return new GoogleSignInUseCase(userRepository, googleOAuthService, authenticationService, logger);
+        return new GoogleSignInUseCase(
+          userRepository,
+          googleOAuthService,
+          authenticationService,
+          logger,
+        );
       },
       inject: ['IUserRepository', 'IGoogleOAuthPort', 'IAuthenticationPort', 'ILogger'],
     },
     {
       provide: DiscordSignInUseCase,
       useFactory: (userRepository, discordOAuthService, authenticationService, logger) => {
-        return new DiscordSignInUseCase(userRepository, discordOAuthService, authenticationService, logger);
+        return new DiscordSignInUseCase(
+          userRepository,
+          discordOAuthService,
+          authenticationService,
+          logger,
+        );
       },
       inject: ['IUserRepository', 'IDiscordOAuthPort', 'IAuthenticationPort', 'ILogger'],
     },
@@ -254,10 +242,31 @@ const shouldUseDatabase = () => {
     },
     {
       provide: CompleteGoogleSignInUseCase,
-      useFactory: (userRepository, oauthTokenRepository, googleOAuthService, authenticationService, tokenEncryptionService, logger) => {
-        return new CompleteGoogleSignInUseCase(userRepository, oauthTokenRepository, googleOAuthService, authenticationService, tokenEncryptionService, logger);
+      useFactory: (
+        userRepository,
+        oauthTokenRepository,
+        googleOAuthService,
+        authenticationService,
+        tokenEncryptionService,
+        logger,
+      ) => {
+        return new CompleteGoogleSignInUseCase(
+          userRepository,
+          oauthTokenRepository,
+          googleOAuthService,
+          authenticationService,
+          tokenEncryptionService,
+          logger,
+        );
       },
-      inject: ['IUserRepository', 'IOAuthTokenRepository', 'IGoogleOAuthPort', 'IAuthenticationPort', 'ITokenEncryptionPort', 'ILogger'],
+      inject: [
+        'IUserRepository',
+        'IOAuthTokenRepository',
+        'IGoogleOAuthPort',
+        'IAuthenticationPort',
+        'ITokenEncryptionPort',
+        'ILogger',
+      ],
     },
     {
       provide: InitiateDiscordSignInUseCase,
@@ -268,10 +277,31 @@ const shouldUseDatabase = () => {
     },
     {
       provide: CompleteDiscordSignInUseCase,
-      useFactory: (userRepository, oauthTokenRepository, discordOAuthService, authenticationService, tokenEncryptionService, logger) => {
-        return new CompleteDiscordSignInUseCase(userRepository, oauthTokenRepository, discordOAuthService, authenticationService, tokenEncryptionService, logger);
+      useFactory: (
+        userRepository,
+        oauthTokenRepository,
+        discordOAuthService,
+        authenticationService,
+        tokenEncryptionService,
+        logger,
+      ) => {
+        return new CompleteDiscordSignInUseCase(
+          userRepository,
+          oauthTokenRepository,
+          discordOAuthService,
+          authenticationService,
+          tokenEncryptionService,
+          logger,
+        );
       },
-      inject: ['IUserRepository', 'IOAuthTokenRepository', 'IDiscordOAuthPort', 'IAuthenticationPort', 'ITokenEncryptionPort', 'ILogger'],
+      inject: [
+        'IUserRepository',
+        'IOAuthTokenRepository',
+        'IDiscordOAuthPort',
+        'IAuthenticationPort',
+        'ITokenEncryptionPort',
+        'ILogger',
+      ],
     },
 
     // Admin use cases
@@ -338,36 +368,6 @@ const shouldUseDatabase = () => {
       },
       inject: ['IUserRepository'],
     },
-
-    // Feature use cases
-    {
-      provide: GetAllFeaturesUseCase,
-      useFactory: (reliefRepo, naturalRepo, artificialRepo, culturalRepo) => {
-        return new GetAllFeaturesUseCase(reliefRepo, naturalRepo, artificialRepo, culturalRepo);
-      },
-      inject: ['IReliefFeatureRepository', 'INaturalFeatureRepository', 'IArtificialFeatureRepository', 'ICulturalFeatureRepository'],
-    },
-    {
-      provide: GetFeatureByIdUseCase,
-      useFactory: (reliefRepo, naturalRepo, artificialRepo, culturalRepo) => {
-        return new GetFeatureByIdUseCase(reliefRepo, naturalRepo, artificialRepo, culturalRepo);
-      },
-      inject: ['IReliefFeatureRepository', 'INaturalFeatureRepository', 'IArtificialFeatureRepository', 'ICulturalFeatureRepository'],
-    },
-    {
-      provide: GetFeatureStatisticsUseCase,
-      useFactory: (reliefRepo, naturalRepo, artificialRepo, culturalRepo) => {
-        return new GetFeatureStatisticsUseCase(reliefRepo, naturalRepo, artificialRepo, culturalRepo);
-      },
-      inject: ['IReliefFeatureRepository', 'INaturalFeatureRepository', 'IArtificialFeatureRepository', 'ICulturalFeatureRepository'],
-    },
-    {
-      provide: ClearAllFeaturesUseCase,
-      useFactory: (reliefRepo, naturalRepo, artificialRepo, culturalRepo) => {
-        return new ClearAllFeaturesUseCase(reliefRepo, naturalRepo, artificialRepo, culturalRepo);
-      },
-      inject: ['IReliefFeatureRepository', 'INaturalFeatureRepository', 'IArtificialFeatureRepository', 'ICulturalFeatureRepository'],
-    },
   ],
   exports: [
     // Export Map Use Cases
@@ -399,11 +399,6 @@ const shouldUseDatabase = () => {
     PromoteUserUseCase,
     DeleteUserUseCase,
     GetUserStatsUseCase,
-    // Export Feature Use Cases
-    GetAllFeaturesUseCase,
-    GetFeatureByIdUseCase,
-    GetFeatureStatisticsUseCase,
-    ClearAllFeaturesUseCase,
   ],
 })
 export class ApplicationModule {}

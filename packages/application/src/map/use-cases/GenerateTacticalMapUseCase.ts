@@ -4,13 +4,11 @@ import {
   IHydrologyLayerService,
   IVegetationLayerService,
   IStructuresLayerService,
-  IFeaturesLayerService,
   GeologyLayerData,
   TopographyLayerData,
   HydrologyLayerData,
   VegetationLayerData,
   StructuresLayerData,
-  FeaturesLayerData,
   TacticalMapContext,
   Seed,
   VegetationConfig,
@@ -34,7 +32,6 @@ export interface TacticalMapGenerationResult {
     hydrology: HydrologyLayerData;
     vegetation: VegetationLayerData;
     structures: StructuresLayerData;
-    features: FeaturesLayerData;
   };
   generationTime: number; // milliseconds
 }
@@ -55,7 +52,6 @@ export class GenerateTacticalMapUseCase {
     private readonly hydrologyLayerService: IHydrologyLayerService,
     private readonly vegetationLayerService: IVegetationLayerService,
     private readonly structuresLayerService: IStructuresLayerService,
-    private readonly featuresLayerService: IFeaturesLayerService,
     private readonly logger?: ILogger
   ) {}
 
@@ -194,28 +190,6 @@ export class GenerateTacticalMapUseCase {
         }
       });
 
-      // Layer 5: Features & Hazards
-      this.logger?.debug('Generating features layer');
-      const features = await this.featuresLayerService.generate(
-        {
-          geology,
-          topography,
-          hydrology,
-          vegetation,
-          structures
-        },
-        context,
-        seed
-      );
-      this.logger?.debug('Features layer complete', {
-        metadata: {
-          hazards: features.hazards.length,
-          resources: features.resources.length,
-          landmarks: features.landmarks.length,
-          totalFeatures: features.totalFeatureCount
-        }
-      });
-
       const generationTime = Date.now() - startTime;
 
       this.logger?.info('Tactical map generation complete', {
@@ -237,8 +211,7 @@ export class GenerateTacticalMapUseCase {
           topography,
           hydrology,
           vegetation,
-          structures,
-          features
+          structures
         },
         generationTime
       };

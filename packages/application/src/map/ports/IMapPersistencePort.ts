@@ -1,4 +1,4 @@
-import { MapGrid, MapId, MapFeature, FeatureId, MapMetadata, UserId } from '@lazy-map/domain';
+import { MapGrid, MapId, MapMetadata, UserId } from '@lazy-map/domain';
 
 /**
  * Transaction context for atomic operations
@@ -39,36 +39,6 @@ export interface IMapPersistencePort {
   mapExists(mapId: MapId): Promise<boolean>;
 
   /**
-   * Saves a feature to a map
-   */
-  saveFeature(mapId: MapId, feature: MapFeature): Promise<void>;
-
-  /**
-   * Updates an existing feature
-   */
-  updateFeature(feature: MapFeature): Promise<void>;
-
-  /**
-   * Loads a feature by its ID
-   */
-  loadFeature(featureId: FeatureId): Promise<MapFeature | null>;
-
-  /**
-   * Loads all features for a map
-   */
-  loadMapFeatures(mapId: MapId): Promise<MapFeature[]>;
-
-  /**
-   * Deletes a feature
-   */
-  deleteFeature(featureId: FeatureId): Promise<boolean>;
-
-  /**
-   * Removes a feature (alias for deleteFeature)
-   */
-  removeFeature(featureId: FeatureId): Promise<boolean>;
-
-  /**
    * Lists maps with filtering criteria
    */
   listMaps(criteria?: any): Promise<MapMetadata[]>;
@@ -87,9 +57,4 @@ export interface IMapPersistencePort {
    * Gets the total count of maps
    */
   getMapCount(): Promise<number>;
-
-  /**
-   * Gets the total count of features
-   */
-  getFeatureCount(): Promise<number>;
 }

@@ -1,1 +1,1 @@
-export * from './IFeatureRepository';
+export {};

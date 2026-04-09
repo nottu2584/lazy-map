@@ -34,14 +34,13 @@ curl -X POST http://localhost:3000/api/maps/generate \
 
 ## Understanding the Response
 
-The API returns a tactical map with 6 layers:
+The API returns a tactical map with 5 terrain layers:
 
 1. **Geology**: Rock types and soil depth
 2. **Topography**: Elevation and slopes
 3. **Hydrology**: Water features and moisture
 4. **Vegetation**: Trees, shrubs, grass
 5. **Structures**: Buildings and roads
-6. **Features**: Hazards and resources
 
 ## Using the Frontend
 

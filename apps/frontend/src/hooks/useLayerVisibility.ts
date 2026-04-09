@@ -6,7 +6,6 @@ export type LayerId =
   | 'hydrology'
   | 'vegetation'
   | 'structures'
-  | 'features'
   | 'grid';
 
 export interface LayerState {
@@ -20,7 +19,6 @@ const DEFAULT_LAYERS: Record<LayerId, LayerState> = {
   hydrology: { visible: true, opacity: 1 },
   vegetation: { visible: true, opacity: 1 },
   structures: { visible: true, opacity: 1 },
-  features: { visible: true, opacity: 1 },
   grid: { visible: true, opacity: 0.3 },
 };
 

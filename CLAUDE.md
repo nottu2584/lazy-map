@@ -1,6 +1,10 @@
 # CLAUDE.md
 
-Agent guide for Lazy Map - tactical battlemap generator for tabletop RPGs.
+Agent guide for Lazy Map - deterministic tactical terrain generator for tabletop RPGs.
+
+## Application Purpose
+
+Lazy Map generates **terrain** — visually rich, geologically coherent battlemaps. It does NOT generate gameplay annotations, tactical labels, or pre-interpreted features. A DM viewing the rendered map can visually determine what each area represents (a grove, a ridge, a chokepoint) and make their own gameplay decisions. The terrain speaks for itself; interpreting it is the DM's creative domain.
 
 ## Core Principles
 
@@ -299,9 +303,8 @@ export class GenerateBuildingUseCase {
 2. **Hydrology** - Water flow, springs
 3. **Vegetation** - Plants based on moisture
 4. **Structures** - Buildings with interiors
-5. **Features** - Tactical elements
 
-Each layer depends on previous, creating realistic terrain.
+Each layer depends on previous, creating realistic terrain. The system intentionally stops at terrain generation — no gameplay overlay or feature annotation layer. The rendered map is the final product; DMs interpret terrain visually for their encounters.
 
 ## Quick Reference
 

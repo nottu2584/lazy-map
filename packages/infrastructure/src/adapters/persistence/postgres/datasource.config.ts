@@ -19,7 +19,7 @@ export default new DataSource({
   entities: [UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity],
 
   // Migration configuration
-  migrations: [__dirname + '/migrations/*.ts'],
+  migrations: [__dirname + '/migrations/[0-9]*.ts'],
   migrationsTableName: 'migrations',
 
   // CLI should never auto-sync - use migrations only

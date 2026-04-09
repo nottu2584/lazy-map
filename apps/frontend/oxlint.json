@@ -1,16 +1,10 @@
 {
-  "categories": {
-    "correctness": "error",
-    "suspicious": "error"
-  },
   "rules": {
+    "correctness": "error",
+    "suspicious": "error",
+    "complexity": "off",
     "no-explicit-any": "off",
-    "no-console": "warn",
-    "no-extraneous-class": "off",
-    "no-unnecessary-type-arguments": "off",
-    "throw-new-error": "off",
-    "consistent-function-scoping": "off",
-    "preserve-caught-error": "off"
+    "no-console": "warn"
   },
   "ignorePatterns": [
     "dist/**",

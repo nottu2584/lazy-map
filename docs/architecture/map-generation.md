@@ -1,12 +1,16 @@
 # Map Generation System
 
-The 6-layer tactical map generation system that creates realistic battlemaps.
+The 5-layer terrain generation system that creates realistic battlemaps.
 
 ## Overview
 
 Maps are 50x50 to 100x100 tiles at 5ft/tile scale, representing 250-500 foot areas perfect for tactical combat.
 
-## The 6 Layers
+## Design Philosophy
+
+Lazy Map generates **terrain**, not gameplay. The 5 layers produce a visually rich, geologically coherent map. A DM viewing the rendered result can immediately see ridges, groves, water features, and structures — and make their own tactical decisions. The system intentionally avoids pre-interpreting terrain with gameplay labels (hazards, resources, tactical positions). That interpretation is the DM's creative domain.
+
+## The 5 Layers
 
 Each layer depends on the previous, creating realistic terrain through geological determinism:
 
@@ -35,11 +39,6 @@ Each layer depends on the previous, creating realistic terrain through geologica
 - **Buildings**: Multi-floor structures with rooms and shared walls
 - **Depends on**: Buildable terrain from topography
 - **Example**: Row houses share walls, taverns have common rooms and kitchens
-
-### Layer 5: Features (Tactical)
-- **Creates**: Hazards, resources, cover positions
-- **Depends on**: All previous layers
-- **Example**: Cave entrances in limestone, ore in specific rocks
 
 ## Map Context
 
@@ -71,13 +70,14 @@ Each layer gets a deterministic sub-seed to ensure variety while maintaining rep
 
 ## Tactical Properties
 
-Every tile has combat-relevant properties:
+Every tile has combat-relevant properties derived from terrain:
 
 - **Movement Cost**: 1.0 normal, 2.0 difficult terrain
 - **Cover Level**: None, partial, full
 - **Concealment**: 0-100% visibility reduction
 - **Elevation**: For advantage calculations
-- **Hazards**: Environmental dangers
+
+These properties are computed from the terrain layers — they describe physical characteristics, not gameplay interpretations.
 
 ## Natural Law Validation
 

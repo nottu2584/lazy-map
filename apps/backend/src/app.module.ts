@@ -11,7 +11,6 @@ import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MapsModule } from './modules/maps/maps.module';
 import { BenchmarkModule } from './modules/benchmark/benchmark.module';
-import { FeaturesModule } from './modules/features/features.module';
 import { HealthModule } from './modules/health/health.module';
 
 @Module({
@@ -33,7 +32,6 @@ import { HealthModule } from './modules/health/health.module';
     AdminModule,
     MapsModule,
     BenchmarkModule,
-    FeaturesModule,
     HealthModule,
   ],
   controllers: [],

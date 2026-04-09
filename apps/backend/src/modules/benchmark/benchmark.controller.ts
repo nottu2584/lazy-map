@@ -102,8 +102,7 @@ export class BenchmarkController {
             topography: [],
             hydrology: [],
             vegetation: [],
-            structures: [],
-            features: []
+            structures: []
           };
 
           for (let i = 0; i < iterations; i++) {
@@ -234,8 +233,7 @@ export class BenchmarkController {
             topography: `Elevation ${result.layers.topography.minElevation}-${result.layers.topography.maxElevation}ft`,
             hydrology: `${result.layers.hydrology.streams.length} streams, ${result.layers.hydrology.springs.length} springs`,
             vegetation: `${result.layers.vegetation.forestPatches.length} forest patches`,
-            structures: `${result.layers.structures.buildings.length} buildings`,
-            features: `${result.layers.features.totalFeatureCount} total features`
+            structures: `${result.layers.structures.buildings.length} buildings`
           }
         });
       }

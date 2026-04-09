@@ -119,12 +119,6 @@ function mapResponseToGeneratedMap(
         features.push(structTile.structureType);
       }
 
-      // Extract tactical features
-      const featTile = layers?.features?.tiles?.[y]?.[x];
-      if (featTile?.hasFeature && featTile.featureType) {
-        features.push(featTile.featureType);
-      }
-
       // Derive terrain from geology rock type
       const geoTile = layers?.geology?.tiles?.[y]?.[x];
       const topoTile = layers?.topography?.tiles?.[y]?.[x];

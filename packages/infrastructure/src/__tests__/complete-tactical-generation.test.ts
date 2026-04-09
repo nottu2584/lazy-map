@@ -5,7 +5,6 @@ import {
   HydrologyLayer,
   VegetationLayer,
   StructuresLayer,
-  FeaturesLayer,
   ElevationGenerationService,
   ErosionModelService,
   GeologicalFeaturesService,
@@ -28,11 +27,7 @@ import {
   RoadGenerationService,
   BridgeGenerationService,
   DecorationGenerationService,
-  StructureTileGenerationService,
-  HazardPlacementService,
-  ResourcePlacementService,
-  LandmarkPlacementService,
-  FeatureTileGenerationService
+  StructureTileGenerationService
 } from '../map/services/layers';
 import {
   BuildingGenerationService,
@@ -97,18 +92,9 @@ function createStructuresLayer(): StructuresLayer {
   );
 }
 
-function createFeaturesLayer(): FeaturesLayer {
-  return new FeaturesLayer(
-    new HazardPlacementService(),
-    new ResourcePlacementService(),
-    new LandmarkPlacementService(),
-    new FeatureTileGenerationService()
-  );
-}
-
 describe('Complete Tactical Map Generation', () => {
-  describe('Full 6-layer generation', () => {
-    it('should generate all six layers successfully', async () => {
+  describe('Full 5-layer generation', () => {
+    it('should generate all five layers successfully', async () => {
       // Create context for a forest village
       const context = TacticalMapContext.create(
         BiomeType.FOREST,
@@ -154,20 +140,9 @@ describe('Complete Tactical Map Generation', () => {
       expect(structures.tiles).toHaveLength(50);
       expect(structures.buildings.length).toBeGreaterThan(0); // Village should have buildings
       console.log(`✓ Structures: ${structures.buildings.length} buildings, ${structures.roads.totalLength}ft of roads, ${structures.bridges.length} bridges`);
-
-      // Layer 5: Features & Points of Interest
-      const featuresLayer = createFeaturesLayer();
-      const features = await featuresLayer.generate(
-        { geology, topography, hydrology, vegetation, structures },
-        context,
-        seed
-      );
-      expect(features.tiles).toHaveLength(50);
-      expect(features.totalFeatureCount).toBeGreaterThan(0);
-      console.log(`✓ Features: ${features.hazards.length} hazards, ${features.resources.length} resources, ${features.landmarks.length} landmarks`);
     });
 
-    it('should create appropriate features for different biomes', async () => {
+    it('should create appropriate terrain for different biomes', async () => {
       const biomes = [
         { type: BiomeType.DESERT, hydro: HydrologyType.ARID, dev: DevelopmentLevel.RURAL },
         { type: BiomeType.SWAMP, hydro: HydrologyType.WETLAND, dev: DevelopmentLevel.WILDERNESS },
@@ -190,12 +165,7 @@ describe('Complete Tactical Map Generation', () => {
         const topography = await createTopographyLayer().generate(geology, context, seed);
         const hydrology = await createHydrologyLayer().generate(topography, geology, context, seed);
         const vegetation = await createVegetationLayer().generate(hydrology, topography, geology, context, seed);
-        const structures = await createStructuresLayer().generate(vegetation, hydrology, topography, context, seed);
-        const features = await createFeaturesLayer().generate(
-          { geology, topography, hydrology, vegetation, structures },
-          context,
-          seed
-        );
+        await createStructuresLayer().generate(vegetation, hydrology, topography, context, seed);
 
         // Verify biome-appropriate generation
         if (biome.type === BiomeType.DESERT) {
@@ -212,7 +182,7 @@ describe('Complete Tactical Map Generation', () => {
           expect(topography.averageSlope).toBeGreaterThan(15);
         }
 
-        console.log(`✓ ${biome.type}: Generated successfully with appropriate features`);
+        console.log(`✓ ${biome.type}: Generated successfully with appropriate terrain`);
       }
     });
 
@@ -232,24 +202,12 @@ describe('Complete Tactical Map Generation', () => {
       const hydrology1 = await createHydrologyLayer().generate(topography1, geology1, context, seed);
       const vegetation1 = await createVegetationLayer().generate(hydrology1, topography1, geology1, context, seed);
       const structures1 = await createStructuresLayer().generate(vegetation1, hydrology1, topography1, context, seed);
-      const features1 = await createFeaturesLayer().generate(
-        { geology: geology1, topography: topography1, hydrology: hydrology1,
-          vegetation: vegetation1, structures: structures1 },
-        context,
-        seed
-      );
 
       const geology2 = await new GeologyLayer().generate(40, 40, context, seed);
       const topography2 = await createTopographyLayer().generate(geology2, context, seed);
       const hydrology2 = await createHydrologyLayer().generate(topography2, geology2, context, seed);
       const vegetation2 = await createVegetationLayer().generate(hydrology2, topography2, geology2, context, seed);
       const structures2 = await createStructuresLayer().generate(vegetation2, hydrology2, topography2, context, seed);
-      const features2 = await createFeaturesLayer().generate(
-        { geology: geology2, topography: topography2, hydrology: hydrology2,
-          vegetation: vegetation2, structures: structures2 },
-        context,
-        seed
-      );
 
       // Verify deterministic results
       expect(geology1.primaryFormation.rockType).toBe(geology2.primaryFormation.rockType);
@@ -257,7 +215,6 @@ describe('Complete Tactical Map Generation', () => {
       expect(hydrology1.streams.length).toBe(hydrology2.streams.length);
       expect(vegetation1.totalTreeCount).toBe(vegetation2.totalTreeCount);
       expect(structures1.buildings.length).toBe(structures2.buildings.length);
-      expect(features1.totalFeatureCount).toBe(features2.totalFeatureCount);
 
       // Check specific tile data
       for (let y = 0; y < 40; y++) {
@@ -341,18 +298,12 @@ describe('Complete Tactical Map Generation', () => {
       const topography = await createTopographyLayer().generate(geology, context, seed);
       const hydrology = await createHydrologyLayer().generate(topography, geology, context, seed);
       const vegetation = await createVegetationLayer().generate(hydrology, topography, geology, context, seed);
-      const structures = await createStructuresLayer().generate(vegetation, hydrology, topography, context, seed);
-      const features = await createFeaturesLayer().generate(
-        { geology, topography, hydrology, vegetation, structures },
-        context,
-        seed
-      );
+      await createStructuresLayer().generate(vegetation, hydrology, topography, context, seed);
 
       const elapsed = Date.now() - start;
 
       console.log(`✓ Generated 100x100 tactical map (10,000 tiles) in ${elapsed}ms`);
       console.log(`  - ${(elapsed / 10000).toFixed(2)}ms per tile`);
-      console.log(`  - ${features.totalFeatureCount} total features`);
 
       // Should complete in under 5 seconds
       expect(elapsed).toBeLessThan(5000);

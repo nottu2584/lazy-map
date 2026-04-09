@@ -62,7 +62,6 @@ export interface TacticalMapResponse {
       hydrology: import('./layers').HydrologyLayerDataDTO;
       vegetation: import('./layers').VegetationLayerDataDTO;
       structures: import('./layers').StructuresLayerDataDTO;
-      features: import('./layers').FeaturesLayerDataDTO;
     };
     generationTime: number;
   };

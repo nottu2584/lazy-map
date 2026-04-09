@@ -1,14 +1,10 @@
 import {
   CheckAdminAccessUseCase,
-  ClearAllFeaturesUseCase,
   CompleteDiscordSignInUseCase,
   CompleteGoogleSignInUseCase,
   DeleteUserUseCase,
   DiscordSignInUseCase,
   GenerateTacticalMapUseCase,
-  GetAllFeaturesUseCase,
-  GetFeatureByIdUseCase,
-  GetFeatureStatisticsUseCase,
   GetMapTileUseCase,
   GetMapUseCase,
   GetUserMapsUseCase,
@@ -58,7 +54,6 @@ const shouldUseDatabase = () => {
         hydrologyService,
         vegetationService,
         structuresService,
-        featuresService,
         logger
       ) => {
         return new GenerateTacticalMapUseCase(
@@ -67,7 +62,6 @@ const shouldUseDatabase = () => {
           hydrologyService,
           vegetationService,
           structuresService,
-          featuresService,
           logger
         );
       },
@@ -77,7 +71,6 @@ const shouldUseDatabase = () => {
         'IHydrologyLayerService',
         'IVegetationLayerService',
         'IStructuresLayerService',
-        'IFeaturesLayerService',
         'ILogger'
       ],
     },
@@ -124,16 +117,8 @@ const shouldUseDatabase = () => {
                 mapExists: (mapId: any) => mapRepository.exists(mapId),
                 findByOwner: (userId: any, _limit?: number) => mapRepository.findByOwnerId(userId),
                 getMapCount: () => mapRepository.count(),
-                // Feature methods - not implemented in PostgresMapRepository yet
-                saveFeature: async () => { throw new Error('Not implemented'); },
-                updateFeature: async () => { throw new Error('Not implemented'); },
-                loadFeature: async () => { throw new Error('Not implemented'); },
-                loadMapFeatures: async () => { throw new Error('Not implemented'); },
-                deleteFeature: async () => { throw new Error('Not implemented'); },
-                removeFeature: async () => { throw new Error('Not implemented'); },
                 listMaps: async () => { throw new Error('Not implemented'); },
                 beginTransaction: async () => { throw new Error('Not implemented'); },
-                getFeatureCount: async () => { throw new Error('Not implemented'); },
               };
             },
             inject: ['IMapRepository'],
@@ -339,35 +324,6 @@ const shouldUseDatabase = () => {
       inject: ['IUserRepository'],
     },
 
-    // Feature use cases
-    {
-      provide: GetAllFeaturesUseCase,
-      useFactory: (reliefRepo, naturalRepo, artificialRepo, culturalRepo) => {
-        return new GetAllFeaturesUseCase(reliefRepo, naturalRepo, artificialRepo, culturalRepo);
-      },
-      inject: ['IReliefFeatureRepository', 'INaturalFeatureRepository', 'IArtificialFeatureRepository', 'ICulturalFeatureRepository'],
-    },
-    {
-      provide: GetFeatureByIdUseCase,
-      useFactory: (reliefRepo, naturalRepo, artificialRepo, culturalRepo) => {
-        return new GetFeatureByIdUseCase(reliefRepo, naturalRepo, artificialRepo, culturalRepo);
-      },
-      inject: ['IReliefFeatureRepository', 'INaturalFeatureRepository', 'IArtificialFeatureRepository', 'ICulturalFeatureRepository'],
-    },
-    {
-      provide: GetFeatureStatisticsUseCase,
-      useFactory: (reliefRepo, naturalRepo, artificialRepo, culturalRepo) => {
-        return new GetFeatureStatisticsUseCase(reliefRepo, naturalRepo, artificialRepo, culturalRepo);
-      },
-      inject: ['IReliefFeatureRepository', 'INaturalFeatureRepository', 'IArtificialFeatureRepository', 'ICulturalFeatureRepository'],
-    },
-    {
-      provide: ClearAllFeaturesUseCase,
-      useFactory: (reliefRepo, naturalRepo, artificialRepo, culturalRepo) => {
-        return new ClearAllFeaturesUseCase(reliefRepo, naturalRepo, artificialRepo, culturalRepo);
-      },
-      inject: ['IReliefFeatureRepository', 'INaturalFeatureRepository', 'IArtificialFeatureRepository', 'ICulturalFeatureRepository'],
-    },
   ],
   exports: [
     // Export Map Use Cases
@@ -399,11 +355,6 @@ const shouldUseDatabase = () => {
     PromoteUserUseCase,
     DeleteUserUseCase,
     GetUserStatsUseCase,
-    // Export Feature Use Cases
-    GetAllFeaturesUseCase,
-    GetFeatureByIdUseCase,
-    GetFeatureStatisticsUseCase,
-    ClearAllFeaturesUseCase,
   ],
 })
 export class ApplicationModule {}

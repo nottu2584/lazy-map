@@ -6,8 +6,7 @@ import {
   TopographyLayerData,
   HydrologyLayerData,
   VegetationLayerData,
-  StructuresLayerData,
-  FeaturesLayerData
+  StructuresLayerData
 } from './layers';
 
 /**
@@ -20,7 +19,6 @@ export interface TacticalMapLayers {
   hydrology: HydrologyLayerData;
   vegetation: VegetationLayerData;
   structures: StructuresLayerData;
-  features: FeaturesLayerData;
 }
 
 /**

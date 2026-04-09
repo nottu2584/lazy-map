@@ -9,7 +9,6 @@ import { renderReliefLayer } from './layers/ReliefLayer';
 import { renderHydrologyLayer } from './layers/HydrologyLayer';
 import { renderVegetationLayer } from './layers/VegetationLayer';
 import { renderStructuresLayer } from './layers/StructuresLayer';
-import { renderFeaturesLayer } from './layers/FeaturesLayer';
 import { renderGridLayer } from './layers/GridLayer';
 
 interface MapRendererProps {
@@ -22,8 +21,7 @@ const LAYER_ORDER: { id: LayerId; renderer: LayerRenderer; zIndex: number }[] = 
   { id: 'hydrology', renderer: renderHydrologyLayer, zIndex: 3 },
   { id: 'vegetation', renderer: renderVegetationLayer, zIndex: 4 },
   { id: 'structures', renderer: renderStructuresLayer, zIndex: 5 },
-  { id: 'features', renderer: renderFeaturesLayer, zIndex: 6 },
-  { id: 'grid', renderer: renderGridLayer, zIndex: 7 },
+  { id: 'grid', renderer: renderGridLayer, zIndex: 6 },
 ];
 
 export function MapRenderer({ map }: MapRendererProps) {

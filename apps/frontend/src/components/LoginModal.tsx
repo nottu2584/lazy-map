@@ -19,8 +19,8 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useOAuthPopup } from '@/hooks';
 import { useEffect, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { apiService, logger } from '../services';
+import { useAuth } from '@/contexts';
+import { apiService, logger } from '@/services';
 
 interface LoginModalProps {
   onClose: () => void;

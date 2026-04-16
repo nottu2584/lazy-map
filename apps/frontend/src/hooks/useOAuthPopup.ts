@@ -1,10 +1,11 @@
 import { useCallback } from 'react';
-import { logger } from '../services';
+import { logger } from '@/services';
+import type { AuthUser } from '@/types/auth';
 
 interface OAuthSuccessData {
   type: 'oauth-success';
   provider: 'google' | 'discord';
-  user: any;
+  user: AuthUser;
   token: string;
 }
 
@@ -17,7 +18,7 @@ interface OAuthErrorData {
 type OAuthMessageData = OAuthSuccessData | OAuthErrorData;
 
 interface UseOAuthPopupOptions {
-  onSuccess: (user: any, token: string) => void;
+  onSuccess: (user: AuthUser, token: string) => void;
   onError?: (error: string) => void;
 }
 
@@ -47,6 +48,22 @@ export function useOAuthPopup({ onSuccess, onError }: UseOAuthPopupOptions) {
         'width=600,height=700,scrollbars=yes'
       );
 
+      // Timeout after 5 minutes
+      const timeout = setTimeout(() => {
+        logger.warn('OAuth popup timeout', {
+          component: 'useOAuthPopup',
+          metadata: { provider },
+        });
+
+        onError?.('Authentication timed out. Please try again.');
+        window.removeEventListener('message', handleOAuthMessage);
+        clearInterval(checkPopup);
+
+        if (popup && !popup.closed) {
+          popup.close();
+        }
+      }, 5 * 60 * 1000);
+
       // Listen for postMessage from OAuth popup
       const handleOAuthMessage = (event: MessageEvent<OAuthMessageData>) => {
         const allowedOrigins = getAllowedOrigins();
@@ -61,8 +78,11 @@ export function useOAuthPopup({ onSuccess, onError }: UseOAuthPopupOptions) {
             metadata: { provider },
           });
 
-          onSuccess(event.data.user, event.data.token);
+          clearTimeout(timeout);
+          clearInterval(checkPopup);
           window.removeEventListener('message', handleOAuthMessage);
+
+          onSuccess(event.data.user, event.data.token);
 
           if (popup && !popup.closed) {
             popup.close();
@@ -75,8 +95,11 @@ export function useOAuthPopup({ onSuccess, onError }: UseOAuthPopupOptions) {
             metadata: { provider, error: event.data.error },
           });
 
-          onError?.(event.data.error || 'Authentication failed. Please try again.');
+          clearTimeout(timeout);
+          clearInterval(checkPopup);
           window.removeEventListener('message', handleOAuthMessage);
+
+          onError?.(event.data.error || 'Authentication failed. Please try again.');
 
           if (popup && !popup.closed) {
             popup.close();
@@ -91,6 +114,7 @@ export function useOAuthPopup({ onSuccess, onError }: UseOAuthPopupOptions) {
         if (popup && popup.closed) {
           window.removeEventListener('message', handleOAuthMessage);
           clearInterval(checkPopup);
+          clearTimeout(timeout);
         }
       }, 500);
     },

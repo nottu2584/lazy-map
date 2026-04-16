@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { apiService, logger } from '../services';
+import { useAuth } from '@/contexts';
+import { apiService, logger } from '@/services';
 import { Alert, AlertDescription } from './ui/alert';
 import { Button } from './ui/button';
 import { Field, FieldLabel } from './ui/field';
@@ -8,8 +8,8 @@ import { Input } from './ui/input';
 
 export function LoginForm() {
   const { login } = useAuth();
-  const [email, setEmail] = useState('demo@example.com');
-  const [password, setPassword] = useState('demo');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,8 +68,6 @@ export function LoginForm() {
       <Button type="submit" disabled={isLoading} className="w-full">
         {isLoading ? 'Signing in...' : 'Sign In'}
       </Button>
-
-      <p className="text-sm text-center">Demo credentials: demo@example.com / demo</p>
     </form>
   );
 }

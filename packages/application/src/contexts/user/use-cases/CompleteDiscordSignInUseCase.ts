@@ -8,7 +8,7 @@ import {
   OAuthToken,
   ILogger
 } from '@lazy-map/domain';
-import { IDiscordOAuthPort, IAuthenticationPort, ITokenEncryptionPort } from '../ports';
+import { IDiscordOAuthPort, IAuthenticationPort, ITokenEncryptionPort, IOAuthStatePort } from '../ports';
 
 /**
  * Command for completing Discord OAuth sign-in
@@ -33,6 +33,7 @@ export class CompleteDiscordSignInUseCase {
     private readonly discordOAuthService: IDiscordOAuthPort,
     private readonly authenticationService: IAuthenticationPort,
     private readonly tokenEncryptionService: ITokenEncryptionPort,
+    private readonly oauthStateService: IOAuthStatePort,
     private readonly logger: ILogger
   ) {}
 
@@ -44,6 +45,29 @@ export class CompleteDiscordSignInUseCase {
           hasState: !!command.state
         }
       });
+
+      // 0. Validate CSRF state
+      if (!command.state) {
+        return {
+          success: false,
+          errors: ['Invalid or expired OAuth state'],
+          user: null,
+          token: null
+        };
+      }
+
+      const stateValid = await this.oauthStateService.validateAndConsume(command.state);
+      if (!stateValid) {
+        this.logger.warn('OAuth state validation failed', {
+          metadata: { provider: 'discord' }
+        });
+        return {
+          success: false,
+          errors: ['Invalid or expired OAuth state'],
+          user: null,
+          token: null
+        };
+      }
 
       // 1. Exchange authorization code for tokens
       const oauthTokens = await this.discordOAuthService.exchangeCodeForTokens(

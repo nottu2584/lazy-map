@@ -22,6 +22,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import {
   ACCESS_COOKIE_NAME,
@@ -45,6 +46,7 @@ export class OAuthController {
   ) {}
 
   @Get('google/login')
+  @Throttle({ long: { ttl: 60000, limit: 5 } })
   @ApiOperation({ summary: 'Initiate Google OAuth sign-in' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -192,6 +194,7 @@ export class OAuthController {
   }
 
   @Get('discord/login')
+  @Throttle({ long: { ttl: 60000, limit: 5 } })
   @ApiOperation({ summary: 'Initiate Discord OAuth sign-in' })
   @ApiResponse({
     status: HttpStatus.OK,

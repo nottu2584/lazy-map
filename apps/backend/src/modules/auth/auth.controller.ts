@@ -26,6 +26,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import {
   ACCESS_COOKIE_NAME,
@@ -50,6 +51,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @Throttle({ long: { ttl: 60000, limit: 3 } })
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -145,6 +147,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Throttle({ long: { ttl: 60000, limit: 5 } })
   @ApiOperation({ summary: 'Login user' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -289,6 +292,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @Throttle({ long: { ttl: 60000, limit: 10 } })
   @ApiOperation({ summary: 'Refresh access token using refresh token cookie' })
   @ApiResponse({
     status: HttpStatus.OK,

@@ -19,6 +19,7 @@ import {
   LoginUserUseCase,
   PromoteUserUseCase,
   ReactivateUserUseCase,
+  RefreshTokenUseCase,
   RegisterUserUseCase,
   SaveMapUseCase,
   SuspendUserUseCase,
@@ -284,6 +285,33 @@ const shouldUseDatabase = () => {
       ],
     },
 
+    // Refresh token use case
+    {
+      provide: RefreshTokenUseCase,
+      useFactory: (
+        refreshTokenRepository,
+        userRepository,
+        refreshTokenService,
+        authenticationService,
+        logger,
+      ) => {
+        return new RefreshTokenUseCase(
+          refreshTokenRepository,
+          userRepository,
+          refreshTokenService,
+          authenticationService,
+          logger,
+        );
+      },
+      inject: [
+        'IRefreshTokenRepository',
+        'IUserRepository',
+        'IRefreshTokenPort',
+        'IAuthenticationPort',
+        'ILogger',
+      ],
+    },
+
     // Admin use cases
     {
       provide: CheckAdminAccessUseCase,
@@ -367,6 +395,7 @@ const shouldUseDatabase = () => {
     CompleteGoogleSignInUseCase,
     InitiateDiscordSignInUseCase,
     CompleteDiscordSignInUseCase,
+    RefreshTokenUseCase,
     // Export Admin Use Cases
     CheckAdminAccessUseCase,
     GetUserPermissionsUseCase,

@@ -4,9 +4,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ApplicationModule } from '../../application.module';
 import { InfrastructureModule } from '../../infrastructure.module';
+import { AccountLinkingController } from './account-linking.controller';
 import { AuthController } from './auth.controller';
-import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { OAuthController } from './oauth.controller';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -16,7 +18,6 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
         const jwtSecret = configService.get<string>('JWT_SECRET', 'your-secret-key');
-        console.log('[AuthModule JwtModule] JWT_SECRET for signing:', jwtSecret?.substring(0, 20) + '...');
         return {
           secret: jwtSecret,
           signOptions: {
@@ -29,7 +30,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     ApplicationModule,
     InfrastructureModule,
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, OAuthController, AccountLinkingController],
   providers: [JwtStrategy, JwtAuthGuard],
   exports: [JwtStrategy, JwtAuthGuard, PassportModule],
 })

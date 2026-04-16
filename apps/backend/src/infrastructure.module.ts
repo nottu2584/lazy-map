@@ -25,10 +25,12 @@ import {
   HtmlTemplateService,
   HybridMapRepository,
   InMemoryOAuthStateService,
+  RefreshTokenService,
   HydrologyLayer,
   InMemoryMapHistoryRepository,
   InMemoryMapPersistence,
   InMemoryOAuthTokenRepository,
+  InMemoryRefreshTokenRepository,
   InMemoryUserRepository,
   JwtAuthenticationService,
   LayoutGenerationService,
@@ -242,6 +244,7 @@ const shouldUseDatabase = () => {
       : [
           { provide: 'IUserRepository', useClass: InMemoryUserRepository },
           { provide: 'IOAuthTokenRepository', useClass: InMemoryOAuthTokenRepository },
+          { provide: 'IRefreshTokenRepository', useClass: InMemoryRefreshTokenRepository },
         ]),
 
     // Hybrid Map Repository - only when NOT using database
@@ -267,6 +270,12 @@ const shouldUseDatabase = () => {
       useFactory: () => new InMemoryOAuthStateService(),
     },
 
+    // Refresh token generation and hashing
+    {
+      provide: 'IRefreshTokenPort',
+      useFactory: () => new RefreshTokenService(),
+    },
+
   ],
   exports: [
     'IGeologyLayerService',
@@ -285,9 +294,10 @@ const shouldUseDatabase = () => {
     // When USE_DATABASE=true, DatabaseModule exports these (IUserRepository, IOAuthTokenRepository, IMapRepository)
     ...(shouldUseDatabase()
       ? []
-      : ['IUserRepository', 'IOAuthTokenRepository', 'IMapRepository', 'IMapPersistencePort']),
+      : ['IUserRepository', 'IOAuthTokenRepository', 'IRefreshTokenRepository', 'IMapRepository', 'IMapPersistencePort']),
     'IMapHistoryRepository',
     'IOAuthStatePort',
+    'IRefreshTokenPort',
     // Re-export DatabaseModule when enabled (provides IUserRepository, IMapRepository, IOAuthTokenRepository)
     ...(shouldUseDatabase() ? [DatabaseModule] : []),
   ],

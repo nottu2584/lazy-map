@@ -1,12 +1,15 @@
 import {
   GetUserProfileQuery,
   GetUserProfileUseCase,
+  IRefreshTokenPort,
   LoginUserCommand,
   LoginUserUseCase,
+  RefreshTokenCommand,
+  RefreshTokenUseCase,
   RegisterUserCommand,
   RegisterUserUseCase,
 } from '@lazy-map/application';
-import { ILogger } from '@lazy-map/domain';
+import { ILogger, IRefreshTokenRepository, RefreshToken } from '@lazy-map/domain';
 import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
 import {
   BadRequestException,
@@ -24,7 +27,12 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
-import { ACCESS_COOKIE_NAME, getAccessCookieOptions } from '../../common/auth';
+import {
+  ACCESS_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
+  getAccessCookieOptions,
+  getRefreshCookieOptions,
+} from '../../common/auth';
 import { AuthResponseDto, LoginUserDto, RegisterUserDto, UserProfileDto } from './dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
@@ -35,6 +43,9 @@ export class AuthController {
     private readonly registerUserUseCase: RegisterUserUseCase,
     private readonly loginUserUseCase: LoginUserUseCase,
     private readonly getUserProfileUseCase: GetUserProfileUseCase,
+    private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    @Inject('IRefreshTokenPort') private readonly refreshTokenService: IRefreshTokenPort,
+    @Inject('IRefreshTokenRepository') private readonly refreshTokenRepository: IRefreshTokenRepository,
     @Inject(LOGGER_TOKEN) private readonly logger: ILogger,
   ) {}
 
@@ -98,6 +109,16 @@ export class AuthController {
       });
 
       res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
+
+      // Generate and set refresh token
+      const refreshData = await this.refreshTokenService.generateRefreshToken(result.user!.id.value);
+      const refreshToken = RefreshToken.create(
+        result.user!.id,
+        refreshData.tokenHash,
+        refreshData.expiresAt,
+      );
+      await this.refreshTokenRepository.save(refreshToken);
+      res.cookie(REFRESH_COOKIE_NAME, refreshData.token, getRefreshCookieOptions());
 
       return {
         accessToken: result.token!,
@@ -173,6 +194,16 @@ export class AuthController {
       });
 
       res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
+
+      // Generate and set refresh token
+      const refreshData = await this.refreshTokenService.generateRefreshToken(result.user!.id.value);
+      const refreshToken = RefreshToken.create(
+        result.user!.id,
+        refreshData.tokenHash,
+        refreshData.expiresAt,
+      );
+      await this.refreshTokenRepository.save(refreshToken);
+      res.cookie(REFRESH_COOKIE_NAME, refreshData.token, getRefreshCookieOptions());
 
       return {
         accessToken: result.token!,
@@ -254,6 +285,66 @@ export class AuthController {
       }
       const message = error instanceof Error ? error.message : 'Unknown error';
       throw new UnauthorizedException('Failed to get profile: ' + message);
+    }
+  }
+
+  @Post('refresh')
+  @ApiOperation({ summary: 'Refresh access token using refresh token cookie' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Tokens refreshed successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid or expired refresh token',
+  })
+  async refresh(
+    @Request() req: any,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ user: { id: string; email: string; username: string } }> {
+    const operationLogger = this.logger.child({
+      component: 'AuthController',
+      operation: 'refresh',
+    });
+
+    try {
+      const rawRefreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
+
+      if (!rawRefreshToken) {
+        throw new UnauthorizedException('No refresh token provided');
+      }
+
+      const command = new RefreshTokenCommand(
+        rawRefreshToken,
+        req.headers['user-agent'],
+        req.ip,
+      );
+
+      const result = await this.refreshTokenUseCase.execute(command);
+
+      if (!result.success) {
+        // Clear cookies on failure
+        res.clearCookie(ACCESS_COOKIE_NAME, { path: '/' });
+        res.clearCookie(REFRESH_COOKIE_NAME, { path: '/api/auth/refresh' });
+        throw new UnauthorizedException(result.errors.join(', '));
+      }
+
+      res.cookie(ACCESS_COOKIE_NAME, result.accessToken!, getAccessCookieOptions());
+      res.cookie(REFRESH_COOKIE_NAME, result.refreshToken!, getRefreshCookieOptions());
+
+      operationLogger.info('Token refresh successful', {
+        metadata: { userId: result.user!.id },
+      });
+
+      return { user: result.user! };
+    } catch (error) {
+      operationLogger.logError(error);
+
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new UnauthorizedException('Token refresh failed: ' + message);
     }
   }
 }

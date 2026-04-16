@@ -1,11 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { AuthUser } from '../types';
-import { logger } from '../services';
+import { apiService, logger } from '../services';
 
 interface AuthContextType {
   user: AuthUser | null;
-  login: (user: AuthUser, token: string) => void;
+  login: (user: AuthUser) => void;
   logout: () => void;
   isLoading: boolean;
 }
@@ -29,47 +29,55 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
     const userStr = localStorage.getItem('user');
 
-    if (token && userStr) {
+    if (userStr) {
       try {
-        // Check if JWT is expired before restoring session
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.exp && payload.exp < Date.now() / 1000) {
-          logger.debug('JWT expired, clearing session', { component: 'AuthContext', operation: 'initialize' });
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user');
-        } else {
-          const savedUser = JSON.parse(userStr);
-          setUser(savedUser);
-        }
+        const savedUser = JSON.parse(userStr);
+        setUser(savedUser);
       } catch (error) {
         logger.error('Error restoring session', { component: 'AuthContext', operation: 'initialize' }, { error });
-        localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
       }
     }
-    setIsLoading(false);
+
+    // Validate session against backend (cookie sent automatically)
+    apiService.getProfile()
+      .then((profile) => {
+        const validatedUser: AuthUser = {
+          id: profile.id,
+          email: profile.email,
+          username: profile.username,
+        };
+        setUser(validatedUser);
+        localStorage.setItem('user', JSON.stringify(validatedUser));
+      })
+      .catch(() => {
+        // Cookie invalid or expired — clear local state
+        setUser(null);
+        localStorage.removeItem('user');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   useEffect(() => {
     const handleForceLogout = () => {
       setUser(null);
+      localStorage.removeItem('user');
     };
     window.addEventListener('auth:logout', handleForceLogout);
     return () => window.removeEventListener('auth:logout', handleForceLogout);
   }, []);
 
-  const login = (user: AuthUser, token: string) => {
+  const login = (user: AuthUser) => {
     setUser(user);
-    localStorage.setItem('auth_token', token);
     localStorage.setItem('user', JSON.stringify(user));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
   };
 

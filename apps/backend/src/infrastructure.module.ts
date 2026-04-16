@@ -24,6 +24,7 @@ import {
   GeologyTileGenerationService,
   HtmlTemplateService,
   HybridMapRepository,
+  InMemoryOAuthStateService,
   HydrologyLayer,
   InMemoryMapHistoryRepository,
   InMemoryMapPersistence,
@@ -260,6 +261,12 @@ const shouldUseDatabase = () => {
 
     { provide: 'IMapHistoryRepository', useClass: InMemoryMapHistoryRepository },
 
+    // OAuth CSRF state management (singleton — shared across initiate/complete)
+    {
+      provide: 'IOAuthStatePort',
+      useFactory: () => new InMemoryOAuthStateService(),
+    },
+
   ],
   exports: [
     'IGeologyLayerService',
@@ -280,6 +287,7 @@ const shouldUseDatabase = () => {
       ? []
       : ['IUserRepository', 'IOAuthTokenRepository', 'IMapRepository', 'IMapPersistencePort']),
     'IMapHistoryRepository',
+    'IOAuthStatePort',
     // Re-export DatabaseModule when enabled (provides IUserRepository, IMapRepository, IOAuthTokenRepository)
     ...(shouldUseDatabase() ? [DatabaseModule] : []),
   ],

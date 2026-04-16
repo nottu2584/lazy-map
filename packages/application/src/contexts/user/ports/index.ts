@@ -5,3 +5,4 @@ export * from './IDiscordOAuthPort';
 export * from './ITokenEncryptionPort';
 export * from './ITemplatePort';
 export * from './IOAuthStatePort';
+export * from './IRefreshTokenPort';

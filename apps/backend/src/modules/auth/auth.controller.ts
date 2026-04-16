@@ -18,10 +18,13 @@ import {
   Inject,
   Post,
   Request,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import type { Response } from 'express';
+import { ACCESS_COOKIE_NAME, getAccessCookieOptions } from '../../common/auth';
 import { AuthResponseDto, LoginUserDto, RegisterUserDto, UserProfileDto } from './dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
@@ -50,7 +53,10 @@ export class AuthController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid registration data',
   })
-  async register(@Body() registerDto: RegisterUserDto): Promise<AuthResponseDto> {
+  async register(
+    @Body() registerDto: RegisterUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
     const operationLogger = this.logger.child({
       component: 'AuthController',
       operation: 'register',
@@ -91,6 +97,8 @@ export class AuthController {
         },
       });
 
+      res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
+
       return {
         accessToken: result.token!,
         user: {
@@ -126,7 +134,10 @@ export class AuthController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Invalid credentials',
   })
-  async login(@Body() loginDto: LoginUserDto): Promise<AuthResponseDto> {
+  async login(
+    @Body() loginDto: LoginUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
     const operationLogger = this.logger.child({
       component: 'AuthController',
       operation: 'login',
@@ -160,6 +171,8 @@ export class AuthController {
           username: result.user!.username.value,
         },
       });
+
+      res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
 
       return {
         accessToken: result.token!,

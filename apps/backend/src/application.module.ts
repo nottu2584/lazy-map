@@ -3,14 +3,12 @@ import {
   CompleteDiscordSignInUseCase,
   CompleteGoogleSignInUseCase,
   DeleteUserUseCase,
-  DiscordSignInUseCase,
   GenerateTacticalMapUseCase,
   GetMapUseCase,
   GetUserMapsUseCase,
   GetUserPermissionsUseCase,
   GetUserProfileUseCase,
   GetUserStatsUseCase,
-  GoogleSignInUseCase,
   HealthCheckUseCase,
   InitiateDiscordSignInUseCase,
   InitiateGoogleSignInUseCase,
@@ -196,30 +194,6 @@ const shouldUseDatabase = () => {
       inject: ['IUserRepository'],
     },
     {
-      provide: GoogleSignInUseCase,
-      useFactory: (userRepository, googleOAuthService, authenticationService, logger) => {
-        return new GoogleSignInUseCase(
-          userRepository,
-          googleOAuthService,
-          authenticationService,
-          logger,
-        );
-      },
-      inject: ['IUserRepository', 'IGoogleOAuthPort', 'IAuthenticationPort', 'ILogger'],
-    },
-    {
-      provide: DiscordSignInUseCase,
-      useFactory: (userRepository, discordOAuthService, authenticationService, logger) => {
-        return new DiscordSignInUseCase(
-          userRepository,
-          discordOAuthService,
-          authenticationService,
-          logger,
-        );
-      },
-      inject: ['IUserRepository', 'IDiscordOAuthPort', 'IAuthenticationPort', 'ILogger'],
-    },
-    {
       provide: LinkGoogleAccountUseCase,
       useFactory: (userRepository, googleOAuthService, logger) => {
         return new LinkGoogleAccountUseCase(userRepository, googleOAuthService, logger);
@@ -381,8 +355,6 @@ const shouldUseDatabase = () => {
     RegisterUserUseCase,
     LoginUserUseCase,
     GetUserProfileUseCase,
-    GoogleSignInUseCase,
-    DiscordSignInUseCase,
     LinkGoogleAccountUseCase,
     LinkDiscordAccountUseCase,
     InitiateGoogleSignInUseCase,

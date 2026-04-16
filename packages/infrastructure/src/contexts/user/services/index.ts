@@ -5,4 +5,5 @@ export * from './DiscordOAuthService';
 export * from './AesTokenEncryptionService';
 export * from './HtmlTemplateService';
 export * from './InMemoryOAuthStateService';
+export * from './RefreshTokenService';
 export * from './oauthTokens';

@@ -2,6 +2,7 @@ import type { ApiResponse } from '@lazy-map/application';
 import axios from 'axios';
 import { logger } from '.';
 import type {
+  AuthResponse,
   GeneratedMap,
   MapSettings,
   GenerateMapRequest,
@@ -39,11 +40,9 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear invalid token
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user');
-      // Redirect to login if needed
-      window.location.reload();
+      window.dispatchEvent(new Event('auth:logout'));
     }
     return Promise.reject(error);
   },
@@ -163,25 +162,27 @@ function mapResponseToGeneratedMap(
 }
 
 export const apiService = {
-  async login(email: string, password: string): Promise<ApiResponse<{ user: any; token: string }>> {
+  async login(email: string, password: string): Promise<AuthResponse> {
     try {
-      const response = await apiClient.post<ApiResponse<{ user: any; token: string }>>(
-        '/auth/login',
-        { email, password },
-      );
-
+      const response = await apiClient.post<AuthResponse>('/auth/login', { email, password });
       return response.data;
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        return {
-          success: false,
-          error: error.response?.data?.error || 'Login failed',
-        };
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
+        throw new Error(error.response.data.message);
       }
-      return {
-        success: false,
-        error: 'An unexpected error occurred',
-      };
+      throw new Error('Login failed. Please try again.');
+    }
+  },
+
+  async register(email: string, password: string, username: string): Promise<AuthResponse> {
+    try {
+      const response = await apiClient.post<AuthResponse>('/auth/register', { email, password, username });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw new Error('Registration failed. Please try again.');
     }
   },
 
@@ -225,8 +226,7 @@ export const apiService = {
     description?: string,
   ): Promise<{ success: boolean; mapId?: string; error?: string }> {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
+      if (!localStorage.getItem('auth_token')) {
         throw new Error('Authentication required to save maps');
       }
 
@@ -243,11 +243,6 @@ export const apiService = {
           name: name || map.name,
           description,
           metadata: map.metadata || {},
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         },
       );
 
@@ -297,16 +292,11 @@ export const apiService = {
 
   async getUserMaps(): Promise<GeneratedMap[]> {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
+      if (!localStorage.getItem('auth_token')) {
         return [];
       }
 
-      const response = await apiClient.get<ApiResponse<TacticalMapResponse[]>>('/maps/my-maps', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await apiClient.get<ApiResponse<TacticalMapResponse[]>>('/maps/my-maps');
 
       if (!response.data.success || !response.data.data) {
         return [];

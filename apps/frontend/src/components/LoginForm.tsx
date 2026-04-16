@@ -20,7 +20,7 @@ export function LoginForm() {
 
     try {
       const data = await apiService.login(email, password);
-      login(data.user, data.accessToken);
+      login(data.user);
     } catch (err) {
       logger.error('Login error', {
         component: 'LoginForm',

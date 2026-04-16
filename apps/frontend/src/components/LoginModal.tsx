@@ -40,8 +40,8 @@ export function LoginModal({ onClose }: LoginModalProps) {
   const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false);
 
   const { openOAuthPopup } = useOAuthPopup({
-    onSuccess: (user, token) => {
-      login(user, token);
+    onSuccess: (user) => {
+      login(user);
       onClose();
     },
     onError: (errorMessage) => {
@@ -90,10 +90,10 @@ export function LoginModal({ onClose }: LoginModalProps) {
           formData.password,
           formData.username,
         );
-        login(data.user, data.accessToken);
+        login(data.user);
       } else {
         const data = await apiService.login(formData.email, formData.password);
-        login(data.user, data.accessToken);
+        login(data.user);
       }
       onClose();
     } catch (err) {

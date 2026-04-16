@@ -209,10 +209,10 @@ const shouldUseDatabase = () => {
     },
     {
       provide: InitiateGoogleSignInUseCase,
-      useFactory: (googleOAuthService, logger) => {
-        return new InitiateGoogleSignInUseCase(googleOAuthService, logger);
+      useFactory: (googleOAuthService, oauthStateService, logger) => {
+        return new InitiateGoogleSignInUseCase(googleOAuthService, oauthStateService, logger);
       },
-      inject: ['IGoogleOAuthPort', 'ILogger'],
+      inject: ['IGoogleOAuthPort', 'IOAuthStatePort', 'ILogger'],
     },
     {
       provide: CompleteGoogleSignInUseCase,
@@ -222,6 +222,7 @@ const shouldUseDatabase = () => {
         googleOAuthService,
         authenticationService,
         tokenEncryptionService,
+        oauthStateService,
         logger,
       ) => {
         return new CompleteGoogleSignInUseCase(
@@ -230,6 +231,7 @@ const shouldUseDatabase = () => {
           googleOAuthService,
           authenticationService,
           tokenEncryptionService,
+          oauthStateService,
           logger,
         );
       },
@@ -239,15 +241,16 @@ const shouldUseDatabase = () => {
         'IGoogleOAuthPort',
         'IAuthenticationPort',
         'ITokenEncryptionPort',
+        'IOAuthStatePort',
         'ILogger',
       ],
     },
     {
       provide: InitiateDiscordSignInUseCase,
-      useFactory: (discordOAuthService, logger) => {
-        return new InitiateDiscordSignInUseCase(discordOAuthService, logger);
+      useFactory: (discordOAuthService, oauthStateService, logger) => {
+        return new InitiateDiscordSignInUseCase(discordOAuthService, oauthStateService, logger);
       },
-      inject: ['IDiscordOAuthPort', 'ILogger'],
+      inject: ['IDiscordOAuthPort', 'IOAuthStatePort', 'ILogger'],
     },
     {
       provide: CompleteDiscordSignInUseCase,
@@ -257,6 +260,7 @@ const shouldUseDatabase = () => {
         discordOAuthService,
         authenticationService,
         tokenEncryptionService,
+        oauthStateService,
         logger,
       ) => {
         return new CompleteDiscordSignInUseCase(
@@ -265,6 +269,7 @@ const shouldUseDatabase = () => {
           discordOAuthService,
           authenticationService,
           tokenEncryptionService,
+          oauthStateService,
           logger,
         );
       },
@@ -274,6 +279,7 @@ const shouldUseDatabase = () => {
         'IDiscordOAuthPort',
         'IAuthenticationPort',
         'ITokenEncryptionPort',
+        'IOAuthStatePort',
         'ILogger',
       ],
     },

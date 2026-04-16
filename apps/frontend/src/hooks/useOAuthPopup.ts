@@ -1,18 +1,36 @@
 import { useCallback } from 'react';
-import { logger } from '../services';
+import { logger } from '@/services';
+import type { AuthUser } from '@/types/auth';
 
 interface OAuthSuccessData {
   type: 'oauth-success';
   provider: 'google' | 'discord';
-  user: any;
+  user: AuthUser;
   token: string;
 }
 
-interface UseOAuthPopupOptions {
-  onSuccess: (user: any, token: string) => void;
+interface OAuthErrorData {
+  type: 'oauth-error';
+  provider: 'google' | 'discord';
+  error: string;
 }
 
-export function useOAuthPopup({ onSuccess }: UseOAuthPopupOptions) {
+type OAuthMessageData = OAuthSuccessData | OAuthErrorData;
+
+interface UseOAuthPopupOptions {
+  onSuccess: (user: AuthUser, token: string) => void;
+  onError?: (error: string) => void;
+}
+
+function getAllowedOrigins(): string[] {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3030/api';
+  return [
+    new URL(apiUrl).origin,
+    window.location.origin,
+  ].filter((origin, index, arr) => arr.indexOf(origin) === index);
+}
+
+export function useOAuthPopup({ onSuccess, onError }: UseOAuthPopupOptions) {
   const openOAuthPopup = useCallback(
     (provider: 'google' | 'discord') => {
       logger.info(`OAuth login initiated with ${provider}`, {
@@ -30,32 +48,59 @@ export function useOAuthPopup({ onSuccess }: UseOAuthPopupOptions) {
         'width=600,height=700,scrollbars=yes'
       );
 
+      // Timeout after 5 minutes
+      const timeout = setTimeout(() => {
+        logger.warn('OAuth popup timeout', {
+          component: 'useOAuthPopup',
+          metadata: { provider },
+        });
+
+        onError?.('Authentication timed out. Please try again.');
+        window.removeEventListener('message', handleOAuthMessage);
+        clearInterval(checkPopup);
+
+        if (popup && !popup.closed) {
+          popup.close();
+        }
+      }, 5 * 60 * 1000);
+
       // Listen for postMessage from OAuth popup
-      const handleOAuthMessage = (event: MessageEvent<OAuthSuccessData>) => {
-        // Verify origin
-        const allowedOrigins = [
-          'http://localhost:3030',
-          import.meta.env.VITE_API_URL,
-        ].filter(Boolean);
+      const handleOAuthMessage = (event: MessageEvent<OAuthMessageData>) => {
+        const allowedOrigins = getAllowedOrigins();
 
         if (!allowedOrigins.includes(event.origin)) {
           return;
         }
 
-        // Check if it's an OAuth success message
         if (event.data?.type === 'oauth-success' && event.data.provider === provider) {
           logger.info('OAuth success message received', {
             component: 'useOAuthPopup',
             metadata: { provider },
           });
 
-          // Login with received token and user data
-          onSuccess(event.data.user, event.data.token);
-
-          // Remove event listener
+          clearTimeout(timeout);
+          clearInterval(checkPopup);
           window.removeEventListener('message', handleOAuthMessage);
 
-          // Close popup if still open
+          onSuccess(event.data.user, event.data.token);
+
+          if (popup && !popup.closed) {
+            popup.close();
+          }
+        }
+
+        if (event.data?.type === 'oauth-error' && event.data.provider === provider) {
+          logger.warn('OAuth error message received', {
+            component: 'useOAuthPopup',
+            metadata: { provider, error: event.data.error },
+          });
+
+          clearTimeout(timeout);
+          clearInterval(checkPopup);
+          window.removeEventListener('message', handleOAuthMessage);
+
+          onError?.(event.data.error || 'Authentication failed. Please try again.');
+
           if (popup && !popup.closed) {
             popup.close();
           }
@@ -69,10 +114,11 @@ export function useOAuthPopup({ onSuccess }: UseOAuthPopupOptions) {
         if (popup && popup.closed) {
           window.removeEventListener('message', handleOAuthMessage);
           clearInterval(checkPopup);
+          clearTimeout(timeout);
         }
       }, 500);
     },
-    [onSuccess]
+    [onSuccess, onError]
   );
 
   return { openOAuthPopup };

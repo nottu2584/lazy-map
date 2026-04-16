@@ -15,14 +15,24 @@ export class AesTokenEncryptionService implements ITokenEncryptionPort {
     encryptionKey: string | undefined,
     private readonly logger: ILogger
   ) {
+    const isProduction = process.env.NODE_ENV === 'production';
+
     if (!encryptionKey || encryptionKey.length === 0) {
+      if (isProduction) {
+        throw new Error(
+          'OAUTH_TOKEN_ENCRYPTION_KEY is required in production. ' +
+          'Generate a secure key with: openssl rand -hex 32'
+        );
+      }
+
       this.enabled = false;
       this.key = null;
       this.logger.warn('Token encryption not configured - tokens will be stored in plain text', {
         component: 'AesTokenEncryptionService',
         operation: 'constructor',
         metadata: {
-          message: 'Set OAUTH_TOKEN_ENCRYPTION_KEY environment variable to enable encryption'
+          message: 'Set OAUTH_TOKEN_ENCRYPTION_KEY environment variable to enable encryption',
+          warning: 'This is only allowed in development. Production requires encryption.'
         }
       });
     } else {

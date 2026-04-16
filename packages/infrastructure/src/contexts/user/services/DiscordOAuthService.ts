@@ -238,8 +238,10 @@ export class DiscordOAuthService implements IDiscordOAuthPort {
 
   /**
    * Validates a Discord access token and returns user information
-   * This is a helper method that uses getUserInfo
-   * @deprecated Use getUserInfo directly instead
+   *
+   * SECURITY NOTE: This validates client-provided tokens and is only used for account linking.
+   * TODO: Migrate LinkDiscordAccountUseCase to server-side OAuth flow to eliminate this method.
+   * New features should use getUserInfo() with server-side code exchange instead.
    */
   async validateDiscordToken(accessToken: string): Promise<DiscordUserInfo> {
     const userInfo = await this.getUserInfo(accessToken);

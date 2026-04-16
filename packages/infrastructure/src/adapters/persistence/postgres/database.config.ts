@@ -1,5 +1,5 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity } from './entities';
+import { UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity, RefreshTokenEntity } from './entities';
 
 /**
  * Database configuration for PostgreSQL
@@ -20,7 +20,7 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => {
     database: process.env.DB_NAME || 'lazy_map',
 
     // Entity configuration
-    entities: [UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity],
+    entities: [UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity, RefreshTokenEntity],
 
     // CRITICAL: Use migrations only, never auto-sync
     // Set DB_SYNCHRONIZE=true only for initial development setup

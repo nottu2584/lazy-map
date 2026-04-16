@@ -26,7 +26,7 @@ export class HtmlTemplateService implements ITemplatePort {
 
     return template
       .replace(/{{PROVIDER}}/g, this.escapeHtml(data.provider))
-      .replace(/{{TOKEN}}/g, this.escapeHtml(data.token))
+      .replace(/{{TOKEN}}/g, data.token ? this.escapeHtml(data.token) : '')
       .replace(/{{USER_ID}}/g, this.escapeHtml(data.user.id))
       .replace(/{{USER_EMAIL}}/g, this.escapeHtml(data.user.email))
       .replace(/{{USER_USERNAME}}/g, this.escapeHtml(data.user.username))

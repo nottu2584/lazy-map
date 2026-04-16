@@ -22,6 +22,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
+import { ACCESS_COOKIE_NAME, getAccessCookieOptions } from '../../common/auth';
 
 @ApiTags('oauth')
 @Controller('auth/oauth')
@@ -143,9 +144,10 @@ export class OAuthController {
         },
       });
 
+      res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
+
       const successHtml = this.templateService.renderOAuthSuccess({
         provider: 'google',
-        token: result.token!,
         user: {
           id: result.user!.id.value,
           email: result.user!.email.value,
@@ -279,9 +281,10 @@ export class OAuthController {
         },
       });
 
+      res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
+
       const successHtml = this.templateService.renderOAuthSuccess({
         provider: 'discord',
-        token: result.token!,
         user: {
           id: result.user!.id.value,
           email: result.user!.email.value,

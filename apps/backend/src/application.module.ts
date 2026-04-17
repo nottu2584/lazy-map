@@ -175,17 +175,17 @@ const shouldUseDatabase = () => {
     // User use cases
     {
       provide: RegisterUserUseCase,
-      useFactory: (userRepository, passwordService, authenticationPort) => {
-        return new RegisterUserUseCase(userRepository, passwordService, authenticationPort);
+      useFactory: (userRepository, passwordService, authenticationPort, refreshTokenService, refreshTokenRepository) => {
+        return new RegisterUserUseCase(userRepository, passwordService, authenticationPort, refreshTokenService, refreshTokenRepository);
       },
-      inject: ['IUserRepository', 'IPasswordService', 'IAuthenticationPort'],
+      inject: ['IUserRepository', 'IPasswordService', 'IAuthenticationPort', 'IRefreshTokenPort', 'IRefreshTokenRepository'],
     },
     {
       provide: LoginUserUseCase,
-      useFactory: (userRepository, passwordService, authenticationPort) => {
-        return new LoginUserUseCase(userRepository, passwordService, authenticationPort);
+      useFactory: (userRepository, passwordService, authenticationPort, refreshTokenService, refreshTokenRepository) => {
+        return new LoginUserUseCase(userRepository, passwordService, authenticationPort, refreshTokenService, refreshTokenRepository);
       },
-      inject: ['IUserRepository', 'IPasswordService', 'IAuthenticationPort'],
+      inject: ['IUserRepository', 'IPasswordService', 'IAuthenticationPort', 'IRefreshTokenPort', 'IRefreshTokenRepository'],
     },
     {
       provide: GetUserProfileUseCase,
@@ -224,6 +224,8 @@ const shouldUseDatabase = () => {
         authenticationService,
         tokenEncryptionService,
         oauthStateService,
+        refreshTokenService,
+        refreshTokenRepository,
         logger,
       ) => {
         return new CompleteGoogleSignInUseCase(
@@ -233,6 +235,8 @@ const shouldUseDatabase = () => {
           authenticationService,
           tokenEncryptionService,
           oauthStateService,
+          refreshTokenService,
+          refreshTokenRepository,
           logger,
         );
       },
@@ -243,6 +247,8 @@ const shouldUseDatabase = () => {
         'IAuthenticationPort',
         'ITokenEncryptionPort',
         'IOAuthStatePort',
+        'IRefreshTokenPort',
+        'IRefreshTokenRepository',
         'ILogger',
       ],
     },
@@ -262,6 +268,8 @@ const shouldUseDatabase = () => {
         authenticationService,
         tokenEncryptionService,
         oauthStateService,
+        refreshTokenService,
+        refreshTokenRepository,
         logger,
       ) => {
         return new CompleteDiscordSignInUseCase(
@@ -271,6 +279,8 @@ const shouldUseDatabase = () => {
           authenticationService,
           tokenEncryptionService,
           oauthStateService,
+          refreshTokenService,
+          refreshTokenRepository,
           logger,
         );
       },
@@ -281,6 +291,8 @@ const shouldUseDatabase = () => {
         'IAuthenticationPort',
         'ITokenEncryptionPort',
         'IOAuthStatePort',
+        'IRefreshTokenPort',
+        'IRefreshTokenRepository',
         'ILogger',
       ],
     },

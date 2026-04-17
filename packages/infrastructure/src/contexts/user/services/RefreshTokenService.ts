@@ -7,7 +7,7 @@ const REFRESH_TOKEN_TTL_DAYS = 30;
  * Service for generating and hashing refresh tokens
  */
 export class RefreshTokenService implements IRefreshTokenPort {
-  async generateRefreshToken(userId: string): Promise<{
+  async generateRefreshToken(): Promise<{
     token: string;
     tokenHash: string;
     expiresAt: Date;

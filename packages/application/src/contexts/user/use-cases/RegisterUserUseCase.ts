@@ -1,12 +1,15 @@
-import { 
-  IUserRepository, 
-  IPasswordService, 
-  User, 
-  Email, 
-  Password, 
-  Username
+import {
+  IUserRepository,
+  IPasswordService,
+  User,
+  Email,
+  Password,
+  Username,
+  IRefreshTokenRepository,
+  RefreshToken,
 } from '@lazy-map/domain';
 import { IAuthenticationPort } from '../ports/IAuthenticationPort';
+import { IRefreshTokenPort } from '../ports/IRefreshTokenPort';
 
 export class RegisterUserCommand {
   constructor(
@@ -21,29 +24,27 @@ export interface RegisterUserResult {
   success: boolean;
   user?: User;
   token?: string;
+  refreshToken?: string;
   errors: string[];
 }
 
-/**
- * Use case for registering a new user
- */
 export class RegisterUserUseCase {
   constructor(
     private readonly userRepository: IUserRepository,
     private readonly passwordService: IPasswordService,
-    private readonly authenticationPort: IAuthenticationPort
+    private readonly authenticationPort: IAuthenticationPort,
+    private readonly refreshTokenService: IRefreshTokenPort,
+    private readonly refreshTokenRepository: IRefreshTokenRepository,
   ) {}
 
   async execute(command: RegisterUserCommand): Promise<RegisterUserResult> {
     const errors: string[] = [];
 
     try {
-      // Validate and create value objects
       const email = new Email(command.email);
       const password = new Password(command.password);
       const username = new Username(command.username);
 
-      // Check if user already exists
       const [emailExists, usernameExists] = await Promise.all([
         this.userRepository.emailExists(email),
         this.userRepository.usernameExists(username)
@@ -61,16 +62,10 @@ export class RegisterUserUseCase {
         return { success: false, errors };
       }
 
-      // Hash password
       const hashedPassword = await this.passwordService.hash(password);
-
-      // Create user
       const user = User.create(email, hashedPassword, username, command.createdAt);
-
-      // Save user
       await this.userRepository.save(user);
 
-      // Generate authentication token
       const token = await this.authenticationPort.generateToken(
         user.id.value,
         user.email.value,
@@ -78,17 +73,26 @@ export class RegisterUserUseCase {
         user.role?.value || 'USER'
       );
 
+      const refreshData = await this.refreshTokenService.generateRefreshToken();
+      const refreshToken = RefreshToken.create(
+        user.id,
+        refreshData.tokenHash,
+        refreshData.expiresAt,
+      );
+      await this.refreshTokenRepository.save(refreshToken);
+
       return {
         success: true,
         user,
         token,
+        refreshToken: refreshData.token,
         errors: []
       };
 
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Registration failed';
       errors.push(errorMessage);
-      
+
       return {
         success: false,
         errors

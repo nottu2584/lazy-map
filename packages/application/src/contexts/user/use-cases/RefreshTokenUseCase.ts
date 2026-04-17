@@ -87,9 +87,7 @@ export class RefreshTokenUseCase {
       }
 
       // Generate new refresh token (rotation)
-      const newRefreshData = await this.refreshTokenService.generateRefreshToken(
-        existingToken.userId.value,
-      );
+      const newRefreshData = await this.refreshTokenService.generateRefreshToken();
 
       const newRefreshToken = RefreshToken.create(
         existingToken.userId,

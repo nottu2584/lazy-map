@@ -17,7 +17,7 @@ export interface AuthUser {
  * Response from login and register endpoints
  */
 export interface AuthResponse {
-  accessToken: string;
+  accessToken?: string;
   user: AuthUser;
 }
 

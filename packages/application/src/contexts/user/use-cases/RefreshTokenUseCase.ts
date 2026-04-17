@@ -2,7 +2,6 @@ import {
   RefreshToken,
   IRefreshTokenRepository,
   IUserRepository,
-  UserId,
   ILogger,
 } from '@lazy-map/domain';
 import { IAuthenticationPort, IRefreshTokenPort } from '../ports';

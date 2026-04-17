@@ -41,25 +41,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     }
 
-    // Validate session against backend (cookie sent automatically)
-    apiService.getProfile()
-      .then((profile) => {
-        const validatedUser: AuthUser = {
-          id: profile.id,
-          email: profile.email,
-          username: profile.username,
-        };
-        setUser(validatedUser);
-        localStorage.setItem('user', JSON.stringify(validatedUser));
-      })
-      .catch(() => {
-        // Cookie invalid or expired — clear local state
-        setUser(null);
-        localStorage.removeItem('user');
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    if (userStr) {
+      apiService.getProfile()
+        .then((profile) => {
+          const validatedUser: AuthUser = {
+            id: profile.id,
+            email: profile.email,
+            username: profile.username,
+          };
+          setUser(validatedUser);
+          localStorage.setItem('user', JSON.stringify(validatedUser));
+        })
+        .catch(() => {
+          setUser(null);
+          localStorage.removeItem('user');
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    } else {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {

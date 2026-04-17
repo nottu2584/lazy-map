@@ -7,10 +7,9 @@ import {
   InitiateDiscordSignInUseCase,
   InitiateGoogleSignInCommand,
   InitiateGoogleSignInUseCase,
-  IRefreshTokenPort,
   ITemplatePort,
 } from '@lazy-map/application';
-import { ILogger, IRefreshTokenRepository, RefreshToken } from '@lazy-map/domain';
+import { ILogger } from '@lazy-map/domain';
 import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
 import {
   BadRequestException,
@@ -41,8 +40,6 @@ export class OAuthController {
     private readonly completeDiscordSignInUseCase: CompleteDiscordSignInUseCase,
     @Inject(LOGGER_TOKEN) private readonly logger: ILogger,
     @Inject('ITemplatePort') private readonly templateService: ITemplatePort,
-    @Inject('IRefreshTokenPort') private readonly refreshTokenService: IRefreshTokenPort,
-    @Inject('IRefreshTokenRepository') private readonly refreshTokenRepository: IRefreshTokenRepository,
   ) {}
 
   @Get('google/login')
@@ -155,16 +152,7 @@ export class OAuthController {
       });
 
       res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
-
-      // Generate and set refresh token
-      const refreshData = await this.refreshTokenService.generateRefreshToken(result.user!.id.value);
-      const refreshToken = RefreshToken.create(
-        result.user!.id,
-        refreshData.tokenHash,
-        refreshData.expiresAt,
-      );
-      await this.refreshTokenRepository.save(refreshToken);
-      res.cookie(REFRESH_COOKIE_NAME, refreshData.token, getRefreshCookieOptions());
+      res.cookie(REFRESH_COOKIE_NAME, result.refreshToken!, getRefreshCookieOptions());
 
       const successHtml = this.templateService.renderOAuthSuccess({
         provider: 'google',
@@ -303,16 +291,7 @@ export class OAuthController {
       });
 
       res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
-
-      // Generate and set refresh token
-      const refreshDataDiscord = await this.refreshTokenService.generateRefreshToken(result.user!.id.value);
-      const refreshTokenDiscord = RefreshToken.create(
-        result.user!.id,
-        refreshDataDiscord.tokenHash,
-        refreshDataDiscord.expiresAt,
-      );
-      await this.refreshTokenRepository.save(refreshTokenDiscord);
-      res.cookie(REFRESH_COOKIE_NAME, refreshDataDiscord.token, getRefreshCookieOptions());
+      res.cookie(REFRESH_COOKIE_NAME, result.refreshToken!, getRefreshCookieOptions());
 
       const successHtml = this.templateService.renderOAuthSuccess({
         provider: 'discord',

@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../services';
+import { useAuth } from '../contexts/AuthContext';
 import type { GeneratedMap, MapSettings } from '@/types';
 
-// Query keys for consistency
 export const mapKeys = {
   all: ['maps'] as const,
   lists: () => [...mapKeys.all, 'list'] as const,
@@ -11,14 +11,13 @@ export const mapKeys = {
   detail: (id: string) => [...mapKeys.details(), id] as const,
 };
 
-/**
- * Hook to fetch user's map history
- */
 export function useUserMaps() {
+  const { user } = useAuth();
   return useQuery({
     queryKey: mapKeys.lists(),
     queryFn: () => apiService.getUserMaps(),
-    staleTime: 1000 * 60 * 2, // 2 minutes - fairly dynamic data
+    enabled: !!user,
+    staleTime: 1000 * 60 * 2,
   });
 }
 

@@ -1,7 +1,6 @@
 import {
   GetUserProfileQuery,
   GetUserProfileUseCase,
-  IRefreshTokenPort,
   LoginUserCommand,
   LoginUserUseCase,
   RefreshTokenCommand,
@@ -9,7 +8,7 @@ import {
   RegisterUserCommand,
   RegisterUserUseCase,
 } from '@lazy-map/application';
-import { ILogger, IRefreshTokenRepository, RefreshToken } from '@lazy-map/domain';
+import { ILogger } from '@lazy-map/domain';
 import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
 import {
   BadRequestException,
@@ -45,8 +44,6 @@ export class AuthController {
     private readonly loginUserUseCase: LoginUserUseCase,
     private readonly getUserProfileUseCase: GetUserProfileUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
-    @Inject('IRefreshTokenPort') private readonly refreshTokenService: IRefreshTokenPort,
-    @Inject('IRefreshTokenRepository') private readonly refreshTokenRepository: IRefreshTokenRepository,
     @Inject(LOGGER_TOKEN) private readonly logger: ILogger,
   ) {}
 
@@ -111,16 +108,7 @@ export class AuthController {
       });
 
       res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
-
-      // Generate and set refresh token
-      const refreshData = await this.refreshTokenService.generateRefreshToken(result.user!.id.value);
-      const refreshToken = RefreshToken.create(
-        result.user!.id,
-        refreshData.tokenHash,
-        refreshData.expiresAt,
-      );
-      await this.refreshTokenRepository.save(refreshToken);
-      res.cookie(REFRESH_COOKIE_NAME, refreshData.token, getRefreshCookieOptions());
+      res.cookie(REFRESH_COOKIE_NAME, result.refreshToken!, getRefreshCookieOptions());
 
       return {
         accessToken: result.token!,
@@ -197,16 +185,7 @@ export class AuthController {
       });
 
       res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
-
-      // Generate and set refresh token
-      const refreshData = await this.refreshTokenService.generateRefreshToken(result.user!.id.value);
-      const refreshToken = RefreshToken.create(
-        result.user!.id,
-        refreshData.tokenHash,
-        refreshData.expiresAt,
-      );
-      await this.refreshTokenRepository.save(refreshToken);
-      res.cookie(REFRESH_COOKIE_NAME, refreshData.token, getRefreshCookieOptions());
+      res.cookie(REFRESH_COOKIE_NAME, result.refreshToken!, getRefreshCookieOptions());
 
       return {
         accessToken: result.token!,
@@ -327,7 +306,6 @@ export class AuthController {
       const result = await this.refreshTokenUseCase.execute(command);
 
       if (!result.success) {
-        // Clear cookies on failure
         res.clearCookie(ACCESS_COOKIE_NAME, { path: '/' });
         res.clearCookie(REFRESH_COOKIE_NAME, { path: '/api/auth/refresh' });
         throw new UnauthorizedException(result.errors.join(', '));

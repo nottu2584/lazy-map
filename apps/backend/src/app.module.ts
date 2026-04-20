@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { join } from 'path';
 
 // Provider modules - Wire up Clean Architecture layers
@@ -24,6 +26,11 @@ import { HealthModule } from './modules/health/health.module';
       ],
       expandVariables: true,        // Allow ${VAR} syntax in .env files
     }),
+    ThrottlerModule.forRoot([
+      { name: 'short', ttl: 1000, limit: 3 },
+      { name: 'medium', ttl: 10000, limit: 20 },
+      { name: 'long', ttl: 60000, limit: 100 },
+    ]),
     // Provider modules - Wire up the Clean Architecture layers from packages/
     ApplicationModule,      // Provides use cases from packages/application
     InfrastructureModule,  // Provides services from packages/infrastructure
@@ -35,6 +42,8 @@ import { HealthModule } from './modules/health/health.module';
     HealthModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

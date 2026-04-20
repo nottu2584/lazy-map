@@ -8,5 +8,6 @@ export * from './InitiateGoogleSignInUseCase';
 export * from './CompleteGoogleSignInUseCase';
 export * from './InitiateDiscordSignInUseCase';
 export * from './CompleteDiscordSignInUseCase';
+export * from './RefreshTokenUseCase';
 export * from './CheckAdminAccessUseCase';
 export * from './GetUserPermissionsUseCase';

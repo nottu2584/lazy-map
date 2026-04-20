@@ -35,7 +35,7 @@
         },
         "summary": "Register a new user",
         "tags": [
-          "authentication"
+          "auth"
         ]
       }
     },
@@ -70,7 +70,7 @@
         },
         "summary": "Login user",
         "tags": [
-          "authentication"
+          "auth"
         ]
       }
     },
@@ -100,155 +100,31 @@
         ],
         "summary": "Get current user profile",
         "tags": [
-          "authentication"
+          "auth"
         ]
       }
     },
-    "/api/auth/google": {
+    "/api/auth/refresh": {
       "post": {
-        "operationId": "AuthController_googleSignIn",
+        "operationId": "AuthController_refresh",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GoogleSignInDto"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
-            "description": "Successfully authenticated with Google",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid Google token"
-          }
-        },
-        "summary": "Sign in with Google",
-        "tags": [
-          "authentication"
-        ]
-      }
-    },
-    "/api/auth/link-google": {
-      "post": {
-        "operationId": "AuthController_linkGoogleAccount",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LinkGoogleAccountDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Google account linked successfully"
-          },
-          "400": {
-            "description": "Failed to link Google account"
+            "description": "Tokens refreshed successfully"
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Invalid or expired refresh token"
           }
         },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Link Google account to existing user",
+        "summary": "Refresh access token using refresh token cookie",
         "tags": [
-          "authentication"
+          "auth"
         ]
       }
     },
-    "/api/auth/discord": {
-      "post": {
-        "operationId": "AuthController_discordSignIn",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DiscordSignInDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully authenticated with Discord",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid Discord token"
-          }
-        },
-        "summary": "Sign in with Discord",
-        "tags": [
-          "authentication"
-        ]
-      }
-    },
-    "/api/auth/link-discord": {
-      "post": {
-        "operationId": "AuthController_linkDiscordAccount",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LinkDiscordAccountDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Discord account linked successfully"
-          },
-          "400": {
-            "description": "Failed to link Discord account"
-          },
-          "401": {
-            "description": "Authentication required"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Link Discord account to existing user",
-        "tags": [
-          "authentication"
-        ]
-      }
-    },
-    "/api/auth/google/login": {
+    "/api/auth/oauth/google/login": {
       "get": {
-        "operationId": "AuthController_initiateGoogleSignIn",
+        "operationId": "OAuthController_initiateGoogleSignIn",
         "parameters": [
           {
             "name": "state",
@@ -281,13 +157,13 @@
         },
         "summary": "Initiate Google OAuth sign-in",
         "tags": [
-          "authentication"
+          "oauth"
         ]
       }
     },
-    "/api/auth/google/callback": {
+    "/api/auth/oauth/google/callback": {
       "get": {
-        "operationId": "AuthController_completeGoogleSignIn",
+        "operationId": "OAuthController_completeGoogleSignIn",
         "parameters": [
           {
             "name": "code",
@@ -308,13 +184,13 @@
         },
         "summary": "Complete Google OAuth sign-in",
         "tags": [
-          "authentication"
+          "oauth"
         ]
       }
     },
-    "/api/auth/discord/login": {
+    "/api/auth/oauth/discord/login": {
       "get": {
-        "operationId": "AuthController_initiateDiscordSignIn",
+        "operationId": "OAuthController_initiateDiscordSignIn",
         "parameters": [
           {
             "name": "state",
@@ -347,13 +223,13 @@
         },
         "summary": "Initiate Discord OAuth sign-in",
         "tags": [
-          "authentication"
+          "oauth"
         ]
       }
     },
-    "/api/auth/discord/callback": {
+    "/api/auth/oauth/discord/callback": {
       "get": {
-        "operationId": "AuthController_completeDiscordSignIn",
+        "operationId": "OAuthController_completeDiscordSignIn",
         "parameters": [
           {
             "name": "code",
@@ -374,7 +250,109 @@
         },
         "summary": "Complete Discord OAuth sign-in",
         "tags": [
-          "authentication"
+          "oauth"
+        ]
+      }
+    },
+    "/api/auth/link-google": {
+      "post": {
+        "operationId": "AccountLinkingController_linkGoogleAccount",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkGoogleAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Google account linked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to link Google account"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Link Google account to existing user",
+        "tags": [
+          "account-linking"
+        ]
+      }
+    },
+    "/api/auth/link-discord": {
+      "post": {
+        "operationId": "AccountLinkingController_linkDiscordAccount",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkDiscordAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Discord account linked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to link Discord account"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Link Discord account to existing user",
+        "tags": [
+          "account-linking"
         ]
       }
     },
@@ -941,109 +919,6 @@
         ]
       }
     },
-    "/api/features": {
-      "get": {
-        "operationId": "FeaturesController_getAllFeatures",
-        "parameters": [
-          {
-            "name": "context",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "enum": [
-                "relief",
-                "natural",
-                "artificial",
-                "cultural"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Features retrieved successfully"
-          }
-        },
-        "summary": "Get all map features",
-        "tags": [
-          "features"
-        ]
-      }
-    },
-    "/api/features/statistics": {
-      "get": {
-        "operationId": "FeaturesController_getFeatureStatistics",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Statistics retrieved successfully"
-          }
-        },
-        "summary": "Get feature statistics by context",
-        "tags": [
-          "features"
-        ]
-      }
-    },
-    "/api/features/{id}": {
-      "get": {
-        "operationId": "FeaturesController_getFeature",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Feature ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Feature found"
-          },
-          "404": {
-            "description": "Feature not found"
-          }
-        },
-        "summary": "Get a feature by ID",
-        "tags": [
-          "features"
-        ]
-      }
-    },
-    "/api/features/all": {
-      "delete": {
-        "operationId": "FeaturesController_clearAllFeatures",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "All features cleared successfully"
-          }
-        },
-        "summary": "Clear all features from all contexts",
-        "tags": [
-          "features"
-        ]
-      }
-    },
-    "/api/features/health": {
-      "get": {
-        "operationId": "FeaturesController_healthCheck",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "summary": "Health check for features service",
-        "tags": [
-          "features"
-        ]
-      }
-    },
     "/api/health": {
       "get": {
         "operationId": "HealthController_getHealth",
@@ -1246,24 +1121,6 @@
           "createdAt"
         ]
       },
-      "GoogleSignInDto": {
-        "type": "object",
-        "properties": {
-          "idToken": {
-            "type": "string",
-            "description": "Google ID token received from Google Sign-In",
-            "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjI4YTQyMWNhZmJlM..."
-          },
-          "clientId": {
-            "type": "string",
-            "description": "Optional Google client ID for additional validation",
-            "example": "123456789012-abcdefghijk.apps.googleusercontent.com"
-          }
-        },
-        "required": [
-          "idToken"
-        ]
-      },
       "LinkGoogleAccountDto": {
         "type": "object",
         "properties": {
@@ -1275,19 +1132,6 @@
         },
         "required": [
           "idToken"
-        ]
-      },
-      "DiscordSignInDto": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string",
-            "description": "Discord access token received from Discord OAuth",
-            "example": "YOUR_DISCORD_ACCESS_TOKEN_HERE"
-          }
-        },
-        "required": [
-          "accessToken"
         ]
       },
       "LinkDiscordAccountDto": {

@@ -21,7 +21,14 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
+import {
+  ACCESS_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
+  getAccessCookieOptions,
+  getRefreshCookieOptions,
+} from '../../common/auth';
 
 @ApiTags('oauth')
 @Controller('auth/oauth')
@@ -36,6 +43,7 @@ export class OAuthController {
   ) {}
 
   @Get('google/login')
+  @Throttle({ long: { ttl: 60000, limit: 5 } })
   @ApiOperation({ summary: 'Initiate Google OAuth sign-in' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -143,9 +151,11 @@ export class OAuthController {
         },
       });
 
+      res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
+      res.cookie(REFRESH_COOKIE_NAME, result.refreshToken!, getRefreshCookieOptions());
+
       const successHtml = this.templateService.renderOAuthSuccess({
         provider: 'google',
-        token: result.token!,
         user: {
           id: result.user!.id.value,
           email: result.user!.email.value,
@@ -172,6 +182,7 @@ export class OAuthController {
   }
 
   @Get('discord/login')
+  @Throttle({ long: { ttl: 60000, limit: 5 } })
   @ApiOperation({ summary: 'Initiate Discord OAuth sign-in' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -279,9 +290,11 @@ export class OAuthController {
         },
       });
 
+      res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
+      res.cookie(REFRESH_COOKIE_NAME, result.refreshToken!, getRefreshCookieOptions());
+
       const successHtml = this.templateService.renderOAuthSuccess({
         provider: 'discord',
-        token: result.token!,
         user: {
           id: result.user!.id.value,
           email: result.user!.email.value,

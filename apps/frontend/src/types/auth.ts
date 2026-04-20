@@ -17,6 +17,17 @@ export interface AuthUser {
  * Response from login and register endpoints
  */
 export interface AuthResponse {
-  accessToken: string;
+  accessToken?: string;
   user: AuthUser;
+}
+
+/**
+ * Response from GET /auth/profile
+ */
+export interface UserProfile {
+  id: string;
+  email: string;
+  username: string;
+  createdAt: string;
+  lastLogin?: string;
 }

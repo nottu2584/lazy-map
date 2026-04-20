@@ -1,4 +1,4 @@
-import { IDiscordOAuthPort } from '../ports';
+import { IDiscordOAuthPort, IOAuthStatePort } from '../ports';
 import { ILogger } from '@lazy-map/domain';
 
 /**
@@ -18,6 +18,7 @@ export class InitiateDiscordSignInCommand {
 export class InitiateDiscordSignInUseCase {
   constructor(
     private readonly discordOAuthService: IDiscordOAuthPort,
+    private readonly oauthStateService: IOAuthStatePort,
     private readonly logger: ILogger
   ) {}
 
@@ -30,10 +31,13 @@ export class InitiateDiscordSignInUseCase {
         }
       });
 
+      // Generate CSRF state (backend always generates, ignores user-provided state)
+      const state = await this.oauthStateService.generateState();
+
       // Generate the authorization URL
       const authorizationUrl = this.discordOAuthService.getAuthorizationUrl(
         command.redirectUri,
-        command.state
+        state
       );
 
       this.logger.info('Generated Discord authorization URL', {

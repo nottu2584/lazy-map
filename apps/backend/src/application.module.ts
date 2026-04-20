@@ -19,6 +19,7 @@ import {
   LoginUserUseCase,
   PromoteUserUseCase,
   ReactivateUserUseCase,
+  RefreshTokenUseCase,
   RegisterUserUseCase,
   SaveMapUseCase,
   SuspendUserUseCase,
@@ -174,17 +175,17 @@ const shouldUseDatabase = () => {
     // User use cases
     {
       provide: RegisterUserUseCase,
-      useFactory: (userRepository, passwordService, authenticationPort) => {
-        return new RegisterUserUseCase(userRepository, passwordService, authenticationPort);
+      useFactory: (userRepository, passwordService, authenticationPort, refreshTokenService, refreshTokenRepository) => {
+        return new RegisterUserUseCase(userRepository, passwordService, authenticationPort, refreshTokenService, refreshTokenRepository);
       },
-      inject: ['IUserRepository', 'IPasswordService', 'IAuthenticationPort'],
+      inject: ['IUserRepository', 'IPasswordService', 'IAuthenticationPort', 'IRefreshTokenPort', 'IRefreshTokenRepository'],
     },
     {
       provide: LoginUserUseCase,
-      useFactory: (userRepository, passwordService, authenticationPort) => {
-        return new LoginUserUseCase(userRepository, passwordService, authenticationPort);
+      useFactory: (userRepository, passwordService, authenticationPort, refreshTokenService, refreshTokenRepository) => {
+        return new LoginUserUseCase(userRepository, passwordService, authenticationPort, refreshTokenService, refreshTokenRepository);
       },
-      inject: ['IUserRepository', 'IPasswordService', 'IAuthenticationPort'],
+      inject: ['IUserRepository', 'IPasswordService', 'IAuthenticationPort', 'IRefreshTokenPort', 'IRefreshTokenRepository'],
     },
     {
       provide: GetUserProfileUseCase,
@@ -209,10 +210,10 @@ const shouldUseDatabase = () => {
     },
     {
       provide: InitiateGoogleSignInUseCase,
-      useFactory: (googleOAuthService, logger) => {
-        return new InitiateGoogleSignInUseCase(googleOAuthService, logger);
+      useFactory: (googleOAuthService, oauthStateService, logger) => {
+        return new InitiateGoogleSignInUseCase(googleOAuthService, oauthStateService, logger);
       },
-      inject: ['IGoogleOAuthPort', 'ILogger'],
+      inject: ['IGoogleOAuthPort', 'IOAuthStatePort', 'ILogger'],
     },
     {
       provide: CompleteGoogleSignInUseCase,
@@ -222,6 +223,9 @@ const shouldUseDatabase = () => {
         googleOAuthService,
         authenticationService,
         tokenEncryptionService,
+        oauthStateService,
+        refreshTokenService,
+        refreshTokenRepository,
         logger,
       ) => {
         return new CompleteGoogleSignInUseCase(
@@ -230,6 +234,9 @@ const shouldUseDatabase = () => {
           googleOAuthService,
           authenticationService,
           tokenEncryptionService,
+          oauthStateService,
+          refreshTokenService,
+          refreshTokenRepository,
           logger,
         );
       },
@@ -239,15 +246,18 @@ const shouldUseDatabase = () => {
         'IGoogleOAuthPort',
         'IAuthenticationPort',
         'ITokenEncryptionPort',
+        'IOAuthStatePort',
+        'IRefreshTokenPort',
+        'IRefreshTokenRepository',
         'ILogger',
       ],
     },
     {
       provide: InitiateDiscordSignInUseCase,
-      useFactory: (discordOAuthService, logger) => {
-        return new InitiateDiscordSignInUseCase(discordOAuthService, logger);
+      useFactory: (discordOAuthService, oauthStateService, logger) => {
+        return new InitiateDiscordSignInUseCase(discordOAuthService, oauthStateService, logger);
       },
-      inject: ['IDiscordOAuthPort', 'ILogger'],
+      inject: ['IDiscordOAuthPort', 'IOAuthStatePort', 'ILogger'],
     },
     {
       provide: CompleteDiscordSignInUseCase,
@@ -257,6 +267,9 @@ const shouldUseDatabase = () => {
         discordOAuthService,
         authenticationService,
         tokenEncryptionService,
+        oauthStateService,
+        refreshTokenService,
+        refreshTokenRepository,
         logger,
       ) => {
         return new CompleteDiscordSignInUseCase(
@@ -265,6 +278,9 @@ const shouldUseDatabase = () => {
           discordOAuthService,
           authenticationService,
           tokenEncryptionService,
+          oauthStateService,
+          refreshTokenService,
+          refreshTokenRepository,
           logger,
         );
       },
@@ -274,6 +290,36 @@ const shouldUseDatabase = () => {
         'IDiscordOAuthPort',
         'IAuthenticationPort',
         'ITokenEncryptionPort',
+        'IOAuthStatePort',
+        'IRefreshTokenPort',
+        'IRefreshTokenRepository',
+        'ILogger',
+      ],
+    },
+
+    // Refresh token use case
+    {
+      provide: RefreshTokenUseCase,
+      useFactory: (
+        refreshTokenRepository,
+        userRepository,
+        refreshTokenService,
+        authenticationService,
+        logger,
+      ) => {
+        return new RefreshTokenUseCase(
+          refreshTokenRepository,
+          userRepository,
+          refreshTokenService,
+          authenticationService,
+          logger,
+        );
+      },
+      inject: [
+        'IRefreshTokenRepository',
+        'IUserRepository',
+        'IRefreshTokenPort',
+        'IAuthenticationPort',
         'ILogger',
       ],
     },
@@ -361,6 +407,7 @@ const shouldUseDatabase = () => {
     CompleteGoogleSignInUseCase,
     InitiateDiscordSignInUseCase,
     CompleteDiscordSignInUseCase,
+    RefreshTokenUseCase,
     // Export Admin Use Cases
     CheckAdminAccessUseCase,
     GetUserPermissionsUseCase,

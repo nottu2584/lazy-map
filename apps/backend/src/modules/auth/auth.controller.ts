@@ -1,27 +1,12 @@
 import {
   GetUserProfileQuery,
   GetUserProfileUseCase,
-  GoogleSignInCommand,
-  GoogleSignInUseCase,
-  DiscordSignInCommand,
-  DiscordSignInUseCase,
-  LinkGoogleAccountCommand,
-  LinkGoogleAccountUseCase,
-  LinkDiscordAccountCommand,
-  LinkDiscordAccountUseCase,
-  InitiateGoogleSignInCommand,
-  InitiateGoogleSignInUseCase,
-  CompleteGoogleSignInCommand,
-  CompleteGoogleSignInUseCase,
-  InitiateDiscordSignInCommand,
-  InitiateDiscordSignInUseCase,
-  CompleteDiscordSignInCommand,
-  CompleteDiscordSignInUseCase,
   LoginUserCommand,
   LoginUserUseCase,
+  RefreshTokenCommand,
+  RefreshTokenUseCase,
   RegisterUserCommand,
   RegisterUserUseCase,
-  ITemplatePort,
 } from '@lazy-map/application';
 import { ILogger } from '@lazy-map/domain';
 import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
@@ -34,46 +19,36 @@ import {
   HttpStatus,
   Inject,
   Post,
-  Query,
-  Res,
   Request,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import type { Response } from 'express';
 import {
-  AuthResponseDto,
-  GoogleSignInDto,
-  DiscordSignInDto,
-  LinkGoogleAccountDto,
-  LinkDiscordAccountDto,
-  LoginUserDto,
-  RegisterUserDto,
-  UserProfileDto
-} from './dto';
+  ACCESS_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
+  getAccessCookieOptions,
+  getRefreshCookieOptions,
+} from '../../common/auth';
+import { AuthResponseDto, LoginUserDto, RegisterUserDto, UserProfileDto } from './dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
-@ApiTags('authentication')
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly registerUserUseCase: RegisterUserUseCase,
     private readonly loginUserUseCase: LoginUserUseCase,
     private readonly getUserProfileUseCase: GetUserProfileUseCase,
-    private readonly googleSignInUseCase: GoogleSignInUseCase,
-    private readonly discordSignInUseCase: DiscordSignInUseCase,
-    private readonly linkGoogleAccountUseCase: LinkGoogleAccountUseCase,
-    private readonly linkDiscordAccountUseCase: LinkDiscordAccountUseCase,
-    private readonly initiateGoogleSignInUseCase: InitiateGoogleSignInUseCase,
-    private readonly completeGoogleSignInUseCase: CompleteGoogleSignInUseCase,
-    private readonly initiateDiscordSignInUseCase: InitiateDiscordSignInUseCase,
-    private readonly completeDiscordSignInUseCase: CompleteDiscordSignInUseCase,
+    private readonly refreshTokenUseCase: RefreshTokenUseCase,
     @Inject(LOGGER_TOKEN) private readonly logger: ILogger,
-    @Inject('ITemplatePort') private readonly templateService: ITemplatePort,
   ) {}
 
   @Post('register')
+  @Throttle({ long: { ttl: 60000, limit: 3 } })
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -88,18 +63,21 @@ export class AuthController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid registration data',
   })
-  async register(@Body() registerDto: RegisterUserDto): Promise<AuthResponseDto> {
+  async register(
+    @Body() registerDto: RegisterUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
     const operationLogger = this.logger.child({
       component: 'AuthController',
-      operation: 'register'
+      operation: 'register',
     });
 
     try {
       operationLogger.info('User registration attempt', {
         metadata: {
           email: registerDto.email,
-          username: registerDto.username
-        }
+          username: registerDto.username,
+        },
       });
 
       const command = new RegisterUserCommand(
@@ -115,8 +93,8 @@ export class AuthController {
           metadata: {
             email: registerDto.email,
             username: registerDto.username,
-            errors: result.errors
-          }
+            errors: result.errors,
+          },
         });
         throw new ConflictException(result.errors.join(', '));
       }
@@ -125,9 +103,12 @@ export class AuthController {
         metadata: {
           userId: result.user!.id.value,
           email: result.user!.email.value,
-          username: result.user!.username.value
-        }
+          username: result.user!.username.value,
+        },
       });
+
+      res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
+      res.cookie(REFRESH_COOKIE_NAME, result.refreshToken!, getRefreshCookieOptions());
 
       return {
         accessToken: result.token!,
@@ -141,18 +122,20 @@ export class AuthController {
       operationLogger.logError(error, {
         metadata: {
           email: registerDto.email,
-          username: registerDto.username
-        }
+          username: registerDto.username,
+        },
       });
 
       if (error instanceof ConflictException) {
         throw error;
       }
-      throw new BadRequestException('Registration failed: ' + error.message);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new BadRequestException('Registration failed: ' + message);
     }
   }
 
   @Post('login')
+  @Throttle({ long: { ttl: 60000, limit: 5 } })
   @ApiOperation({ summary: 'Login user' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -163,23 +146,23 @@ export class AuthController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'Invalid credentials',
   })
-  async login(@Body() loginDto: LoginUserDto): Promise<AuthResponseDto> {
+  async login(
+    @Body() loginDto: LoginUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponseDto> {
     const operationLogger = this.logger.child({
       component: 'AuthController',
-      operation: 'login'
+      operation: 'login',
     });
 
     try {
       operationLogger.info('User login attempt', {
         metadata: {
-          email: loginDto.email
-        }
+          email: loginDto.email,
+        },
       });
 
-      const command = new LoginUserCommand(
-        loginDto.email,
-        loginDto.password,
-      );
+      const command = new LoginUserCommand(loginDto.email, loginDto.password);
 
       const result = await this.loginUserUseCase.execute(command);
 
@@ -187,8 +170,8 @@ export class AuthController {
         operationLogger.warn('User login failed - invalid credentials', {
           metadata: {
             email: loginDto.email,
-            errors: result.errors
-          }
+            errors: result.errors,
+          },
         });
         throw new UnauthorizedException(result.errors.join(', '));
       }
@@ -197,9 +180,12 @@ export class AuthController {
         metadata: {
           userId: result.user!.id.value,
           email: result.user!.email.value,
-          username: result.user!.username.value
-        }
+          username: result.user!.username.value,
+        },
       });
+
+      res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
+      res.cookie(REFRESH_COOKIE_NAME, result.refreshToken!, getRefreshCookieOptions());
 
       return {
         accessToken: result.token!,
@@ -212,14 +198,15 @@ export class AuthController {
     } catch (error) {
       operationLogger.logError(error, {
         metadata: {
-          email: loginDto.email
-        }
+          email: loginDto.email,
+        },
       });
 
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      throw new UnauthorizedException('Login failed: ' + error.message);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new UnauthorizedException('Login failed: ' + message);
     }
   }
 
@@ -240,7 +227,7 @@ export class AuthController {
     const operationLogger = this.logger.child({
       component: 'AuthController',
       operation: 'getProfile',
-      userId: req.user.userId
+      userId: req.user.userId,
     });
 
     try {
@@ -251,18 +238,18 @@ export class AuthController {
 
       if (!result.success) {
         operationLogger.warn('Failed to retrieve user profile', {
-          metadata: { errors: result.errors }
+          metadata: { errors: result.errors },
         });
         throw new UnauthorizedException(result.errors.join(', '));
       }
 
       const user = result.user!;
-      
+
       operationLogger.debug('User profile retrieved successfully', {
         metadata: {
           email: user.email.value,
-          username: user.username.value
-        }
+          username: user.username.value,
+        },
       });
 
       return {
@@ -278,516 +265,68 @@ export class AuthController {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      throw new UnauthorizedException('Failed to get profile: ' + error.message);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new UnauthorizedException('Failed to get profile: ' + message);
     }
   }
 
-  @Post('google')
-  @ApiOperation({ summary: 'Sign in with Google' })
+  @Post('refresh')
+  @Throttle({ long: { ttl: 60000, limit: 10 } })
+  @ApiOperation({ summary: 'Refresh access token using refresh token cookie' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Successfully authenticated with Google',
-    type: AuthResponseDto,
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid Google token',
-  })
-  async googleSignIn(@Body() googleSignInDto: GoogleSignInDto): Promise<AuthResponseDto> {
-    const operationLogger = this.logger.child({
-      component: 'AuthController',
-      operation: 'googleSignIn'
-    });
-
-    try {
-      operationLogger.info('Google sign-in attempt');
-
-      const command = new GoogleSignInCommand(
-        googleSignInDto.idToken,
-        googleSignInDto.clientId
-      );
-
-      const result = await this.googleSignInUseCase.execute(command);
-
-      if (!result.success) {
-        operationLogger.warn('Google sign-in failed', {
-          metadata: { errors: result.errors }
-        });
-        throw new BadRequestException(result.errors.join(', '));
-      }
-
-      operationLogger.info('Google sign-in successful', {
-        metadata: {
-          userId: result.user!.id.value,
-          email: result.user!.email.value,
-          username: result.user!.username.value
-        }
-      });
-
-      return {
-        accessToken: result.token!,
-        user: {
-          id: result.user!.id.value,
-          email: result.user!.email.value,
-          username: result.user!.username.value,
-        },
-      };
-    } catch (error) {
-      operationLogger.logError(error);
-
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new BadRequestException('Google sign-in failed: ' + error.message);
-    }
-  }
-
-  @Post('link-google')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Link Google account to existing user' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Google account linked successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Failed to link Google account',
+    description: 'Tokens refreshed successfully',
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
-    description: 'Authentication required',
+    description: 'Invalid or expired refresh token',
   })
-  async linkGoogleAccount(
+  async refresh(
     @Request() req: any,
-    @Body() linkGoogleDto: LinkGoogleAccountDto
-  ): Promise<{ success: boolean; message: string }> {
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ user: { id: string; email: string; username: string } }> {
     const operationLogger = this.logger.child({
       component: 'AuthController',
-      operation: 'linkGoogleAccount',
-      userId: req.user.userId
+      operation: 'refresh',
     });
 
     try {
-      operationLogger.info('Attempting to link Google account');
+      const rawRefreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
 
-      const command = new LinkGoogleAccountCommand(
-        req.user.userId,
-        linkGoogleDto.idToken
+      if (!rawRefreshToken) {
+        throw new UnauthorizedException('No refresh token provided');
+      }
+
+      const command = new RefreshTokenCommand(
+        rawRefreshToken,
+        req.headers['user-agent'],
+        req.ip,
       );
 
-      const result = await this.linkGoogleAccountUseCase.execute(command);
+      const result = await this.refreshTokenUseCase.execute(command);
 
       if (!result.success) {
-        operationLogger.warn('Failed to link Google account', {
-          metadata: { errors: result.errors }
-        });
-        throw new BadRequestException(result.errors.join(', '));
+        res.clearCookie(ACCESS_COOKIE_NAME, { path: '/' });
+        res.clearCookie(REFRESH_COOKIE_NAME, { path: '/api/auth/refresh' });
+        throw new UnauthorizedException(result.errors.join(', '));
       }
 
-      operationLogger.info('Google account linked successfully');
+      res.cookie(ACCESS_COOKIE_NAME, result.accessToken!, getAccessCookieOptions());
+      res.cookie(REFRESH_COOKIE_NAME, result.refreshToken!, getRefreshCookieOptions());
 
-      return {
-        success: true,
-        message: 'Google account linked successfully'
-      };
+      operationLogger.info('Token refresh successful', {
+        metadata: { userId: result.user!.id },
+      });
+
+      return { user: result.user! };
     } catch (error) {
       operationLogger.logError(error);
 
-      if (error instanceof BadRequestException) {
+      if (error instanceof UnauthorizedException) {
         throw error;
       }
-      throw new BadRequestException('Failed to link Google account: ' + error.message);
-    }
-  }
-
-  @Post('discord')
-  @ApiOperation({ summary: 'Sign in with Discord' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Successfully authenticated with Discord',
-    type: AuthResponseDto,
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid Discord token',
-  })
-  async discordSignIn(@Body() discordSignInDto: DiscordSignInDto): Promise<AuthResponseDto> {
-    const operationLogger = this.logger.child({
-      component: 'AuthController',
-      operation: 'discordSignIn'
-    });
-
-    try {
-      operationLogger.info('Discord sign-in attempt');
-
-      const command = new DiscordSignInCommand(
-        discordSignInDto.accessToken
-      );
-
-      const result = await this.discordSignInUseCase.execute(command);
-
-      if (!result.success) {
-        operationLogger.warn('Discord sign-in failed', {
-          metadata: { errors: result.errors }
-        });
-        throw new BadRequestException(result.errors.join(', '));
-      }
-
-      operationLogger.info('Discord sign-in successful', {
-        metadata: {
-          userId: result.user!.id.value,
-          email: result.user!.email.value,
-          username: result.user!.username.value
-        }
-      });
-
-      return {
-        accessToken: result.token!,
-        user: {
-          id: result.user!.id.value,
-          email: result.user!.email.value,
-          username: result.user!.username.value,
-        },
-      };
-    } catch (error) {
-      operationLogger.logError(error);
-
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new BadRequestException('Discord sign-in failed: ' + error.message);
-    }
-  }
-
-  @Post('link-discord')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Link Discord account to existing user' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Discord account linked successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Failed to link Discord account',
-  })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
-    description: 'Authentication required',
-  })
-  async linkDiscordAccount(
-    @Request() req: any,
-    @Body() linkDiscordDto: LinkDiscordAccountDto
-  ): Promise<{ success: boolean; message: string }> {
-    const operationLogger = this.logger.child({
-      component: 'AuthController',
-      operation: 'linkDiscordAccount',
-      userId: req.user.userId
-    });
-
-    try {
-      operationLogger.info('Attempting to link Discord account');
-
-      const command = new LinkDiscordAccountCommand(
-        req.user.userId,
-        linkDiscordDto.accessToken
-      );
-
-      const result = await this.linkDiscordAccountUseCase.execute(command);
-
-      if (!result.success) {
-        operationLogger.warn('Failed to link Discord account', {
-          metadata: { errors: result.errors }
-        });
-        throw new BadRequestException(result.errors.join(', '));
-      }
-
-      operationLogger.info('Discord account linked successfully');
-
-      return {
-        success: true,
-        message: 'Discord account linked successfully'
-      };
-    } catch (error) {
-      operationLogger.logError(error);
-
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new BadRequestException('Failed to link Discord account: ' + error.message);
-    }
-  }
-
-  @Get('google/login')
-  @ApiOperation({ summary: 'Initiate Google OAuth sign-in' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Authorization URL generated successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        authorizationUrl: { type: 'string' }
-      }
-    }
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Failed to generate authorization URL',
-  })
-  async initiateGoogleSignIn(
-    @Query('state') state?: string
-  ): Promise<{ authorizationUrl: string }> {
-    const operationLogger = this.logger.child({
-      component: 'AuthController',
-      operation: 'initiateGoogleSignIn'
-    });
-
-    try {
-      operationLogger.info('Initiating Google OAuth sign-in', {
-        metadata: { hasState: !!state }
-      });
-
-      // redirectUri is now handled internally by the OAuth service
-      const command = new InitiateGoogleSignInCommand('', state);
-      const result = await this.initiateGoogleSignInUseCase.execute(command);
-
-      if (!result.success) {
-        operationLogger.warn('Failed to initiate Google sign-in', {
-          metadata: { errors: result.errors }
-        });
-        throw new BadRequestException(result.errors.join(', '));
-      }
-
-      operationLogger.info('Google authorization URL generated successfully');
-
-      return {
-        authorizationUrl: result.authorizationUrl!
-      };
-    } catch (error) {
-      operationLogger.logError(error);
-
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new BadRequestException('Failed to initiate Google sign-in: ' + error.message);
-    }
-  }
-
-  @Get('google/callback')
-  @ApiOperation({ summary: 'Complete Google OAuth sign-in' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'OAuth sign-in completed successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid OAuth callback',
-  })
-  async completeGoogleSignIn(
-    @Query('code') code: string,
-    @Query('state') state: string | undefined,
-    @Res() res: Response
-  ): Promise<void> {
-    const operationLogger = this.logger.child({
-      component: 'AuthController',
-      operation: 'completeGoogleSignIn'
-    });
-
-    try {
-      if (!code) {
-        throw new BadRequestException('code query parameter is required');
-      }
-
-      operationLogger.info('Completing Google OAuth sign-in', {
-        metadata: { hasState: !!state }
-      });
-
-      // redirectUri is now handled internally by the OAuth service
-      const command = new CompleteGoogleSignInCommand(code, '', state);
-      const result = await this.completeGoogleSignInUseCase.execute(command);
-
-      if (!result.success) {
-        operationLogger.warn('Google OAuth sign-in failed', {
-          metadata: { errors: result.errors }
-        });
-
-        const errorHtml = this.templateService.renderOAuthError({
-          provider: 'google',
-          errorMessage: result.errors.join(', ')
-        });
-
-        res.status(HttpStatus.BAD_REQUEST).send(errorHtml);
-        return;
-      }
-
-      operationLogger.info('Google OAuth sign-in completed successfully', {
-        metadata: {
-          userId: result.user!.id.value,
-          email: result.user!.email.value
-        }
-      });
-
-      const successHtml = this.templateService.renderOAuthSuccess({
-        provider: 'google',
-        token: result.token!,
-        user: {
-          id: result.user!.id.value,
-          email: result.user!.email.value,
-          username: result.user!.username.value
-        }
-      });
-
-      res.status(HttpStatus.OK).send(successHtml);
-    } catch (error) {
-      operationLogger.logError(error);
-
-      const errorMessage = error instanceof BadRequestException
-        ? error.message
-        : 'OAuth sign-in failed: ' + error.message;
-
-      const errorHtml = this.templateService.renderOAuthError({
-        provider: 'google',
-        errorMessage
-      });
-
-      res.status(HttpStatus.BAD_REQUEST).send(errorHtml);
-    }
-  }
-
-  @Get('discord/login')
-  @ApiOperation({ summary: 'Initiate Discord OAuth sign-in' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Authorization URL generated successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        authorizationUrl: { type: 'string' }
-      }
-    }
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Failed to generate authorization URL',
-  })
-  async initiateDiscordSignIn(
-    @Query('state') state?: string
-  ): Promise<{ authorizationUrl: string }> {
-    const operationLogger = this.logger.child({
-      component: 'AuthController',
-      operation: 'initiateDiscordSignIn'
-    });
-
-    try {
-      operationLogger.info('Initiating Discord OAuth sign-in', {
-        metadata: { hasState: !!state }
-      });
-
-      // redirectUri is now handled internally by the OAuth service
-      const command = new InitiateDiscordSignInCommand('', state);
-      const result = await this.initiateDiscordSignInUseCase.execute(command);
-
-      if (!result.success) {
-        operationLogger.warn('Failed to initiate Discord sign-in', {
-          metadata: { errors: result.errors }
-        });
-        throw new BadRequestException(result.errors.join(', '));
-      }
-
-      operationLogger.info('Discord authorization URL generated successfully');
-
-      return {
-        authorizationUrl: result.authorizationUrl!
-      };
-    } catch (error) {
-      operationLogger.logError(error);
-
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new BadRequestException('Failed to initiate Discord sign-in: ' + error.message);
-    }
-  }
-
-  @Get('discord/callback')
-  @ApiOperation({ summary: 'Complete Discord OAuth sign-in' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'OAuth sign-in completed successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid OAuth callback',
-  })
-  async completeDiscordSignIn(
-    @Query('code') code: string,
-    @Query('state') state: string | undefined,
-    @Res() res: Response
-  ): Promise<void> {
-    const operationLogger = this.logger.child({
-      component: 'AuthController',
-      operation: 'completeDiscordSignIn'
-    });
-
-    try {
-      if (!code) {
-        throw new BadRequestException('code query parameter is required');
-      }
-
-      operationLogger.info('Completing Discord OAuth sign-in', {
-        metadata: { hasState: !!state }
-      });
-
-      // redirectUri is now handled internally by the OAuth service
-      const command = new CompleteDiscordSignInCommand(code, '', state);
-      const result = await this.completeDiscordSignInUseCase.execute(command);
-
-      if (!result.success) {
-        operationLogger.warn('Discord OAuth sign-in failed', {
-          metadata: { errors: result.errors }
-        });
-
-        const errorHtml = this.templateService.renderOAuthError({
-          provider: 'discord',
-          errorMessage: result.errors.join(', ')
-        });
-
-        res.status(HttpStatus.BAD_REQUEST).send(errorHtml);
-        return;
-      }
-
-      operationLogger.info('Discord OAuth sign-in completed successfully', {
-        metadata: {
-          userId: result.user!.id.value,
-          email: result.user!.email.value
-        }
-      });
-
-      const successHtml = this.templateService.renderOAuthSuccess({
-        provider: 'discord',
-        token: result.token!,
-        user: {
-          id: result.user!.id.value,
-          email: result.user!.email.value,
-          username: result.user!.username.value
-        }
-      });
-
-      res.status(HttpStatus.OK).send(successHtml);
-    } catch (error) {
-      operationLogger.logError(error);
-
-      const errorMessage = error instanceof BadRequestException
-        ? error.message
-        : 'OAuth sign-in failed: ' + error.message;
-
-      const errorHtml = this.templateService.renderOAuthError({
-        provider: 'discord',
-        errorMessage
-      });
-
-      res.status(HttpStatus.BAD_REQUEST).send(errorHtml);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new UnauthorizedException('Token refresh failed: ' + message);
     }
   }
 }

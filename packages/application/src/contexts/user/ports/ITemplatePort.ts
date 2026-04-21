@@ -18,7 +18,7 @@ export interface ITemplatePort {
  */
 export interface OAuthSuccessData {
   provider: 'google' | 'discord';
-  token: string;
+  token?: string;
   user: {
     id: string;
     email: string;

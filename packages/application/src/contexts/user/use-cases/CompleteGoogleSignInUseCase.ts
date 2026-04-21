@@ -5,10 +5,12 @@ import {
   GoogleId,
   IUserRepository,
   IOAuthTokenRepository,
+  IRefreshTokenRepository,
   OAuthToken,
+  RefreshToken,
   ILogger
 } from '@lazy-map/domain';
-import { IGoogleOAuthPort, IAuthenticationPort, ITokenEncryptionPort } from '../ports';
+import { IGoogleOAuthPort, IAuthenticationPort, ITokenEncryptionPort, IOAuthStatePort, IRefreshTokenPort } from '../ports';
 
 /**
  * Command for completing Google OAuth sign-in
@@ -33,6 +35,9 @@ export class CompleteGoogleSignInUseCase {
     private readonly googleOAuthService: IGoogleOAuthPort,
     private readonly authenticationService: IAuthenticationPort,
     private readonly tokenEncryptionService: ITokenEncryptionPort,
+    private readonly oauthStateService: IOAuthStatePort,
+    private readonly refreshTokenService: IRefreshTokenPort,
+    private readonly refreshTokenRepository: IRefreshTokenRepository,
     private readonly logger: ILogger
   ) {}
 
@@ -44,6 +49,29 @@ export class CompleteGoogleSignInUseCase {
           hasState: !!command.state
         }
       });
+
+      // 0. Validate CSRF state
+      if (!command.state) {
+        return {
+          success: false,
+          errors: ['Invalid or expired OAuth state'],
+          user: null,
+          token: null
+        };
+      }
+
+      const stateValid = await this.oauthStateService.validateAndConsume(command.state);
+      if (!stateValid) {
+        this.logger.warn('OAuth state validation failed', {
+          metadata: { provider: 'google' }
+        });
+        return {
+          success: false,
+          errors: ['Invalid or expired OAuth state'],
+          user: null,
+          token: null
+        };
+      }
 
       // 1. Exchange authorization code for tokens
       const oauthTokens = await this.googleOAuthService.exchangeCodeForTokens(
@@ -174,11 +202,21 @@ export class CompleteGoogleSignInUseCase {
       // 6. Generate JWT token for authentication
       const jwtToken = await this.authenticationService.generateTokenFromUser(user);
 
+      // 7. Generate refresh token
+      const refreshData = await this.refreshTokenService.generateRefreshToken();
+      const refreshToken = RefreshToken.create(
+        user.id,
+        refreshData.tokenHash,
+        refreshData.expiresAt,
+      );
+      await this.refreshTokenRepository.save(refreshToken);
+
       return {
         success: true,
         errors: [],
         user,
-        token: jwtToken
+        token: jwtToken,
+        refreshToken: refreshData.token,
       };
     } catch (error) {
       this.logger.logError(error as Error, {
@@ -230,4 +268,5 @@ export interface CompleteGoogleSignInResult {
   errors: string[];
   user: User | null;
   token: string | null;
+  refreshToken?: string;
 }

@@ -203,8 +203,10 @@ export class GoogleOAuthService implements IGoogleOAuthPort {
 
   /**
    * Validates a Google ID token and returns user information
-   * @deprecated Use getUserInfo with server-side OAuth flow instead
-   * This method is kept for backward compatibility with client-side flow
+   *
+   * SECURITY NOTE: This validates client-provided tokens and is only used for account linking.
+   * TODO: Migrate LinkGoogleAccountUseCase to server-side OAuth flow to eliminate this method.
+   * New features should use getUserInfo() with server-side code exchange instead.
    */
   async validateGoogleIdToken(idToken: string): Promise<GoogleUserInfo> {
     try {

@@ -17,7 +17,7 @@ Deterministic tactical battlemap generator for tabletop RPGs.
 
 ### Architecture
 - [Overview](./architecture/overview.md) - Clean Architecture principles
-- [Map Generation](./architecture/map-generation.md) - The 6-layer system
+- [Map Generation](./architecture/map-generation.md) - The 5-layer terrain system
 - [Conventions](./architecture/conventions.md) - Code style and naming
 - [Security](./architecture/security.md) - Security practices and considerations
 - [Conventional Commits](./architecture/conventional-commits.md) - Commit message format
@@ -35,7 +35,7 @@ Deterministic tactical battlemap generator for tabletop RPGs.
 
 **Deterministic**: Same seed always produces the same map.
 
-**6-Layer System**: Geology → Topography → Hydrology → Vegetation → Structures → Features
+**5-Layer Terrain System**: Geology → Topography → Hydrology → Vegetation → Structures
 
 ## Contributing
 

@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { apiService, logger } from '../services';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Field, FieldLabel } from './ui/field';
+import { useAuth } from '@/contexts';
+import { apiService, logger } from '@/services';
 import { Alert, AlertDescription } from './ui/alert';
+import { Button } from './ui/button';
+import { Field, FieldLabel } from './ui/field';
+import { Input } from './ui/input';
 
 export function LoginForm() {
   const { login } = useAuth();
-  const [email, setEmail] = useState('demo@example.com');
-  const [password, setPassword] = useState('demo');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,28 +19,17 @@ export function LoginForm() {
     setError(null);
 
     try {
-      const response = await apiService.login(email, password);
-      if (response.success && response.data) {
-        login(response.data.user, response.data.token);
-      } else {
-        // Log technical error details
-        logger.error('Login failed', {
-          component: 'LoginForm',
-          operation: 'handleSubmit',
-          metadata: { error: response.error },
-        });
-        // Show user-friendly message
-        setError('Invalid email or password. Try demo@example.com / demo');
-      }
+      const data = await apiService.login(email, password);
+      login(data.user);
     } catch (err) {
-      // Log technical error details
       logger.error('Login error', {
         component: 'LoginForm',
         operation: 'handleSubmit',
         metadata: { error: err instanceof Error ? err.message : 'Unknown error' },
       });
-      // Show user-friendly message
-      setError('Unable to sign in. Try demo@example.com / demo');
+      setError(
+        err instanceof Error ? err.message : 'Unable to sign in. Try demo@example.com / demo',
+      );
     }
 
     setIsLoading(false);
@@ -76,17 +65,9 @@ export function LoginForm() {
         </Alert>
       )}
 
-      <Button
-        type="submit"
-        disabled={isLoading}
-        className="w-full"
-      >
+      <Button type="submit" disabled={isLoading} className="w-full">
         {isLoading ? 'Signing in...' : 'Sign In'}
       </Button>
-
-      <p className="text-sm text-center">
-        Demo credentials: demo@example.com / demo
-      </p>
     </form>
   );
 }

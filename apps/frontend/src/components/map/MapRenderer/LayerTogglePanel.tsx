@@ -12,7 +12,6 @@ const LAYER_LABELS: { id: LayerId; label: string }[] = [
   { id: 'hydrology', label: 'Water' },
   { id: 'vegetation', label: 'Vegetation' },
   { id: 'structures', label: 'Structures' },
-  { id: 'features', label: 'Features' },
   { id: 'grid', label: 'Grid' },
 ];
 

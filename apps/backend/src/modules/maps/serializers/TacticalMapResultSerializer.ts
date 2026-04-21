@@ -20,7 +20,6 @@ export function serializeTacticalMapResult(result: TacticalMapGenerationResult) 
       hydrology: serializeHydrologyLayer(result.layers.hydrology),
       vegetation: serializeVegetationLayer(result.layers.vegetation),
       structures: serializeStructuresLayer(result.layers.structures),
-      features: serializeFeaturesLayer(result.layers.features),
     },
     generationTime: result.generationTime,
   };
@@ -88,28 +87,3 @@ function serializeStructuresLayer(structures: TacticalMapGenerationResult['layer
   };
 }
 
-function serializeFeaturesLayer(features: TacticalMapGenerationResult['layers']['features']) {
-  // Position objects have public x/y so they serialize, but normalize for safety
-  return {
-    tiles: features.tiles,
-    hazards: features.hazards.map((h) => ({
-      position: { x: h.position.x, y: h.position.y },
-      type: h.type,
-      level: h.level,
-      radius: h.radius,
-    })),
-    resources: features.resources.map((r) => ({
-      position: { x: r.position.x, y: r.position.y },
-      type: r.type,
-      quantity: r.quantity,
-      quality: r.quality,
-    })),
-    landmarks: features.landmarks.map((l) => ({
-      position: { x: l.position.x, y: l.position.y },
-      type: l.type,
-      significance: l.significance,
-      lore: l.lore,
-    })),
-    totalFeatureCount: features.totalFeatureCount,
-  };
-}

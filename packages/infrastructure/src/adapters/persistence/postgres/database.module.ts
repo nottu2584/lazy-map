@@ -1,8 +1,8 @@
 import { Module, Global } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getDatabaseConfig } from './database.config';
-import { UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity } from './entities';
-import { PostgresUserRepository, PostgresOAuthTokenRepository } from './repositories';
+import { UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity, RefreshTokenEntity } from './entities';
+import { PostgresUserRepository, PostgresOAuthTokenRepository, PostgresRefreshTokenRepository } from './repositories';
 
 /**
  * Database module for PostgreSQL integration
@@ -19,12 +19,13 @@ import { PostgresUserRepository, PostgresOAuthTokenRepository } from './reposito
       useFactory: () => getDatabaseConfig(),
     }),
     // Register entities for repository injection
-    TypeOrmModule.forFeature([UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity]),
+    TypeOrmModule.forFeature([UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity, RefreshTokenEntity]),
   ],
   providers: [
     // Repository providers
     PostgresUserRepository,
     PostgresOAuthTokenRepository,
+    PostgresRefreshTokenRepository,
 
     // Provide repositories with domain interface tokens
     {
@@ -35,14 +36,20 @@ import { PostgresUserRepository, PostgresOAuthTokenRepository } from './reposito
       provide: 'IOAuthTokenRepository',
       useClass: PostgresOAuthTokenRepository,
     },
+    {
+      provide: 'IRefreshTokenRepository',
+      useClass: PostgresRefreshTokenRepository,
+    },
   ],
   exports: [
     // Export TypeOrmModule so other modules can inject TypeORM repositories
     TypeOrmModule,
     PostgresUserRepository,
     PostgresOAuthTokenRepository,
+    PostgresRefreshTokenRepository,
     'IUserRepository',
     'IOAuthTokenRepository',
+    'IRefreshTokenRepository',
   ],
 })
 export class DatabaseModule {}

@@ -1,26 +1,26 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useOAuthPopup } from '@/hooks';
-import { logger } from '../services';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { DiscordIcon, GoogleIcon } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import {
+  isPasswordValid,
   PasswordRequirements,
   validatePassword,
-  isPasswordValid,
 } from '@/components/ui/password-requirements';
-import { Field, FieldLabel } from '@/components/ui/field';
 import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { GoogleIcon, DiscordIcon } from '@/components/ui/icons';
+import { useOAuthPopup } from '@/hooks';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts';
+import { apiService, logger } from '@/services';
 
 interface LoginModalProps {
   onClose: () => void;
@@ -40,21 +40,26 @@ export function LoginModal({ onClose }: LoginModalProps) {
   const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false);
 
   const { openOAuthPopup } = useOAuthPopup({
-    onSuccess: (user, token) => {
-      login(user, token);
+    onSuccess: (user) => {
+      login(user);
       onClose();
+    },
+    onError: (errorMessage) => {
+      setError(errorMessage);
     },
   });
 
   // Validate password in real-time for signup
   const passwordValidation = isSignUp
-    ? validatePassword(formData.password, confirmPasswordTouched ? formData.confirmPassword : undefined)
+    ? validatePassword(
+        formData.password,
+        confirmPasswordTouched ? formData.confirmPassword : undefined,
+      )
     : null;
 
-  const isPasswordFormValid = !isSignUp || (
-    isPasswordValid(passwordValidation!) &&
-    formData.password === formData.confirmPassword
-  );
+  const isPasswordFormValid =
+    !isSignUp ||
+    (isPasswordValid(passwordValidation!) && formData.password === formData.confirmPassword);
 
   // Reset confirmation state when switching between login/signup
   useEffect(() => {
@@ -80,56 +85,18 @@ export function LoginModal({ onClose }: LoginModalProps) {
           setIsLoading(false);
           return;
         }
-        // Call signup API
-        const response = await fetch('http://localhost:3030/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-            username: formData.username,
-          }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          logger.error('Registration failed', {
-            component: 'LoginModal',
-            operation: 'handleSubmit',
-            metadata: { status: response.status, error: errorData },
-          });
-          throw new Error('Registration failed');
-        }
-
-        const data = await response.json();
-        login(data.user, data.accessToken);
+        const data = await apiService.register(
+          formData.email,
+          formData.password,
+          formData.username,
+        );
+        login(data.user);
       } else {
-        // Call login API
-        const response = await fetch('http://localhost:3030/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-          }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          logger.error('Login failed', {
-            component: 'LoginModal',
-            operation: 'handleSubmit',
-            metadata: { status: response.status, error: errorData },
-          });
-          throw new Error('Invalid credentials');
-        }
-
-        const data = await response.json();
-        login(data.user, data.accessToken);
+        const data = await apiService.login(formData.email, formData.password);
+        login(data.user);
       }
       onClose();
     } catch (err) {
-      // Log technical error details for debugging
       logger.error('Authentication error', {
         component: 'LoginModal',
         operation: 'handleSubmit',
@@ -139,14 +106,10 @@ export function LoginModal({ onClose }: LoginModalProps) {
         },
       });
 
-      // Show user-friendly message
-      if (err instanceof TypeError && err.message.includes('fetch')) {
-        // Network error (API not reachable)
+      if (err instanceof TypeError && err.message.includes('Network')) {
         setError('Unable to connect. Please try again later.');
-      } else if (err instanceof Error && err.message === 'Registration failed') {
-        setError('Registration failed. This email may already be in use.');
-      } else if (err instanceof Error && err.message === 'Invalid credentials') {
-        setError('Invalid email or password. Please try again.');
+      } else if (err instanceof Error) {
+        setError(err.message);
       } else {
         setError('Something went wrong. Please try again.');
       }
@@ -155,37 +118,24 @@ export function LoginModal({ onClose }: LoginModalProps) {
     }
   };
 
-
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="mb-6">
-          <DialogTitle>
-            {isSignUp ? 'Create Account' : 'Welcome Back'}
-          </DialogTitle>
+          <DialogTitle>{isSignUp ? 'Create Account' : 'Welcome Back'}</DialogTitle>
           <DialogDescription>
-            {isSignUp
-              ? 'Sign up to save your generated maps'
-              : 'Sign in to access your saved maps'}
+            {isSignUp ? 'Sign up to save your generated maps' : 'Sign in to access your saved maps'}
           </DialogDescription>
         </DialogHeader>
 
         {/* OAuth Buttons */}
         <div className="space-y-3">
-          <Button
-            variant="outline"
-            onClick={() => openOAuthPopup('google')}
-            className="w-full"
-          >
+          <Button variant="outline" onClick={() => openOAuthPopup('google')} className="w-full">
             <GoogleIcon />
             Continue with Google
           </Button>
 
-          <Button
-            variant="outline"
-            onClick={() => openOAuthPopup('discord')}
-            className="w-full"
-          >
+          <Button variant="outline" onClick={() => openOAuthPopup('discord')} className="w-full">
             <DiscordIcon />
             Continue with Discord
           </Button>
@@ -260,9 +210,11 @@ export function LoginModal({ onClose }: LoginModalProps) {
                 onBlur={() => setConfirmPasswordTouched(true)}
                 placeholder="••••••••"
               />
-              {confirmPasswordTouched && formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                <p className="text-sm text-destructive">Passwords do not match</p>
-              )}
+              {confirmPasswordTouched &&
+                formData.confirmPassword &&
+                formData.password !== formData.confirmPassword && (
+                  <p className="text-sm text-destructive">Passwords do not match</p>
+                )}
             </Field>
           )}
 
@@ -272,11 +224,7 @@ export function LoginModal({ onClose }: LoginModalProps) {
             </Alert>
           )}
 
-          <Button
-            type="submit"
-            disabled={isLoading || !isPasswordFormValid}
-            className="w-full"
-          >
+          <Button type="submit" disabled={isLoading || !isPasswordFormValid} className="w-full">
             {isLoading ? 'Processing...' : isSignUp ? 'Create Account' : 'Sign In'}
           </Button>
         </form>
@@ -290,9 +238,7 @@ export function LoginModal({ onClose }: LoginModalProps) {
               setFormData({ email: '', password: '', username: '', confirmPassword: '' });
             }}
           >
-            {isSignUp
-              ? 'Already have an account? Sign in'
-              : "Don't have an account? Sign up"}
+            {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
           </Button>
         </div>
 

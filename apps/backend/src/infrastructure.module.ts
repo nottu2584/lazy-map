@@ -16,35 +16,29 @@ import {
   DecorationGenerationService,
   ElevationGenerationService,
   ErosionModelService,
-  FeaturesLayer,
-  FeatureTileGenerationService,
   FlowCalculationService,
   ForestGenerationService,
   FormationSelectionService,
   GeologicalFeaturesService,
   GeologyLayer,
   GeologyTileGenerationService,
-  HazardPlacementService,
   HtmlTemplateService,
   HybridMapRepository,
+  InMemoryOAuthStateService,
+  RefreshTokenService,
   HydrologyLayer,
-  InMemoryArtificialRepository,
-  InMemoryCulturalRepository,
   InMemoryMapHistoryRepository,
   InMemoryMapPersistence,
-  InMemoryNaturalRepository,
   InMemoryOAuthTokenRepository,
-  InMemoryReliefRepository,
+  InMemoryRefreshTokenRepository,
   InMemoryUserRepository,
   JwtAuthenticationService,
-  LandmarkPlacementService,
   LayoutGenerationService,
   LoggingModule,
   MapRepositoryAdapter,
   MoistureCalculationService,
   PlantGenerationService,
   PotentialCalculationService,
-  ResourcePlacementService,
   RoadGenerationService,
   RoomAllocationService,
   SegmentGenerationService,
@@ -92,7 +86,6 @@ const shouldUseDatabase = () => {
     { provide: 'IHydrologyLayerService', useClass: HydrologyLayer },
     { provide: 'IVegetationLayerService', useClass: VegetationLayer },
     { provide: 'IStructuresLayerService', useClass: StructuresLayer },
-    { provide: 'IFeaturesLayerService', useClass: FeaturesLayer },
 
     // Geology internal services
     FormationSelectionService,
@@ -137,12 +130,6 @@ const shouldUseDatabase = () => {
     ConfigurationCalculationService,
     RoomAllocationService,
     LayoutGenerationService,
-
-    // Features internal services
-    HazardPlacementService,
-    ResourcePlacementService,
-    LandmarkPlacementService,
-    FeatureTileGenerationService,
 
     // Output port implementations
     // Only provide IMapPersistencePort when NOT using database
@@ -257,35 +244,38 @@ const shouldUseDatabase = () => {
       : [
           { provide: 'IUserRepository', useClass: InMemoryUserRepository },
           { provide: 'IOAuthTokenRepository', useClass: InMemoryOAuthTokenRepository },
+          { provide: 'IRefreshTokenRepository', useClass: InMemoryRefreshTokenRepository },
         ]),
 
-    // Hybrid Map Repository - always provided
-    // Routes anonymous users → in-memory storage (never persists to DB)
-    // Routes authenticated users → database storage (when USE_DATABASE=true)
-    {
-      provide: 'IMapRepository',
-      useFactory: (mapPersistencePort: IMapPersistencePort, logger?: any) => {
-        // Always create in-memory repository for anonymous users
-        const inMemoryRepo = new MapRepositoryAdapter(new InMemoryMapPersistence());
-
-        // If database is enabled, get database repository for authenticated users
-        const databaseRepo = shouldUseDatabase()
-          ? new MapRepositoryAdapter(mapPersistencePort)
-          : null;
-
-        // Return hybrid repository that routes based on authentication
-        return new HybridMapRepository(inMemoryRepo, databaseRepo, logger);
-      },
-      inject: ['IMapPersistencePort', { token: 'ILogger', optional: true }],
-    },
+    // Hybrid Map Repository - only when NOT using database
+    // When USE_DATABASE=true, ApplicationModule provides IMapRepository (PostgresMapRepository)
+    ...(shouldUseDatabase()
+      ? []
+      : [
+          {
+            provide: 'IMapRepository',
+            useFactory: (mapPersistencePort: IMapPersistencePort, logger?: any) => {
+              const inMemoryRepo = new MapRepositoryAdapter(new InMemoryMapPersistence());
+              return new HybridMapRepository(inMemoryRepo, null, logger);
+            },
+            inject: ['IMapPersistencePort', { token: 'ILogger', optional: true }],
+          },
+        ]),
 
     { provide: 'IMapHistoryRepository', useClass: InMemoryMapHistoryRepository },
 
-    // Feature repositories
-    { provide: 'IReliefFeatureRepository', useClass: InMemoryReliefRepository },
-    { provide: 'INaturalFeatureRepository', useClass: InMemoryNaturalRepository },
-    { provide: 'IArtificialFeatureRepository', useClass: InMemoryArtificialRepository },
-    { provide: 'ICulturalFeatureRepository', useClass: InMemoryCulturalRepository },
+    // OAuth CSRF state management (singleton — shared across initiate/complete)
+    {
+      provide: 'IOAuthStatePort',
+      useFactory: () => new InMemoryOAuthStateService(),
+    },
+
+    // Refresh token generation and hashing
+    {
+      provide: 'IRefreshTokenPort',
+      useFactory: () => new RefreshTokenService(),
+    },
+
   ],
   exports: [
     'IGeologyLayerService',
@@ -293,7 +283,6 @@ const shouldUseDatabase = () => {
     'IHydrologyLayerService',
     'IVegetationLayerService',
     'IStructuresLayerService',
-    'IFeaturesLayerService',
     'INotificationPort',
     'IPasswordService',
     'IAuthenticationPort',
@@ -305,13 +294,10 @@ const shouldUseDatabase = () => {
     // When USE_DATABASE=true, DatabaseModule exports these (IUserRepository, IOAuthTokenRepository, IMapRepository)
     ...(shouldUseDatabase()
       ? []
-      : ['IUserRepository', 'IOAuthTokenRepository', 'IMapRepository', 'IMapPersistencePort']),
+      : ['IUserRepository', 'IOAuthTokenRepository', 'IRefreshTokenRepository', 'IMapRepository', 'IMapPersistencePort']),
     'IMapHistoryRepository',
-    // Feature repositories
-    'IReliefFeatureRepository',
-    'INaturalFeatureRepository',
-    'IArtificialFeatureRepository',
-    'ICulturalFeatureRepository',
+    'IOAuthStatePort',
+    'IRefreshTokenPort',
     // Re-export DatabaseModule when enabled (provides IUserRepository, IMapRepository, IOAuthTokenRepository)
     ...(shouldUseDatabase() ? [DatabaseModule] : []),
   ],

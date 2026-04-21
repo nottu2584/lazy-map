@@ -148,47 +148,6 @@ export interface StructuresLayerDataDTO {
   totalStructureCount: number;
 }
 
-// ─── Features ──────────────────────────────────────────────
-
-export interface FeatureTileDataDTO {
-  hasFeature: boolean;
-  featureType: string | null;
-  hazardLevel: string;
-  resourceValue: number;
-  visibility: string;
-  interactionType: string | null;
-  description: string | null;
-}
-
-export interface HazardLocationDTO {
-  position: { x: number; y: number };
-  type: string;
-  level: string;
-  radius: number;
-}
-
-export interface ResourceLocationDTO {
-  position: { x: number; y: number };
-  type: string;
-  quantity: number;
-  quality: number;
-}
-
-export interface LandmarkLocationDTO {
-  position: { x: number; y: number };
-  type: string;
-  significance: number;
-  lore: string;
-}
-
-export interface FeaturesLayerDataDTO {
-  tiles: FeatureTileDataDTO[][];
-  hazards: HazardLocationDTO[];
-  resources: ResourceLocationDTO[];
-  landmarks: LandmarkLocationDTO[];
-  totalFeatureCount: number;
-}
-
 // ─── Combined ──────────────────────────────────────────────
 
 export interface TacticalMapLayersDTO {
@@ -197,5 +156,4 @@ export interface TacticalMapLayersDTO {
   hydrology: HydrologyLayerDataDTO;
   vegetation: VegetationLayerDataDTO;
   structures: StructuresLayerDataDTO;
-  features: FeaturesLayerDataDTO;
 }

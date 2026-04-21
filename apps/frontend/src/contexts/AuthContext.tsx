@@ -1,17 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { logger } from '../services';
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  role: string;
-}
+import type { AuthUser } from '../types';
+import { apiService, logger } from '../services';
 
 interface AuthContextType {
-  user: User | null;
-  login: (user: User, token: string) => void;
+  user: AuthUser | null;
+  login: (user: AuthUser) => void;
   logout: () => void;
   isLoading: boolean;
 }
@@ -31,36 +25,61 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing token on mount
-    const token = localStorage.getItem('auth_token');
     const userStr = localStorage.getItem('user');
 
-    if (token && userStr) {
+    if (userStr) {
       try {
         const savedUser = JSON.parse(userStr);
         setUser(savedUser);
       } catch (error) {
-        logger.error('Error parsing saved user', { component: 'AuthContext', operation: 'initialize' }, { error });
-        localStorage.removeItem('auth_token');
+        logger.error('Error restoring session', { component: 'AuthContext', operation: 'initialize' }, { error });
         localStorage.removeItem('user');
       }
     }
-    setIsLoading(false);
+
+    if (userStr) {
+      apiService.getProfile()
+        .then((profile) => {
+          const validatedUser: AuthUser = {
+            id: profile.id,
+            email: profile.email,
+            username: profile.username,
+          };
+          setUser(validatedUser);
+          localStorage.setItem('user', JSON.stringify(validatedUser));
+        })
+        .catch(() => {
+          setUser(null);
+          localStorage.removeItem('user');
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    } else {
+      setIsLoading(false);
+    }
   }, []);
 
-  const login = (user: User, token: string) => {
+  useEffect(() => {
+    const handleForceLogout = () => {
+      setUser(null);
+      localStorage.removeItem('user');
+    };
+    window.addEventListener('auth:logout', handleForceLogout);
+    return () => window.removeEventListener('auth:logout', handleForceLogout);
+  }, []);
+
+  const login = (user: AuthUser) => {
     setUser(user);
-    localStorage.setItem('auth_token', token);
     localStorage.setItem('user', JSON.stringify(user));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
   };
 

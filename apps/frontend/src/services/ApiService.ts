@@ -7,6 +7,7 @@ import type {
   MapSettings,
   GenerateMapRequest,
   TacticalMapResponse,
+  UserProfile,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3030/api';
@@ -15,36 +16,66 @@ const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '30000', 10);
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add auth token if available
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    // Maps can be generated without authentication
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
+// Silent refresh on 401 with request queuing
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void;
+  reject: (reason?: unknown) => void;
+}> = [];
 
-// Response interceptor for error handling
+function processQueue(error: unknown) {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve();
+    }
+  });
+  failedQueue = [];
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('auth_token');
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Don't retry refresh requests or already-retried requests
+    if (error.response?.status !== 401 || originalRequest._retry || originalRequest.url === '/auth/refresh') {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('user');
+        window.dispatchEvent(new Event('auth:logout'));
+      }
+      return Promise.reject(error);
+    }
+
+    if (isRefreshing) {
+      // Queue this request while refresh is in progress
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      }).then(() => apiClient(originalRequest));
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      await apiClient.post('/auth/refresh');
+      processQueue(null);
+      return apiClient(originalRequest);
+    } catch (refreshError) {
+      processQueue(refreshError);
       localStorage.removeItem('user');
       window.dispatchEvent(new Event('auth:logout'));
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
     }
-    return Promise.reject(error);
   },
 );
 
@@ -186,6 +217,11 @@ export const apiService = {
     }
   },
 
+  async getProfile(): Promise<UserProfile> {
+    const response = await apiClient.get<UserProfile>('/auth/profile');
+    return response.data;
+  },
+
   async generateMap(settings: MapSettings): Promise<GeneratedMap> {
     try {
       const request = mapSettingsToRequest(settings);
@@ -226,10 +262,6 @@ export const apiService = {
     description?: string,
   ): Promise<{ success: boolean; mapId?: string; error?: string }> {
     try {
-      if (!localStorage.getItem('auth_token')) {
-        throw new Error('Authentication required to save maps');
-      }
-
       const response = await apiClient.post<
         ApiResponse<{ success: boolean; mapId?: string; message?: string }>
       >(
@@ -292,10 +324,6 @@ export const apiService = {
 
   async getUserMaps(): Promise<GeneratedMap[]> {
     try {
-      if (!localStorage.getItem('auth_token')) {
-        return [];
-      }
-
       const response = await apiClient.get<ApiResponse<TacticalMapResponse[]>>('/maps/my-maps');
 
       if (!response.data.success || !response.data.data) {

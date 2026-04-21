@@ -4,6 +4,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 import {
   DomainErrorFilter,
@@ -14,6 +16,25 @@ import {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+
+  // Security headers
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https://accounts.google.com', 'https://cdn.discordapp.com'],
+        connectSrc: ["'self'", 'https://accounts.google.com', 'https://discord.com'],
+        frameSrc: ["'none'"],
+        objectSrc: ["'none'"],
+      },
+    },
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+  }));
+
+  // Cookie parsing for httpOnly auth cookies
+  app.use(cookieParser());
 
   // Enable validation
   app.useGlobalPipes(new ValidationPipe({

@@ -1,4 +1,4 @@
-import { IGoogleOAuthPort } from '../ports';
+import { IGoogleOAuthPort, IOAuthStatePort } from '../ports';
 import { ILogger } from '@lazy-map/domain';
 
 /**
@@ -18,6 +18,7 @@ export class InitiateGoogleSignInCommand {
 export class InitiateGoogleSignInUseCase {
   constructor(
     private readonly googleOAuthService: IGoogleOAuthPort,
+    private readonly oauthStateService: IOAuthStatePort,
     private readonly logger: ILogger
   ) {}
 
@@ -30,10 +31,13 @@ export class InitiateGoogleSignInUseCase {
         }
       });
 
+      // Generate CSRF state (backend always generates, ignores user-provided state)
+      const state = await this.oauthStateService.generateState();
+
       // Generate the authorization URL
       const authorizationUrl = this.googleOAuthService.getAuthorizationUrl(
         command.redirectUri,
-        command.state
+        state
       );
 
       this.logger.info('Generated Google authorization URL', {

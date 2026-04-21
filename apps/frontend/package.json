@@ -9,7 +9,10 @@
     "lint": "oxlint src --config oxlint.json",
     "lint:fix": "oxlint src --config oxlint.json --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:update-snapshots": "playwright test --update-snapshots"
   },
   "dependencies": {
     "@lazy-map/api-contracts": "workspace:*",
@@ -25,7 +28,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tanstack/react-query": "^5.64.0",
-    "axios": "^1.7.9",
+    "axios": "^1.15.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "react": "^19.0.0",
@@ -37,17 +40,19 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.2.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.20",
-    "globals": "^17.0.0",
-    "lucide-react": "^0.564.0",
+    "globals": "^17.5.0",
+    "lucide-react": "^1.8.0",
+    "playwright": "^1.59.1",
     "postcss": "^8.5.1",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^8.0.9"
   }
 }

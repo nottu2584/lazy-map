@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity } from './entities';
+import { UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity, RefreshTokenEntity } from './entities';
 
 /**
  * DataSource configuration for TypeORM CLI
@@ -16,7 +16,7 @@ export default new DataSource({
   database: process.env.DB_NAME || 'lazy_map',
 
   // Entity configuration
-  entities: [UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity],
+  entities: [UserEntity, MapEntity, MapHistoryEntity, OAuthTokenEntity, RefreshTokenEntity],
 
   // Migration configuration
   migrations: [__dirname + '/migrations/[0-9]*.ts'],

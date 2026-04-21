@@ -1,11 +1,9 @@
 {
   "rules": {
-    "correctness": "error",
-    "suspicious": "error",
-    "complexity": "off",
-    "no-empty-interface": "off",
-    "no-explicit-any": "off",
-    "no-console": "off"
+    "typescript/no-empty-interface": "off",
+    "typescript/no-explicit-any": "off",
+    "typescript/no-extraneous-class": "off",
+    "eslint/no-console": "off"
   },
   "ignorePatterns": [
     "dist/**",

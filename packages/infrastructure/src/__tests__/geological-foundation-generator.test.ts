@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GeologyLayer } from '../map/services/layers/GeologyLayer';
+import { createGeologyLayerForTesting } from './helpers/geology-test-factory';
 import {
   TacticalMapContext,
   BiomeType,
@@ -14,7 +14,7 @@ import {
 } from '@lazy-map/domain';
 
 describe('GeologyLayer', () => {
-  const generator = new GeologyLayer();
+  const generator = createGeologyLayerForTesting();
 
   describe('generate', () => {
     it('should generate a geological layer with correct dimensions', async () => {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { TopographyLayer } from '../map/services/layers/TopographyLayer';
 import { HydrologyLayer } from '../map/services/layers/HydrologyLayer';
-import { GeologyLayer } from '../map/services/layers/GeologyLayer';
+import { createGeologyLayerForTesting } from './helpers/geology-test-factory';
 import {
   ElevationGenerationService,
   ErosionModelService,
@@ -30,7 +30,7 @@ import {
 } from '@lazy-map/domain';
 
 describe('Layer Config Usage', () => {
-  const geologyLayer = new GeologyLayer();
+  const geologyLayer = createGeologyLayerForTesting();
 
   // Create topography services
   const elevationService = new ElevationGenerationService();

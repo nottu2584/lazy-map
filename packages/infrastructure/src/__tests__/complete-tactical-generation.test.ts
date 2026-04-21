@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { createGeologyLayerForTesting } from './helpers/geology-test-factory';
 import {
-  GeologyLayer,
   TopographyLayer,
   HydrologyLayer,
   VegetationLayer,
@@ -106,7 +106,7 @@ describe('Complete Tactical Map Generation', () => {
       const seed = Seed.fromString('complete-tactical-test');
 
       // Layer 0: Geological Foundation
-      const geologyLayer = new GeologyLayer();
+      const geologyLayer = createGeologyLayerForTesting();
       const geology = await geologyLayer.generate(50, 50, context, seed);
       expect(geology.tiles).toHaveLength(50);
       expect(geology.tiles[0]).toHaveLength(50);
@@ -161,7 +161,7 @@ describe('Complete Tactical Map Generation', () => {
         const seed = Seed.fromString(`biome-${biome.type}`);
 
         // Generate all layers
-        const geology = await new GeologyLayer().generate(30, 30, context, seed);
+        const geology = await createGeologyLayerForTesting().generate(30, 30, context, seed);
         const topography = await createTopographyLayer().generate(geology, context, seed);
         const hydrology = await createHydrologyLayer().generate(topography, geology, context, seed);
         const vegetation = await createVegetationLayer().generate(hydrology, topography, geology, context, seed);
@@ -197,13 +197,13 @@ describe('Complete Tactical Map Generation', () => {
       const seed = Seed.fromString('deterministic-test');
 
       // Generate twice with same seed
-      const geology1 = await new GeologyLayer().generate(40, 40, context, seed);
+      const geology1 = await createGeologyLayerForTesting().generate(40, 40, context, seed);
       const topography1 = await createTopographyLayer().generate(geology1, context, seed);
       const hydrology1 = await createHydrologyLayer().generate(topography1, geology1, context, seed);
       const vegetation1 = await createVegetationLayer().generate(hydrology1, topography1, geology1, context, seed);
       const structures1 = await createStructuresLayer().generate(vegetation1, hydrology1, topography1, context, seed);
 
-      const geology2 = await new GeologyLayer().generate(40, 40, context, seed);
+      const geology2 = await createGeologyLayerForTesting().generate(40, 40, context, seed);
       const topography2 = await createTopographyLayer().generate(geology2, context, seed);
       const hydrology2 = await createHydrologyLayer().generate(topography2, geology2, context, seed);
       const vegetation2 = await createVegetationLayer().generate(hydrology2, topography2, geology2, context, seed);
@@ -248,7 +248,7 @@ describe('Complete Tactical Map Generation', () => {
         const seed = Seed.fromString(`dev-${dev}`);
 
         // Generate up to structures layer
-        const geology = await new GeologyLayer().generate(30, 30, context, seed);
+        const geology = await createGeologyLayerForTesting().generate(30, 30, context, seed);
         const topography = await createTopographyLayer().generate(geology, context, seed);
         const hydrology = await createHydrologyLayer().generate(topography, geology, context, seed);
         const vegetation = await createVegetationLayer().generate(hydrology, topography, geology, context, seed);
@@ -294,7 +294,7 @@ describe('Complete Tactical Map Generation', () => {
       const start = Date.now();
 
       // Generate 100x100 map
-      const geology = await new GeologyLayer().generate(100, 100, context, seed);
+      const geology = await createGeologyLayerForTesting().generate(100, 100, context, seed);
       const topography = await createTopographyLayer().generate(geology, context, seed);
       const hydrology = await createHydrologyLayer().generate(topography, geology, context, seed);
       const vegetation = await createVegetationLayer().generate(hydrology, topography, geology, context, seed);

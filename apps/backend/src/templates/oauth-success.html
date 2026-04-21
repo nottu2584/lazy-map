@@ -40,8 +40,7 @@
 
       if (window.opener) {
         try {
-          const allowedOrigins = {{ ALLOWED_ORIGINS }
-        };
+          const allowedOrigins = {{ ALLOWED_ORIGINS }};
         const message = {
             type: 'oauth-success',
             provider: '{{PROVIDER}}',

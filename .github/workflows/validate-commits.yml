@@ -34,14 +34,16 @@ jobs:
                       revert
                   # Scopes matching your monorepo structure
                   scopes: |
-                      deps
-                      backend
-                      frontend
                       application
-                      domain
-                      infrastructure
+                      backend
                       ci
+                      deps
+                      docs
+                      domain
+                      frontend
+                      infrastructure
                       release
+                      security
                   # Require scope for better organization
                   requireScope: false
                   # Allow empty scope

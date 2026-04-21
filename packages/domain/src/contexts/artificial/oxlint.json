@@ -1,20 +1,15 @@
 {
-  "linter": "oxlint",
-  "exts": ["ts", "js"],
-  "formatter": "stylish",
-  "parserOptions": { "lang": "typescript" },
-  "rules": {
-    "all": "warn",
+  "categories": {
     "correctness": "error",
-    "suspicious": "error",
-    "complexity": "off",
-    "no-explicit-any": "off",
-    "no-empty-interface": "off"
+    "suspicious": "error"
   },
-  "ignores": [
-    "dist/**",
-    "node_modules/**",
-    "**/*.test.ts",
+  "rules": {
+    "typescript/no-explicit-any": "off",
+    "typescript/no-empty-interface": "off"
+  },
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/node_modules/**",
     "**/*.test.ts"
   ]
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GeologyLayer } from '../map/services/layers/GeologyLayer';
+import { createGeologyLayerForTesting } from './helpers/geology-test-factory';
 import { TopographyLayer } from '../map/services/layers/TopographyLayer';
 import { HydrologyLayer } from '../map/services/layers/HydrologyLayer';
 import {
@@ -30,7 +30,7 @@ import {
 } from '@lazy-map/domain';
 
 describe('Integrated Layer Generation', () => {
-  const geologicalGenerator = new GeologyLayer();
+  const geologicalGenerator = createGeologyLayerForTesting();
 
   // Create topography services
   const elevationService = new ElevationGenerationService();

@@ -6,7 +6,6 @@ interface OAuthSuccessData {
   type: 'oauth-success';
   provider: 'google' | 'discord';
   user: AuthUser;
-  token: string;
 }
 
 interface OAuthErrorData {
@@ -18,7 +17,7 @@ interface OAuthErrorData {
 type OAuthMessageData = OAuthSuccessData | OAuthErrorData;
 
 interface UseOAuthPopupOptions {
-  onSuccess: (user: AuthUser, token: string) => void;
+  onSuccess: (user: AuthUser) => void;
   onError?: (error: string) => void;
 }
 
@@ -82,7 +81,7 @@ export function useOAuthPopup({ onSuccess, onError }: UseOAuthPopupOptions) {
           clearInterval(checkPopup);
           window.removeEventListener('message', handleOAuthMessage);
 
-          onSuccess(event.data.user, event.data.token);
+          onSuccess(event.data.user);
 
           if (popup && !popup.closed) {
             popup.close();

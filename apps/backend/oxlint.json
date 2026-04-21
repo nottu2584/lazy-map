@@ -1,8 +1,4 @@
 {
-  "categories": {
-    "correctness": "error",
-    "suspicious": "error"
-  },
   "rules": {
     "typescript/no-empty-interface": "off",
     "typescript/no-explicit-any": "off",

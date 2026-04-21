@@ -1,13 +1,7 @@
 {
-  "categories": {
-    "correctness": "error",
-    "suspicious": "error"
-  },
   "rules": {
     "typescript/no-explicit-any": "off",
     "eslint/no-console": "off",
-    "eslint/no-shadow": "off",
-    "eslint/preserve-caught-error": "off",
     "typescript/no-extraneous-class": "off",
     "unicorn/consistent-function-scoping": "off"
   },

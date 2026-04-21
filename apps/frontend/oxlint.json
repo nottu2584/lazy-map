@@ -1,10 +1,15 @@
 {
-  "rules": {
+  "categories": {
     "correctness": "error",
-    "suspicious": "error",
-    "complexity": "off",
-    "no-explicit-any": "off",
-    "no-console": "warn"
+    "suspicious": "error"
+  },
+  "rules": {
+    "typescript/no-explicit-any": "off",
+    "eslint/no-console": "off",
+    "eslint/no-shadow": "off",
+    "eslint/preserve-caught-error": "off",
+    "typescript/no-extraneous-class": "off",
+    "unicorn/consistent-function-scoping": "off"
   },
   "ignorePatterns": [
     "dist/**",

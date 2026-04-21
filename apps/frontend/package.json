@@ -45,14 +45,14 @@
     "@tailwindcss/vite": "^4.2.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^5.1.1",
+    "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.20",
-    "globals": "^17.0.0",
-    "lucide-react": "^0.564.0",
+    "globals": "^17.5.0",
+    "lucide-react": "^1.8.0",
     "playwright": "^1.59.1",
     "postcss": "^8.5.1",
     "tailwindcss": "^4.1.18",
-    "typescript": "~5.9.3",
+    "typescript": "~6.0.3",
     "vite": "^8.0.9"
   }
 }

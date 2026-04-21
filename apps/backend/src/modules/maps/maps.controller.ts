@@ -167,7 +167,7 @@ export class MapsController {
 
       return {
         success: false,
-        error: error.message || 'Failed to generate map',
+        error: error instanceof Error ? error.message : 'Failed to generate map',
       };
     }
   }
@@ -293,7 +293,7 @@ export class MapsController {
 
       return {
         success: false,
-        error: error.message || 'Failed to save map',
+        error: error instanceof Error ? error.message : 'Failed to save map',
       };
     }
   }
@@ -325,7 +325,7 @@ export class MapsController {
     } catch (error) {
       return {
         success: false,
-        error: error.message || 'Failed to get user maps',
+        error: error instanceof Error ? error.message : 'Failed to get user maps',
       };
     }
   }
@@ -378,7 +378,7 @@ export class MapsController {
 
       return {
         success: false,
-        error: error.message || 'Failed to get map',
+        error: error instanceof Error ? error.message : 'Failed to get map',
       };
     }
   }
@@ -398,7 +398,7 @@ export class MapsController {
     } catch (error) {
       return {
         success: false,
-        error: error.message || 'Failed to validate seed',
+        error: error instanceof Error ? error.message : 'Failed to validate seed',
       };
     }
   }

@@ -1,10 +1,9 @@
 {
   "rules": {
-    "correctness": "error",
-    "suspicious": "error",
-    "complexity": "off",
-    "no-explicit-any": "off",
-    "no-console": "warn"
+    "typescript/no-explicit-any": "off",
+    "eslint/no-console": "off",
+    "typescript/no-extraneous-class": "off",
+    "unicorn/consistent-function-scoping": "off"
   },
   "ignorePatterns": [
     "dist/**",

@@ -5,12 +5,12 @@ export class AuthResponseDto {
     description: 'JWT access token',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
   })
-  accessToken: string;
+  accessToken!: string;
 
   @ApiProperty({
     description: 'User information',
   })
-  user: {
+  user!: {
     id: string;
     email: string;
     username: string;
@@ -22,25 +22,25 @@ export class UserProfileDto {
     description: 'User ID',
     example: '550e8400-e29b-41d4-a716-446655440000'
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description: 'User email address',
     example: 'user@example.com'
   })
-  email: string;
+  email!: string;
 
   @ApiProperty({
     description: 'Username',
     example: 'johnDoe'
   })
-  username: string;
+  username!: string;
 
   @ApiProperty({
     description: 'Account creation date',
     example: '2024-01-15T10:30:00Z'
   })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({
     description: 'Last login date',

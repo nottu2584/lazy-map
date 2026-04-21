@@ -9,7 +9,10 @@
     "lint": "oxlint src --config oxlint.json",
     "lint:fix": "oxlint src --config oxlint.json --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:update-snapshots": "playwright test --update-snapshots"
   },
   "dependencies": {
     "@lazy-map/api-contracts": "workspace:*",
@@ -37,6 +40,7 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.2.1",
     "@types/react": "^19.0.0",
@@ -45,6 +49,7 @@
     "autoprefixer": "^10.4.20",
     "globals": "^17.0.0",
     "lucide-react": "^0.564.0",
+    "playwright": "^1.59.1",
     "postcss": "^8.5.1",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",

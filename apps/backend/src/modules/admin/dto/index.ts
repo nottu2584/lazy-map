@@ -52,7 +52,7 @@ export class SuspendUserDto {
   @ApiProperty({ description: 'Reason for suspension' })
   @IsString()
   @Length(5, 500)
-  reason: string;
+  reason!: string;
 }
 
 export class ReactivateUserDto {
@@ -62,95 +62,95 @@ export class ReactivateUserDto {
 export class PromoteUserDto {
   @ApiProperty({ description: 'New role for the user', enum: ['USER', 'ADMIN', 'SUPER_ADMIN'] })
   @IsString()
-  newRole: string;
+  newRole!: string;
 }
 
 export class DeleteUserDto {
   @ApiProperty({ description: 'Explicit confirmation of deletion' })
   @IsBoolean()
-  confirmDeletion: boolean;
+  confirmDeletion!: boolean;
 }
 
 // Response DTOs
 export class UserDto {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  email: string;
+  email!: string;
 
   @ApiProperty()
-  username: string;
+  username!: string;
 
   @ApiProperty()
-  role: string;
+  role!: string;
 
   @ApiProperty()
-  status: string;
+  status!: string;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({ required: false })
-  lastLoginAt: Date | null;
+  lastLoginAt!: Date | null;
 
   @ApiProperty({ required: false })
-  suspendedAt: Date | null;
+  suspendedAt!: Date | null;
 
   @ApiProperty({ required: false })
-  suspensionReason: string | null;
+  suspensionReason!: string | null;
 }
 
 export class UserListDataDto {
   @ApiProperty({ type: [UserDto] })
-  users: UserDto[];
+  users!: UserDto[];
 
   @ApiProperty()
-  total: number;
+  total!: number;
 
   @ApiProperty()
-  hasMore: boolean;
+  hasMore!: boolean;
 }
 
 export class UserListResponseDto {
   @ApiProperty()
-  success: boolean;
+  success!: boolean;
 
   @ApiProperty({ type: UserListDataDto })
-  data: UserListDataDto;
+  data!: UserListDataDto;
 }
 
 export class UserResponseDataDto {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty()
-  email: string;
+  email!: string;
 
   @ApiProperty()
-  username: string;
+  username!: string;
 
   @ApiProperty()
-  role: string;
+  role!: string;
 
   @ApiProperty()
-  status: string;
+  status!: string;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
 
 export class UserResponseDto {
   @ApiProperty()
-  success: boolean;
+  success!: boolean;
 
   @ApiProperty({ type: UserResponseDataDto })
-  data: UserResponseDataDto;
+  data!: UserResponseDataDto;
 }
 
 export class AdminActionDataDto {
   @ApiProperty()
-  id: string;
+  id!: string;
 
   @ApiProperty({ required: false })
   status?: string;
@@ -179,45 +179,45 @@ export class AdminActionDataDto {
 
 export class AdminActionResponseDto {
   @ApiProperty()
-  success: boolean;
+  success!: boolean;
 
   @ApiProperty({ type: AdminActionDataDto })
-  data: AdminActionDataDto;
+  data!: AdminActionDataDto;
 }
 
 export class UserStatsDataDto {
   @ApiProperty()
-  totalUsers: number;
+  totalUsers!: number;
 
   @ApiProperty()
-  activeUsers: number;
+  activeUsers!: number;
 
   @ApiProperty()
-  suspendedUsers: number;
+  suspendedUsers!: number;
 
   @ApiProperty()
-  pendingUsers: number;
+  pendingUsers!: number;
 
   @ApiProperty()
-  deactivatedUsers: number;
+  deactivatedUsers!: number;
 
   @ApiProperty()
-  adminUsers: number;
+  adminUsers!: number;
 
   @ApiProperty()
-  superAdminUsers: number;
+  superAdminUsers!: number;
 
   @ApiProperty()
-  regularUsers: number;
+  regularUsers!: number;
 
   @ApiProperty()
-  generatedAt: Date;
+  generatedAt!: Date;
 }
 
 export class UserStatsResponseDto {
   @ApiProperty()
-  success: boolean;
+  success!: boolean;
 
   @ApiProperty({ type: UserStatsDataDto })
-  data: UserStatsDataDto;
+  data!: UserStatsDataDto;
 }

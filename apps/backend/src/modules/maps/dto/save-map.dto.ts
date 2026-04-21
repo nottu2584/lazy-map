@@ -5,15 +5,15 @@ import { IsArray, IsNumber, IsObject, IsOptional, IsString, ValidateNested } fro
 class TileDto {
   @ApiProperty({ description: 'X coordinate of the tile' })
   @IsNumber()
-  x: number;
+  x!: number;
 
   @ApiProperty({ description: 'Y coordinate of the tile' })
   @IsNumber()
-  y: number;
+  y!: number;
 
   @ApiProperty({ description: 'Terrain type of the tile' })
   @IsString()
-  terrain: string;
+  terrain!: string;
 
   @ApiProperty({ description: 'Elevation of the tile', required: false })
   @IsOptional()
@@ -50,25 +50,25 @@ class TileDto {
 export class SaveMapDto {
   @ApiProperty({ description: 'Generated map ID' })
   @IsString()
-  id: string;
+  id!: string;
 
   @ApiProperty({ description: 'Map width' })
   @IsNumber()
-  width: number;
+  width!: number;
 
   @ApiProperty({ description: 'Map height' })
   @IsNumber()
-  height: number;
+  height!: number;
 
   @ApiProperty({ description: 'Seed used for generation' })
   @IsString()
-  seed: string;
+  seed!: string;
 
   @ApiProperty({ description: 'Map tiles', type: [TileDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => TileDto)
-  tiles: TileDto[];
+  tiles!: TileDto[];
 
   @ApiProperty({ description: 'Optional map name', required: false })
   @IsOptional()
@@ -88,7 +88,7 @@ export class SaveMapDto {
 
 export class SaveMapResponseDto {
   @ApiProperty({ description: 'Indicates if the save was successful' })
-  success: boolean;
+  success!: boolean;
 
   @ApiProperty({ description: 'Saved map ID', required: false })
   mapId?: string;

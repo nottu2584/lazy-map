@@ -8,7 +8,7 @@ export class RegisterUserDto {
   })
   @IsEmail()
   @IsNotEmpty()
-  email: string;
+  email!: string;
 
   @ApiProperty({
     description: 'User password (minimum 8 characters)',
@@ -18,7 +18,7 @@ export class RegisterUserDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
-  password: string;
+  password!: string;
 
   @ApiProperty({
     description: 'Username for the account',
@@ -30,5 +30,5 @@ export class RegisterUserDto {
   @IsNotEmpty()
   @MinLength(3, { message: 'Username must be at least 3 characters long' })
   @MaxLength(50, { message: 'Username cannot exceed 50 characters' })
-  username: string;
+  username!: string;
 }

@@ -16,13 +16,13 @@ export class DimensionsDto {
   @IsNumber()
   @Min(10)
   @Max(200)
-  width: number;
+  width!: number;
 
   @ApiProperty({ description: 'Map height in tiles', minimum: 10, maximum: 200 })
   @IsNumber()
   @Min(10)
   @Max(200)
-  height: number;
+  height!: number;
 }
 
 export class RequiredFeaturesDto {

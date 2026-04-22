@@ -9,6 +9,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
+    "dev": "nest start --watch",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -24,7 +25,8 @@
     "migration:create": "pnpm typeorm migration:create",
     "migration:run": "pnpm typeorm migration:run",
     "migration:revert": "pnpm typeorm migration:revert",
-    "migration:show": "pnpm typeorm migration:show"
+    "migration:show": "pnpm typeorm migration:show",
+    "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
     "@lazy-map/application": "workspace:*",

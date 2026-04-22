@@ -1,6 +1,5 @@
 import {
   IDiscordOAuthPort,
-  DiscordUserInfo,
   OAuthTokens,
   OAuthUserInfo
 } from '@lazy-map/application';
@@ -236,47 +235,6 @@ export class DiscordOAuthService implements IDiscordOAuthPort {
     }
   }
 
-  /**
-   * Validates a Discord access token and returns user information
-   *
-   * SECURITY NOTE: This validates client-provided tokens and is only used for account linking.
-   * TODO: Migrate LinkDiscordAccountUseCase to server-side OAuth flow to eliminate this method.
-   * New features should use getUserInfo() with server-side code exchange instead.
-   */
-  async validateDiscordToken(accessToken: string): Promise<DiscordUserInfo> {
-    const userInfo = await this.getUserInfo(accessToken);
-
-    // Fetch additional Discord-specific data
-    try {
-      const response = await fetch(`${this.apiBase}/users/@me`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        return {
-          ...userInfo,
-          provider: 'discord',
-          discriminator: data.discriminator || '0',
-          globalName: data.global_name,
-          avatar: data.avatar
-        };
-      }
-    } catch (error) {
-      this.logger.warn('Failed to fetch Discord-specific user data', {
-        metadata: { error }
-      });
-    }
-
-    // Fallback to basic user info
-    return {
-      ...userInfo,
-      provider: 'discord',
-      discriminator: '0'
-    };
-  }
 }
 
 /**

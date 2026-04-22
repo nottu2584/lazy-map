@@ -105,7 +105,7 @@ export class BuildingGenerationService implements IBuildingGenerationService {
       metadata: {
         id: result.getId(),
         floors: result.getFloorCount(),
-        material: material.getType()
+        material: material.getMaterial()
       }
     });
 

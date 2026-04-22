@@ -1,7 +1,6 @@
 import { OAuth2Client } from 'google-auth-library';
 import {
   IGoogleOAuthPort,
-  GoogleUserInfo,
   OAuthTokens,
   OAuthUserInfo
 } from '@lazy-map/application';
@@ -201,68 +200,6 @@ export class GoogleOAuthService implements IGoogleOAuthPort {
     }
   }
 
-  /**
-   * Validates a Google ID token and returns user information
-   *
-   * SECURITY NOTE: This validates client-provided tokens and is only used for account linking.
-   * TODO: Migrate LinkGoogleAccountUseCase to server-side OAuth flow to eliminate this method.
-   * New features should use getUserInfo() with server-side code exchange instead.
-   */
-  async validateGoogleIdToken(idToken: string): Promise<GoogleUserInfo> {
-    try {
-      const ticket = await this.client.verifyIdToken({
-        idToken,
-        audience: this.clientId
-      });
-
-      const payload = ticket.getPayload();
-
-      if (!payload) {
-        throw new Error('Invalid Google ID token: no payload');
-      }
-
-      // Ensure the token is for our client
-      if (payload.aud !== this.clientId) {
-        throw new Error('Invalid Google ID token: audience mismatch');
-      }
-
-      // Check token expiration
-      const currentTime = Math.floor(Date.now() / 1000);
-      if (payload.exp && payload.exp < currentTime) {
-        throw new Error('Google ID token has expired');
-      }
-
-      this.logger.debug('Google ID token validated successfully', {
-        metadata: {
-          email: payload.email,
-          sub: payload.sub
-        }
-      });
-
-      return {
-        providerId: payload.sub,
-        email: payload.email || '',
-        emailVerified: payload.email_verified || false,
-        username: payload.given_name,
-        displayName: payload.name,
-        picture: payload.picture,
-        provider: 'google',
-        givenName: payload.given_name,
-        familyName: payload.family_name
-      };
-    } catch (error) {
-      this.logger.logError(error as Error, {
-        metadata: {
-          operation: 'validateGoogleIdToken'
-        }
-      });
-
-      if (error instanceof Error) {
-        throw new Error(`Google token validation failed: ${error.message}`);
-      }
-      throw new Error('Google token validation failed');
-    }
-  }
 }
 
 /**

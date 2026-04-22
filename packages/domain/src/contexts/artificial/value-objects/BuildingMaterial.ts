@@ -319,14 +319,6 @@ export class BuildingMaterial {
   getCostFactor(): number { return this.costFactor; }
 
   /**
-   * Legacy getter for compatibility - maps to primary material
-   * @deprecated Use getMaterial() instead
-   */
-  getType(): string {
-    return this.primaryMaterial;
-  }
-
-  /**
    * Check if this material is suitable for a building type
    */
   isSuitableFor(buildingType: BuildingType): boolean {

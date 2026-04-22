@@ -8,7 +8,7 @@ export {
   TopographicLayer,
   TileCoordinate,
   LayerBenchmark,
-  TacticalMapContext,
+  MapContext,
   BiomeType,
   ElevationZone,
   HydrologyType,

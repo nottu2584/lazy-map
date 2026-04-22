@@ -45,7 +45,7 @@ export class MapGenerationErrors {
   static contextGenerationFailed(reason: string): DomainRuleError {
     return new DomainRuleError(
       'CONTEXT_GENERATION_FAILED',
-      `Failed to generate tactical map context: ${reason}`,
+      `Failed to generate map context: ${reason}`,
       'Failed to generate map context',
       { metadata: { reason } },
       ['Try with different seed', 'Specify context explicitly'],

@@ -6,7 +6,7 @@ import type {
   GeneratedMap,
   MapSettings,
   GenerateMapRequest,
-  TacticalMapResponse,
+  MapResponse,
   UserProfile,
 } from '../types';
 
@@ -124,7 +124,7 @@ function mapSettingsToRequest(settings: MapSettings): GenerateMapRequest {
 
 // Convert backend response to frontend format
 function mapResponseToGeneratedMap(
-  response: TacticalMapResponse,
+  response: MapResponse,
   seed?: string | number,
 ): GeneratedMap {
   const { layers } = response.map;
@@ -180,8 +180,8 @@ function mapResponseToGeneratedMap(
   }
 
   return {
-    id: `tactical-${Date.now()}`,
-    name: response.context || 'Tactical Map',
+    id: `map-${Date.now()}`,
+    name: response.context || 'Map',
     width,
     height,
     cellSize: 5,
@@ -226,7 +226,7 @@ export const apiService = {
     try {
       const request = mapSettingsToRequest(settings);
 
-      const response = await apiClient.post<ApiResponse<TacticalMapResponse>>(
+      const response = await apiClient.post<ApiResponse<MapResponse>>(
         '/maps/generate',
         request,
       );
@@ -301,7 +301,7 @@ export const apiService = {
 
   async getMap(id: string): Promise<GeneratedMap> {
     try {
-      const response = await apiClient.get<ApiResponse<TacticalMapResponse>>(`/maps/${id}`);
+      const response = await apiClient.get<ApiResponse<MapResponse>>(`/maps/${id}`);
 
       if (!response.data.success || !response.data.data) {
         throw new Error(response.data.error || 'Map not found');
@@ -324,7 +324,7 @@ export const apiService = {
 
   async getUserMaps(): Promise<GeneratedMap[]> {
     try {
-      const response = await apiClient.get<ApiResponse<TacticalMapResponse[]>>('/maps/my-maps');
+      const response = await apiClient.get<ApiResponse<MapResponse[]>>('/maps/my-maps');
 
       if (!response.data.success || !response.data.data) {
         return [];

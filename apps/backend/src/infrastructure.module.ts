@@ -80,7 +80,7 @@ const shouldUseDatabase = () => {
     ...(shouldUseDatabase() ? [DatabaseModule] : []),
   ],
   providers: [
-    // Tactical Layer service implementations
+    // Map layer service implementations
     { provide: 'IGeologyLayerService', useClass: GeologyLayer },
     { provide: 'ITopographyLayerService', useClass: TopographyLayer },
     { provide: 'IHydrologyLayerService', useClass: HydrologyLayer },

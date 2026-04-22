@@ -36,7 +36,7 @@ import {
   LayoutGenerationService
 } from '../contexts/artificial/services';
 import {
-  TacticalMapContext,
+  MapContext,
   BiomeType,
   ElevationZone,
   HydrologyType,
@@ -93,11 +93,11 @@ function createStructuresLayer(): StructuresLayer {
   );
 }
 
-describe('Complete Tactical Map Generation', () => {
+describe('Complete Map Generation', () => {
   describe('Full 5-layer generation', () => {
     it('should generate all five layers successfully', async () => {
       // Create context for a forest village
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.FOREST,
         ElevationZone.FOOTHILLS,
         HydrologyType.STREAM,
@@ -159,7 +159,7 @@ describe('Complete Tactical Map Generation', () => {
       ];
 
       for (const biome of biomes) {
-        const context = TacticalMapContext.create(
+        const context = MapContext.create(
           biome.type,
           ElevationZone.FOOTHILLS,
           biome.hydro,
@@ -202,7 +202,7 @@ describe('Complete Tactical Map Generation', () => {
     });
 
     it('should maintain deterministic generation', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.FOREST,
         ElevationZone.HIGHLAND,
         HydrologyType.RIVER,
@@ -253,7 +253,7 @@ describe('Complete Tactical Map Generation', () => {
       ];
 
       for (const dev of devLevels) {
-        const context = TacticalMapContext.create(
+        const context = MapContext.create(
           BiomeType.PLAINS,
           ElevationZone.LOWLAND,
           HydrologyType.STREAM,
@@ -299,7 +299,7 @@ describe('Complete Tactical Map Generation', () => {
 
   describe('Performance benchmarks', () => {
     it('should generate large maps in reasonable time', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.PLAINS,
         ElevationZone.LOWLAND,
         HydrologyType.SEASONAL,
@@ -319,7 +319,7 @@ describe('Complete Tactical Map Generation', () => {
 
       const elapsed = Date.now() - start;
 
-      console.log(`✓ Generated 100x100 tactical map (10,000 tiles) in ${elapsed}ms`);
+      console.log(`✓ Generated 100x100 map (10,000 tiles) in ${elapsed}ms`);
       console.log(`  - ${(elapsed / 10000).toFixed(2)}ms per tile`);
 
       // Should complete in under 5 seconds

@@ -7,7 +7,7 @@ interface MapCanvasProps {
 }
 
 const TERRAIN_COLORS = {
-  // Terrain types from tactical map
+  // Terrain types from map generation
   grass: '#7CB342',
   dirt: '#8D6E63',
   stone: '#757575',
@@ -68,7 +68,7 @@ export function MapCanvas({ map }: MapCanvasProps) {
     if (feature.includes('wall')) return '🧱';
     if (feature.includes('road')) return '═';
 
-    // Tactical cover features
+    // Cover features
     if (feature.includes('cover_full')) return '▓';
     if (feature.includes('cover_partial')) return '▒';
     if (feature.includes('cover_light')) return '░';

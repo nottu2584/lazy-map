@@ -1,6 +1,6 @@
 import { Injectable, Optional, Inject } from '@nestjs/common';
 import {
-  TacticalMapContext,
+  MapContext,
   HydrologyType,
   HydrologyConfig,
   type ILogger
@@ -36,7 +36,7 @@ export class StreamCalculationService {
   identifyStreams(
     flowAccumulation: number[][],
     flowDirections: number[][],
-    context: TacticalMapContext,
+    context: MapContext,
     width: number,
     height: number,
     config?: HydrologyConfig
@@ -72,7 +72,7 @@ export class StreamCalculationService {
    * Get appropriate stream formation threshold
    * Applies config multiplier to base thresholds (inverse relationship)
    */
-  private getStreamThreshold(context: TacticalMapContext, config?: HydrologyConfig): number {
+  private getStreamThreshold(context: MapContext, config?: HydrologyConfig): number {
     // Base thresholds per hydrology type
     let baseThreshold: number;
     switch (context.hydrology) {

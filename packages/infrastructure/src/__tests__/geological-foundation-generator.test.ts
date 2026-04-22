@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createGeologyLayerForTesting } from './helpers/geology-test-factory';
 import {
-  TacticalMapContext,
+  MapContext,
   BiomeType,
   ElevationZone,
   HydrologyType,
@@ -18,7 +18,7 @@ describe('GeologyLayer', () => {
 
   describe('generate', () => {
     it('should generate a geological layer with correct dimensions', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.MOUNTAIN,
         ElevationZone.HIGHLAND,
         HydrologyType.STREAM,
@@ -35,7 +35,7 @@ describe('GeologyLayer', () => {
     });
 
     it('should generate deterministic results for the same seed', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.DESERT,
         ElevationZone.LOWLAND,
         HydrologyType.ARID,
@@ -63,7 +63,7 @@ describe('GeologyLayer', () => {
     });
 
     it('should select appropriate formations for mountain biome', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.MOUNTAIN,
         ElevationZone.ALPINE,
         HydrologyType.STREAM,
@@ -85,7 +85,7 @@ describe('GeologyLayer', () => {
     });
 
     it('should generate weathering features based on formation', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.DESERT,
         ElevationZone.LOWLAND,
         HydrologyType.ARID,
@@ -114,7 +114,7 @@ describe('GeologyLayer', () => {
     });
 
     it('should calculate soil depths based on weathering', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.FOREST,
         ElevationZone.FOOTHILLS,
         HydrologyType.STREAM,
@@ -146,7 +146,7 @@ describe('GeologyLayer', () => {
     });
 
     it('should identify transition zones between formations', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.MOUNTAIN,
         ElevationZone.HIGHLAND,
         HydrologyType.STREAM,
@@ -191,7 +191,7 @@ describe('GeologyLayer', () => {
     });
 
     it('should set permeability based on rock properties', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.SWAMP,
         ElevationZone.LOWLAND,
         HydrologyType.WETLAND,
@@ -219,7 +219,7 @@ describe('GeologyLayer', () => {
       const seed = Seed.fromString('biome-comparison');
 
       // Test different biomes
-      const mountainContext = TacticalMapContext.create(
+      const mountainContext = MapContext.create(
         BiomeType.MOUNTAIN,
         ElevationZone.ALPINE,
         HydrologyType.STREAM,
@@ -227,7 +227,7 @@ describe('GeologyLayer', () => {
         Season.SUMMER
       );
 
-      const desertContext = TacticalMapContext.create(
+      const desertContext = MapContext.create(
         BiomeType.DESERT,
         ElevationZone.LOWLAND,
         HydrologyType.ARID,
@@ -259,7 +259,7 @@ describe('GeologyLayer', () => {
 
   describe('performance', () => {
     it('should generate 50x50 map in reasonable time', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.FOREST,
         ElevationZone.FOOTHILLS,
         HydrologyType.STREAM,
@@ -277,7 +277,7 @@ describe('GeologyLayer', () => {
     });
 
     it('should generate 100x100 map in reasonable time', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.PLAINS,
         ElevationZone.LOWLAND,
         HydrologyType.RIVER,

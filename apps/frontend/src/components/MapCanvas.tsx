@@ -1,13 +1,15 @@
 import { useRef, useEffect, useState } from 'react';
+import { Download } from 'lucide-react';
 import type { GeneratedMap } from '../types';
 import { Button } from './ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { Separator } from './ui/separator';
 
 interface MapCanvasProps {
   map: GeneratedMap;
 }
 
 const TERRAIN_COLORS = {
-  // Terrain types from map generation
   grass: '#7CB342',
   dirt: '#8D6E63',
   stone: '#757575',
@@ -22,148 +24,131 @@ const TERRAIN_COLORS = {
   default: '#9E9E9E'
 };
 
+const TERRAIN_LEGEND = [
+  { key: 'grass', label: 'Grass' },
+  { key: 'dirt', label: 'Dirt' },
+  { key: 'stone', label: 'Stone' },
+  { key: 'water', label: 'Water' },
+  { key: 'marsh', label: 'Marsh' },
+  { key: 'sand', label: 'Sand' },
+  { key: 'snow', label: 'Snow' },
+];
+
+const FEATURE_LEGEND = [
+  { symbol: '🌲', label: 'Dense trees' },
+  { symbol: '🌳', label: 'Sparse trees' },
+  { symbol: '🌿', label: 'Shrubs' },
+  { symbol: '🌾', label: 'Tall grass' },
+  { symbol: '═', label: 'Road' },
+  { symbol: '🏠', label: 'Building' },
+  { symbol: '🧱', label: 'Wall' },
+];
+
+const FEATURE_PRIORITY: Record<string, { symbol: string; priority: number }> = {
+  dense_trees:   { symbol: '🌲', priority: 10 },
+  sparse_trees:  { symbol: '🌳', priority: 9 },
+  undergrowth:   { symbol: '🌿', priority: 7 },
+  shrubs:        { symbol: '🌿', priority: 6 },
+  tall_grass:    { symbol: '🌾', priority: 5 },
+  building:      { symbol: '🏠', priority: 12 },
+  wall:          { symbol: '🧱', priority: 11 },
+  road:          { symbol: '═',  priority: 8 },
+  cover_full:    { symbol: '▓',  priority: 4 },
+  cover_partial: { symbol: '▒',  priority: 3 },
+  cover_light:   { symbol: '░',  priority: 2 },
+  tree:          { symbol: '🌲', priority: 10 },
+  rock:          { symbol: '🗿', priority: 8 },
+};
+
+function getTopFeature(features: string[]): { symbol: string; priority: number } | null {
+  let best: { symbol: string; priority: number } | null = null;
+  for (const feature of features) {
+    const match = Object.entries(FEATURE_PRIORITY).find(([key]) => feature.includes(key));
+    if (match && (!best || match[1].priority > best.priority)) {
+      best = match[1];
+    }
+  }
+  return best;
+}
+
 export function MapCanvas({ map }: MapCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [maxWidth, setMaxWidth] = useState(800);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
-  // Update dimensions on resize
   useEffect(() => {
-    const updateDimensions = () => {
+    const update = () => {
       if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        setDimensions({
-          width: Math.min(rect.width, 800),
-          height: Math.min(rect.height, 600)
-        });
+        setMaxWidth(containerRef.current.getBoundingClientRect().width);
       }
     };
-
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
   }, []);
 
-  // Calculate cell size
-  const cellWidth = dimensions.width / map.width;
-  const cellHeight = dimensions.height / map.height;
-  const cellSize = Math.min(cellWidth, cellHeight);
+  const cellSize = Math.min(maxWidth / map.width, 600 / map.height, 25);
   const canvasWidth = map.width * cellSize;
   const canvasHeight = map.height * cellSize;
 
-  // Helper to get terrain color
-  const getTerrainColor = (terrain: string): string => {
-    return TERRAIN_COLORS[terrain as keyof typeof TERRAIN_COLORS] || TERRAIN_COLORS.default;
-  };
-
-  const FEATURE_PRIORITY: Record<string, { symbol: string; priority: number }> = {
-    dense_trees:   { symbol: '🌲', priority: 10 },
-    sparse_trees:  { symbol: '🌳', priority: 9 },
-    undergrowth:   { symbol: '🌿', priority: 7 },
-    shrubs:        { symbol: '🌿', priority: 6 },
-    tall_grass:    { symbol: '🌾', priority: 5 },
-    building:      { symbol: '🏠', priority: 12 },
-    wall:          { symbol: '🧱', priority: 11 },
-    road:          { symbol: '═',  priority: 8 },
-    cover_full:    { symbol: '▓',  priority: 4 },
-    cover_partial: { symbol: '▒',  priority: 3 },
-    cover_light:   { symbol: '░',  priority: 2 },
-    tree:          { symbol: '🌲', priority: 10 },
-    rock:          { symbol: '🗿', priority: 8 },
-  };
-
-  const getTopFeature = (features: string[]): { symbol: string; priority: number } | null => {
-    let best: { symbol: string; priority: number } | null = null;
-    for (const feature of features) {
-      const match = Object.entries(FEATURE_PRIORITY).find(([key]) => feature.includes(key));
-      if (match && (!best || match[1].priority > best.priority)) {
-        best = match[1];
-      }
-    }
-    return best;
-  };
-
-  // Draw the map on canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear canvas
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    // Draw terrain tiles
+    // Terrain tiles
     map.tiles.forEach((tile) => {
       const x = tile.x * cellSize;
       const y = tile.y * cellSize;
-      const color = getTerrainColor(tile.terrain);
-
-      // Fill tile
-      ctx.fillStyle = color;
+      ctx.fillStyle = TERRAIN_COLORS[tile.terrain as keyof typeof TERRAIN_COLORS] || TERRAIN_COLORS.default;
       ctx.globalAlpha = 0.8;
       ctx.fillRect(x, y, cellSize, cellSize);
       ctx.globalAlpha = 1.0;
-
-      // Draw tile border
       ctx.strokeStyle = '#333';
       ctx.lineWidth = 0.5;
       ctx.strokeRect(x, y, cellSize, cellSize);
     });
 
-    // Draw grid lines
+    // Grid
     ctx.strokeStyle = '#666';
     ctx.globalAlpha = 0.3;
     ctx.lineWidth = 1;
-
-    // Vertical lines
     for (let i = 0; i <= map.width; i++) {
-      const x = i * cellSize;
       ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvasHeight);
+      ctx.moveTo(i * cellSize, 0);
+      ctx.lineTo(i * cellSize, canvasHeight);
       ctx.stroke();
     }
-
-    // Horizontal lines
     for (let i = 0; i <= map.height; i++) {
-      const y = i * cellSize;
       ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvasWidth, y);
+      ctx.moveTo(0, i * cellSize);
+      ctx.lineTo(canvasWidth, i * cellSize);
       ctx.stroke();
     }
-
     ctx.globalAlpha = 1.0;
 
-    // Draw features
+    // Features
     ctx.fillStyle = '#333';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const fontSize = Math.min(cellSize * 0.6, 16);
-    ctx.font = `${fontSize}px Arial`;
+    ctx.font = `${Math.min(cellSize * 0.6, 16)}px Arial`;
 
     map.tiles.forEach((tile) => {
       if (tile.features.length === 0) return;
-
       const top = getTopFeature(tile.features);
       if (!top) return;
-
-      const centerX = tile.x * cellSize + cellSize / 2;
-      const centerY = tile.y * cellSize + cellSize / 2;
-      ctx.fillText(top.symbol, centerX, centerY);
+      ctx.fillText(top.symbol, tile.x * cellSize + cellSize / 2, tile.y * cellSize + cellSize / 2);
     });
   }, [map, cellSize, canvasWidth, canvasHeight]);
 
-  // Export canvas as PNG
   const handleExportPNG = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     canvas.toBlob((blob) => {
       if (!blob) return;
-
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.download = `${map.name || 'map'}.png`;
@@ -174,69 +159,55 @@ export function MapCanvas({ map }: MapCanvasProps) {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Map Info */}
-      <div className="flex justify-between items-center text-sm text-muted-foreground">
-        <div>
-          <strong>{map.name}</strong> - {map.width}x{map.height} cells
-        </div>
-        <div>
-          Cell size: {cellSize.toFixed(1)}px
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-        {Object.entries(TERRAIN_COLORS)
-          .filter(([terrain]) => !['default', 'grassland', 'forest', 'mountain'].includes(terrain))
-          .map(([terrain, color]) => (
-            <div key={terrain} className="flex items-center gap-1.5">
-              <div
-                className="w-3.5 h-3.5 border border-input rounded-sm"
-                style={{ backgroundColor: color }}
-                aria-label={`${terrain} terrain color`}
-                role="img"
-              />
-              <span className="capitalize">{terrain}</span>
-            </div>
-          ))}
-        {[
-          { symbol: '🌲', label: 'Dense trees' },
-          { symbol: '🌳', label: 'Sparse trees' },
-          { symbol: '🌿', label: 'Shrubs' },
-          { symbol: '🌾', label: 'Tall grass' },
-          { symbol: '═', label: 'Road' },
-          { symbol: '🏠', label: 'Building' },
-          { symbol: '🧱', label: 'Wall' },
-        ].map(({ symbol, label }) => (
-          <div key={label} className="flex items-center gap-1.5">
-            <span className="w-3.5 text-center text-xs">{symbol}</span>
-            <span>{label}</span>
+    <div ref={containerRef} className="inline-flex flex-col items-start">
+      <Card className="w-auto">
+        <CardHeader className="pb-3">
+          <div className="flex items-baseline justify-between gap-4">
+            <CardTitle className="text-base">{map.name}</CardTitle>
+            <CardDescription>
+              {map.width}&times;{map.height} cells &middot; {cellSize.toFixed(1)}px/cell
+            </CardDescription>
           </div>
-        ))}
-      </div>
+        </CardHeader>
 
-      {/* Canvas Container */}
-      <div
-        ref={containerRef}
-        className="border border-border rounded-lg overflow-hidden bg-background"
-        style={{ height: '500px' }}
-      >
-        <canvas
-          ref={canvasRef}
-          width={canvasWidth}
-          height={canvasHeight}
-          className="mx-auto"
-          style={{ display: 'block' }}
-        />
-      </div>
+        <CardContent className="space-y-3">
+          {/* Legend */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
+            {TERRAIN_LEGEND.map(({ key, label }) => (
+              <div key={key} className="flex items-center gap-1">
+                <div
+                  className="size-3 rounded-sm border border-border"
+                  style={{ backgroundColor: TERRAIN_COLORS[key as keyof typeof TERRAIN_COLORS] }}
+                />
+                <span>{label}</span>
+              </div>
+            ))}
+            <Separator orientation="vertical" className="h-3" />
+            {FEATURE_LEGEND.map(({ symbol, label }) => (
+              <div key={label} className="flex items-center gap-1">
+                <span className="size-3 text-center leading-3">{symbol}</span>
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
 
-      {/* Export Options */}
-      <div className="flex gap-4">
-        <Button onClick={handleExportPNG} variant="default">
-          Export PNG
-        </Button>
-      </div>
+          {/* Canvas */}
+          <canvas
+            ref={canvasRef}
+            width={canvasWidth}
+            height={canvasHeight}
+            className="rounded-md"
+            style={{ display: 'block', width: canvasWidth, height: canvasHeight }}
+          />
+        </CardContent>
+
+        <CardFooter>
+          <Button onClick={handleExportPNG} variant="outline" size="sm">
+            <Download className="mr-1.5 size-3.5" />
+            Export PNG
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

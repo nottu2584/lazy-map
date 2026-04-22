@@ -187,13 +187,13 @@ export function MapCanvas({ map }: MapCanvasProps) {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 text-sm">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
         {Object.entries(TERRAIN_COLORS)
           .filter(([terrain]) => !['default', 'grassland', 'forest', 'mountain'].includes(terrain))
           .map(([terrain, color]) => (
-            <div key={terrain} className="flex items-center gap-2">
+            <div key={terrain} className="flex items-center gap-1.5">
               <div
-                className="w-4 h-4 border border-input"
+                className="w-3.5 h-3.5 border border-input rounded-sm"
                 style={{ backgroundColor: color }}
                 aria-label={`${terrain} terrain color`}
                 role="img"
@@ -201,6 +201,19 @@ export function MapCanvas({ map }: MapCanvasProps) {
               <span className="capitalize">{terrain}</span>
             </div>
           ))}
+        {[
+          { symbol: '🌲', label: 'Dense trees' },
+          { symbol: '🌳', label: 'Sparse trees' },
+          { symbol: '🌿', label: 'Shrubs' },
+          { symbol: '═', label: 'Road' },
+          { symbol: '🏠', label: 'Building' },
+          { symbol: '•', label: 'Feature' },
+        ].map(({ symbol, label }) => (
+          <div key={label} className="flex items-center gap-1.5">
+            <span className="w-3.5 text-center text-xs">{symbol}</span>
+            <span>{label}</span>
+          </div>
+        ))}
       </div>
 
       {/* Canvas Container */}

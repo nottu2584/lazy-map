@@ -155,9 +155,9 @@ function mapResponseToGeneratedMap(
       const hydroTile = layers?.hydrology?.tiles?.[y]?.[x];
 
       let terrain = 'grass';
-      if (hydroTile?.waterDepth && hydroTile.waterDepth > 0) {
+      if (hydroTile?.waterDepth && hydroTile.waterDepth >= 0.5) {
         terrain = 'water';
-      } else if (hydroTile?.moisture === 'saturated' || hydroTile?.moisture === 'wet') {
+      } else if (hydroTile?.moisture === 'saturated' || hydroTile?.moisture === 'wet' || (hydroTile?.waterDepth && hydroTile.waterDepth > 0)) {
         terrain = 'marsh';
       } else if (geoTile?.formation?.rockType === 'evaporite') {
         terrain = 'sand';

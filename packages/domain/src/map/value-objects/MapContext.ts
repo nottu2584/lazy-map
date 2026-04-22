@@ -189,7 +189,8 @@ export class MapContext {
     const features = this.requiredFeatures;
     let desc = `${this.season} ${this.elevation} ${this.biome}`;
 
-    if (this.hydrology !== HydrologyType.ARID) {
+    const hydrologyMatchesBiome = (this.hydrology as string) === (this.biome as string);
+    if (this.hydrology !== HydrologyType.ARID && !hydrologyMatchesBiome) {
       desc += ` with ${this.hydrology}`;
     }
 

@@ -44,7 +44,7 @@ export class ForestGenerationService {
         const baseThreshold = 1.0 - targetCoverage;
         const potentialAdjustment = potential[y][x] * 0.3;
         const threshold = baseThreshold - potentialAdjustment;
-        forest[y][x] = noise > threshold && potential[y][x] > 0.3;
+        forest[y][x] = noise > threshold && potential[y][x] >= 0.3;
       }
     }
 

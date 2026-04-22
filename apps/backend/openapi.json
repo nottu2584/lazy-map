@@ -122,7 +122,7 @@
         ]
       }
     },
-    "/api/auth/oauth/google/login": {
+    "/api/auth/google/login": {
       "get": {
         "operationId": "OAuthController_initiateGoogleSignIn",
         "parameters": [
@@ -161,7 +161,7 @@
         ]
       }
     },
-    "/api/auth/oauth/google/callback": {
+    "/api/auth/google/callback": {
       "get": {
         "operationId": "OAuthController_completeGoogleSignIn",
         "parameters": [
@@ -188,7 +188,7 @@
         ]
       }
     },
-    "/api/auth/oauth/discord/login": {
+    "/api/auth/discord/login": {
       "get": {
         "operationId": "OAuthController_initiateDiscordSignIn",
         "parameters": [
@@ -227,7 +227,7 @@
         ]
       }
     },
-    "/api/auth/oauth/discord/callback": {
+    "/api/auth/discord/callback": {
       "get": {
         "operationId": "OAuthController_completeDiscordSignIn",
         "parameters": [

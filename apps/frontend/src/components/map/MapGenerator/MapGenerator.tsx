@@ -13,7 +13,8 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty';
 import { Field, FieldLabel } from '@/components/ui/field';
-import { useMapGeneration } from '@/hooks';
+import { useMapGeneration, useSaveMap } from '@/hooks';
+import { useAuth } from '@/contexts/AuthContext';
 import type {
   AdvancedMapSettings,
   MapContextSettings,
@@ -24,7 +25,7 @@ import type {
 import { ChevronDown, Lightbulb, Map, Settings, Settings2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { seedHistoryService } from '../../../services';
+import { seedHistoryService } from '@/services';
 import { MapCanvas } from '../../MapCanvas';
 import { EnvironmentSheet } from './EnvironmentSheet';
 import { MapBasicSettings } from './MapBasicSettings';
@@ -70,6 +71,8 @@ export function MapGenerator() {
 
   const { generatedMap, isGenerating, error, progress, progressValue, generateMap, clearError } =
     useMapGeneration();
+  const { user } = useAuth();
+  const saveMapMutation = useSaveMap();
 
   const mapSectionRef = useRef<HTMLDivElement>(null);
 
@@ -85,10 +88,9 @@ export function MapGenerator() {
     }
   }, [advancedSettings.advancedSettings]);
 
-  const handleSubmit = (e: React.FormEvent, useAdvancedSettings: boolean) => {
+  const handleSubmit = async (e: React.FormEvent, useAdvancedSettings: boolean) => {
     e.preventDefault();
 
-    // Include context settings if any are set (even from quick generate)
     const hasContext = Object.values(contextSettings).some((v) => v !== undefined);
 
     const settings: MapSettings = useAdvancedSettings
@@ -107,10 +109,18 @@ export function MapGenerator() {
           contextSettings: hasContext ? contextSettings : undefined,
         };
 
-    if (seedInput) {
+    const result = await generateMap(settings);
+
+    if (result) {
+      const usedSeed = String(result.seed ?? seedInput);
+
+      if (!seedInput && usedSeed) {
+        setSeedInput(usedSeed);
+      }
+
       seedHistoryService.saveEntry({
-        seed: seedInput,
-        mapName: settings.name,
+        seed: usedSeed,
+        mapName: result.name || settings.name,
         generationSuccess: true,
         metadata: {
           dimensions: { width: settings.width, height: settings.height },
@@ -118,9 +128,23 @@ export function MapGenerator() {
           algorithmVersion: '1.0.0',
         },
       });
-    }
 
-    generateMap(settings);
+      // Auto-save to database for authenticated users
+      if (user) {
+        saveMapMutation.mutate(
+          { map: result, name: result.name, description: undefined },
+          {
+            onSuccess: () => {
+              toast.success('Map saved to your history');
+            },
+            onError: (err) => {
+              console.error('Failed to save map:', err);
+              toast.error('Failed to save map to history');
+            },
+          }
+        );
+      }
+    }
   };
 
   const updateAdvancedSetting = <K extends keyof typeof advancedSettings>(
@@ -370,46 +394,40 @@ export function MapGenerator() {
             <MapError error={error} onClear={clearError} />
           </div>
         </section>
-      </div>
-
-      {/* Map Display Section - Full Width */}
-      <section
-        ref={mapSectionRef}
-        className="relative w-full min-h-[70vh] border-t border-border bg-muted/30"
-      >
-        {/* Loading State */}
-        {isGenerating && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-background">
-            <h2 className="text-4xl mb-4">Generating Map...</h2>
-            {progress && <p className="text-lg text-muted-foreground font-mono">{progress}</p>}
-          </div>
-        )}
 
         {/* Map Display */}
-        {generatedMap && !isGenerating && (
-          <div className="w-full h-full flex items-center justify-center p-8">
-            <MapCanvas map={generatedMap} />
-          </div>
-        )}
+        <section ref={mapSectionRef} className="px-6 pb-8">
+          <div className="max-w-3xl mx-auto">
+            {isGenerating && (
+              <div className="flex flex-col items-center justify-center py-16">
+                <h2 className="text-4xl mb-4">Generating Map...</h2>
+                {progress && <p className="text-lg text-muted-foreground font-mono">{progress}</p>}
+              </div>
+            )}
 
-        {/* Empty State */}
-        {!isGenerating && !generatedMap && (
-          <div className="absolute inset-0 flex items-center justify-center p-8">
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Map className="size-6" />
-                </EmptyMedia>
-                <EmptyTitle>No map generated yet</EmptyTitle>
-                <EmptyDescription>
-                  Enter a seed value above and click Generate to create your battlemap. The
-                  map will appear here once generation is complete.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+            {generatedMap && !isGenerating && (
+              <MapCanvas map={generatedMap} />
+            )}
+
+            {!isGenerating && !generatedMap && (
+              <div className="flex items-center justify-center py-16">
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <Map className="size-6" />
+                    </EmptyMedia>
+                    <EmptyTitle>No map generated yet</EmptyTitle>
+                    <EmptyDescription>
+                      Enter a seed value above and click Generate to create your battlemap. The
+                      map will appear here once generation is complete.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              </div>
+            )}
           </div>
-        )}
-      </section>
+        </section>
+      </div>
     </>
   );
 }

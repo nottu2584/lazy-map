@@ -31,7 +31,7 @@ import {
 } from '../../common/auth';
 
 @ApiTags('oauth')
-@Controller('auth/oauth')
+@Controller('auth')
 export class OAuthController {
   constructor(
     private readonly initiateGoogleSignInUseCase: InitiateGoogleSignInUseCase,

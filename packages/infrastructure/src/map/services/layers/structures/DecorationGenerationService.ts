@@ -3,7 +3,7 @@ import {
   Seed,
   NoiseGenerator,
   Building,
-  TacticalMapContext,
+  MapContext,
   DevelopmentLevel,
   VegetationLayerData,
   RoadNetwork,
@@ -30,7 +30,7 @@ export class DecorationGenerationService {
     buildings: Building[],
     roadNetwork: RoadNetwork,
     vegetation: VegetationLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed,
     width: number,
     height: number

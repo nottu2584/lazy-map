@@ -1,6 +1,6 @@
 import { Injectable, Inject, Optional } from '@nestjs/common';
 import {
-  TacticalMapContext,
+  MapContext,
   type ILogger,
   GeologyLayerData,
   TopographyConfig
@@ -29,7 +29,7 @@ export class TerrainSmoothingService {
   smoothElevationsVariable(
     elevations: number[][],
     geology: GeologyLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     config?: TopographyConfig
   ): number[][] {
     const width = elevations[0].length;

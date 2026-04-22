@@ -18,7 +18,7 @@ import {
   SegmentGenerationService
 } from '../map/services/layers/hydrology';
 import {
-  TacticalMapContext,
+  MapContext,
   BiomeType,
   ElevationZone,
   HydrologyType,
@@ -58,7 +58,7 @@ describe('Integrated Layer Generation', () => {
 
   describe('Full layer stack generation', () => {
     it('should generate all three layers successfully', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.MOUNTAIN,
         ElevationZone.HIGHLAND,
         HydrologyType.STREAM,
@@ -84,7 +84,7 @@ describe('Integrated Layer Generation', () => {
     });
 
     it('should create elevation from geological features', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.MOUNTAIN,
         ElevationZone.ALPINE,
         HydrologyType.STREAM,
@@ -117,7 +117,7 @@ describe('Integrated Layer Generation', () => {
     });
 
     it('should generate water flow following topography', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.FOREST,
         ElevationZone.FOOTHILLS,
         HydrologyType.RIVER,
@@ -163,7 +163,7 @@ describe('Integrated Layer Generation', () => {
     });
 
     it('should place springs at geological boundaries', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.MOUNTAIN,
         ElevationZone.HIGHLAND,
         HydrologyType.STREAM,
@@ -201,7 +201,7 @@ describe('Integrated Layer Generation', () => {
     });
 
     it('should create appropriate moisture levels', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.SWAMP,
         ElevationZone.LOWLAND,
         HydrologyType.WETLAND,
@@ -234,7 +234,7 @@ describe('Integrated Layer Generation', () => {
     });
 
     it('should generate streams in appropriate contexts', async () => {
-      const riverContext = TacticalMapContext.create(
+      const riverContext = MapContext.create(
         BiomeType.PLAINS,
         ElevationZone.LOWLAND,
         HydrologyType.RIVER,
@@ -264,7 +264,7 @@ describe('Integrated Layer Generation', () => {
     });
 
     it('should maintain determinism across all layers', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.FOREST,
         ElevationZone.FOOTHILLS,
         HydrologyType.STREAM,
@@ -301,7 +301,7 @@ describe('Integrated Layer Generation', () => {
 
   describe('Performance with integrated layers', () => {
     it('should generate all layers for 50x50 map in reasonable time', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.FOREST,
         ElevationZone.FOOTHILLS,
         HydrologyType.STREAM,
@@ -326,7 +326,7 @@ describe('Integrated Layer Generation', () => {
     });
 
     it('should generate all layers for 100x100 map in reasonable time', async () => {
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.PLAINS,
         ElevationZone.LOWLAND,
         HydrologyType.RIVER,

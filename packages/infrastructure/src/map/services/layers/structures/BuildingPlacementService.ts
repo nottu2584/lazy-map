@@ -9,7 +9,7 @@ import {
   SpaceRequirements,
   Position,
   DevelopmentLevel,
-  TacticalMapContext,
+  MapContext,
   IBuildingGenerationService,
   type ILogger
 } from '@lazy-map/domain';
@@ -36,7 +36,7 @@ export class BuildingPlacementService {
   async placeBuildings(
     sites: { x: number; y: number; quality: number }[],
     developmentLevel: DevelopmentLevel,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed
   ): Promise<Building[]> {
     const buildings: Building[] = [];
@@ -45,7 +45,7 @@ export class BuildingPlacementService {
     // Determine number of buildings based on development level
     const buildingCount = this.getBuildingCount(developmentLevel, sites.length);
 
-    // Create building context from tactical map context
+    // Create building context from map context
     const buildingContext: BuildingContext = {
       biome: context.biome || 'temperate',
       wealthLevel: this.getWealthFromDevelopment(developmentLevel),

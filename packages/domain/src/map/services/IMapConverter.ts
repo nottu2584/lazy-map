@@ -1,6 +1,6 @@
 import { MapTile } from '../entities';
 import { Seed } from '../../common/value-objects';
-import { TacticalMapContext } from '../value-objects/TacticalMapContext';
+import { MapContext } from '../value-objects/MapContext';
 import {
   GeologyLayerData,
   TopographyLayerData,
@@ -10,10 +10,10 @@ import {
 } from './layers';
 
 /**
- * Input for tactical map to tile conversion
+ * Input for map to tile conversion
  * Contains all generated layer data
  */
-export interface TacticalMapLayers {
+export interface MapLayers {
   geology: GeologyLayerData;
   topography: TopographyLayerData;
   hydrology: HydrologyLayerData;
@@ -22,15 +22,15 @@ export interface TacticalMapLayers {
 }
 
 /**
- * Domain service interface for converting layered tactical map data
+ * Domain service interface for converting layered map data
  * into tile-based MapGrid representation
  *
  * This converter flattens the rich layer-based generation result
  * into simple tile properties suitable for MapGrid entity
  */
-export interface ITacticalMapConverter {
+export interface IMapConverter {
   /**
-   * Convert layered tactical map data into 2D tile array
+   * Convert layered map data into 2D tile array
    *
    * @param width - Map width in tiles
    * @param height - Map height in tiles
@@ -42,8 +42,8 @@ export interface ITacticalMapConverter {
   convertToTiles(
     width: number,
     height: number,
-    layers: TacticalMapLayers,
-    context: TacticalMapContext,
+    layers: MapLayers,
+    context: MapContext,
     seed: Seed
   ): MapTile[][];
 }

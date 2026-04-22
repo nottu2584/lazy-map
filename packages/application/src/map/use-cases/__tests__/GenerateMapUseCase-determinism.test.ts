@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { GenerateTacticalMapUseCase } from '../GenerateTacticalMapUseCase';
+import { GenerateMapUseCase } from '../GenerateMapUseCase';
 import {
-  TacticalMapContext,
+  MapContext,
   BiomeType,
   ElevationZone,
   HydrologyType,
@@ -47,8 +47,8 @@ import {
   LayoutGenerationService
 } from '@lazy-map/infrastructure';
 
-describe('GenerateTacticalMapUseCase - Determinism with Configs', () => {
-  let useCase: GenerateTacticalMapUseCase;
+describe('GenerateMapUseCase - Determinism with Configs', () => {
+  let useCase: GenerateMapUseCase;
 
   beforeEach(() => {
     // Topography services
@@ -97,7 +97,7 @@ describe('GenerateTacticalMapUseCase - Determinism with Configs', () => {
     );
 
     // Create use case with actual layer implementations
-    useCase = new GenerateTacticalMapUseCase(
+    useCase = new GenerateMapUseCase(
       new GeologyLayer(),
       topographyLayer,
       hydrologyLayer,
@@ -106,7 +106,7 @@ describe('GenerateTacticalMapUseCase - Determinism with Configs', () => {
     );
   });
 
-  const testContext = TacticalMapContext.create(
+  const testContext = MapContext.create(
     BiomeType.FOREST,
     ElevationZone.FOOTHILLS,
     HydrologyType.STREAM,

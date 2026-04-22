@@ -1,1 +1,1 @@
-export { serializeTacticalMapResult } from './TacticalMapResultSerializer';
+export { serializeMapResult } from './MapResultSerializer';

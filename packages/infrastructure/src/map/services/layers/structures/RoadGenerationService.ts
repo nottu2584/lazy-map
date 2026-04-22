@@ -2,7 +2,7 @@ import { Injectable, Optional, Inject } from '@nestjs/common';
 import {
   Seed,
   Building,
-  TacticalMapContext,
+  MapContext,
   DevelopmentLevel,
   VegetationLayerData,
   HydrologyLayerData,
@@ -33,7 +33,7 @@ export class RoadGenerationService {
     vegetation: VegetationLayerData,
     hydrology: HydrologyLayerData,
     topography: TopographyLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed,
     width: number,
     height: number

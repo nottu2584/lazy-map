@@ -1,5 +1,5 @@
 import { Seed } from '../../../common/value-objects/Seed';
-import { TacticalMapContext } from '../../value-objects/TacticalMapContext';
+import { MapContext } from '../../value-objects/MapContext';
 import { VegetationLayerData } from './IVegetationLayerService';
 import { HydrologyLayerData } from './IHydrologyLayerService';
 import { TopographyLayerData } from './ITopographyLayerService';
@@ -86,7 +86,7 @@ export interface IStructuresLayerService {
    * @param vegetation Vegetation layer data
    * @param hydrology Hydrological layer data
    * @param topography Topographic layer data
-   * @param context Tactical map context
+   * @param context Map context
    * @param seed Seed for deterministic generation
    * @returns Structures layer data
    */
@@ -94,7 +94,7 @@ export interface IStructuresLayerService {
     vegetation: VegetationLayerData,
     hydrology: HydrologyLayerData,
     topography: TopographyLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed
   ): Promise<StructuresLayerData>;
 }

@@ -1,4 +1,4 @@
-export * from './GenerateTacticalMapUseCase';
+export * from './GenerateMapUseCase';
 export * from './GetMapUseCase';
 export * from './GetUserMapHistoryUseCase';
 export * from './GetUserMapsUseCase';

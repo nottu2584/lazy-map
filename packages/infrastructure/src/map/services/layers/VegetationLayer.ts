@@ -1,6 +1,6 @@
 import { Injectable, Inject, Optional } from '@nestjs/common';
 import {
-  TacticalMapContext,
+  MapContext,
   Seed,
   VegetationConfig,
   type ILogger,
@@ -60,7 +60,7 @@ export class VegetationLayer implements IVegetationLayerService {
     hydrology: HydrologyLayerData,
     topography: TopographyLayerData,
     geology: GeologyLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed,
     config?: VegetationConfig
   ): Promise<VegetationLayerData> {

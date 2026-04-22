@@ -1,6 +1,6 @@
 import { Injectable, Optional, Inject } from '@nestjs/common';
 import {
-  TacticalMapContext,
+  MapContext,
   MoistureLevel,
   HydrologyType,
   PermeabilityLevel,
@@ -26,7 +26,7 @@ export class MoistureCalculationService {
     waterDepths: number[][],
     flowAccumulation: number[][],
     geology: GeologyLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     width: number,
     height: number
   ): MoistureLevel[][] {
@@ -71,7 +71,7 @@ export class MoistureCalculationService {
   /**
    * Get base moisture level from context
    */
-  private getBaseMoisture(context: TacticalMapContext): MoistureLevel {
+  private getBaseMoisture(context: MapContext): MoistureLevel {
     switch (context.hydrology) {
       case HydrologyType.ARID:
         return MoistureLevel.ARID;

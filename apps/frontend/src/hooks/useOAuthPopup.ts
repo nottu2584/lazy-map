@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { logger } from '@/services';
+import { apiService, logger } from '@/services';
 import type { AuthUser } from '@/types/auth';
 
 interface OAuthSuccessData {
@@ -31,23 +31,22 @@ function getAllowedOrigins(): string[] {
 
 export function useOAuthPopup({ onSuccess, onError }: UseOAuthPopupOptions) {
   const openOAuthPopup = useCallback(
-    (provider: 'google' | 'discord') => {
+    async (provider: 'google' | 'discord') => {
       logger.info(`OAuth login initiated with ${provider}`, {
         component: 'useOAuthPopup',
         operation: 'openOAuthPopup',
       });
 
-      // Open OAuth in popup window
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3030/api';
-      const oauthUrl = `${apiUrl}/auth/${provider}/login`;
+      let authorizationUrl: string;
+      try {
+        authorizationUrl = await apiService.getOAuthLoginUrl(provider);
+      } catch (err) {
+        onError?.(`Failed to start ${provider} login. Please try again.`);
+        return;
+      }
 
-      const popup = window.open(
-        oauthUrl,
-        `${provider}-oauth`,
-        'width=600,height=700,scrollbars=yes'
-      );
+      const popup = window.open(authorizationUrl, `${provider}-oauth`);
 
-      // Timeout after 5 minutes
       const timeout = setTimeout(() => {
         logger.warn('OAuth popup timeout', {
           component: 'useOAuthPopup',
@@ -63,7 +62,6 @@ export function useOAuthPopup({ onSuccess, onError }: UseOAuthPopupOptions) {
         }
       }, 5 * 60 * 1000);
 
-      // Listen for postMessage from OAuth popup
       const handleOAuthMessage = (event: MessageEvent<OAuthMessageData>) => {
         const allowedOrigins = getAllowedOrigins();
 
@@ -108,7 +106,6 @@ export function useOAuthPopup({ onSuccess, onError }: UseOAuthPopupOptions) {
 
       window.addEventListener('message', handleOAuthMessage);
 
-      // Cleanup listener if popup is closed manually
       const checkPopup = setInterval(() => {
         if (popup && popup.closed) {
           window.removeEventListener('message', handleOAuthMessage);

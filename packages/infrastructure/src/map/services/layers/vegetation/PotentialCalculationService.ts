@@ -56,9 +56,10 @@ export class PotentialCalculationService {
         if (soilDepth < 0.5) value *= 0.2; // Bare rock
         else if (soilDepth < 2) value *= 0.6;
 
-        // Elevation zones
-        if (context.elevation === 'alpine' && elevation > 60) {
-          value *= 0.3; // Tree line effects
+        // Elevation zones - alpine reduces potential but doesn't eliminate it
+        if (context.elevation === 'alpine') {
+          if (elevation > 80) value *= 0.2;
+          else if (elevation > 60) value *= 0.5;
         }
 
         potential[y][x] = Math.max(0, Math.min(1, value));

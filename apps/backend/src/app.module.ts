@@ -20,21 +20,21 @@ import { HealthModule } from './modules/health/health.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: [
-        '.env',                    // First priority: local .env in backend directory
-        '.env.local',              // Second priority: local overrides
+        '.env', // First priority: local .env in backend directory
+        '.env.local', // Second priority: local overrides
         join(__dirname, '../.env'), // Fallback to backend directory if running from dist
       ],
-      expandVariables: true,        // Allow ${VAR} syntax in .env files
+      expandVariables: true, // Allow ${VAR} syntax in .env files
     }),
     ThrottlerModule.forRoot([
       { name: 'short', ttl: 1000, limit: 3 },
       { name: 'medium', ttl: 10000, limit: 20 },
       { name: 'long', ttl: 60000, limit: 100 },
     ]),
-    // Provider modules - Wire up the Clean Architecture layers from packages/
-    ApplicationModule,      // Provides use cases from packages/application
-    InfrastructureModule,  // Provides services from packages/infrastructure
-    // Feature modules - HTTP endpoints organized by domain
+    // Provider modules
+    ApplicationModule, // Provides use cases from packages/application
+    InfrastructureModule, // Provides services from packages/infrastructure
+    // Feature modules
     AuthModule,
     AdminModule,
     MapsModule,
@@ -42,8 +42,6 @@ import { HealthModule } from './modules/health/health.module';
     HealthModule,
   ],
   controllers: [],
-  providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
-  ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

@@ -17,8 +17,11 @@ class TestLogger implements ILogger {
   info(): void {}
   warn(): void {}
   error(): void {}
+  critical(): void {}
   logError(): void {}
+  logUseCase(): void {}
   child(): ILogger { return this; }
+  withCorrelationId(): ILogger { return this; }
 }
 
 /**

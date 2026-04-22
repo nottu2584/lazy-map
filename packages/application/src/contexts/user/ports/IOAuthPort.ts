@@ -46,6 +46,7 @@ export interface IOAuthPort {
 export interface OAuthTokens {
   accessToken: string;
   refreshToken?: string;
+  idToken?: string; // JWT ID token (Google, Discord)
   expiresIn: number; // Seconds until expiration
   tokenType: string; // Usually "Bearer"
   scope?: string;

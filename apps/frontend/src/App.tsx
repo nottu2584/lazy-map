@@ -3,8 +3,7 @@ import { AnimatedBackground } from './components/AnimatedBackground';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { MapGenerator } from './components/map/MapGenerator';
 import { MapHistory } from './components/MapHistory';
-import { MinimalNavigation } from './components/MinimalNavigation';
-import { OAuthCallback } from './components/OAuthCallback';
+import { Navigation } from './components/Navigation';
 import { Toaster } from './components/ui/sonner';
 import { TooltipProvider } from './components/ui/tooltip';
 import { AuthProvider } from './contexts/AuthContext';
@@ -18,7 +17,7 @@ function App() {
           <BrowserRouter>
             <ErrorBoundary>
               <div className="min-h-screen relative z-10">
-                <MinimalNavigation />
+                <Navigation />
 
                 <main className="pt-16">
                   <Routes>
@@ -49,8 +48,6 @@ function App() {
                         </div>
                       }
                     />
-
-                    <Route path="/auth/callback" element={<OAuthCallback />} />
 
                     <Route
                       path="*"

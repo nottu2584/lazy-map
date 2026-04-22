@@ -73,6 +73,7 @@ export class GoogleOAuthService implements IGoogleOAuthPort {
       return {
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token || undefined,
+        idToken: tokens.id_token || undefined,
         expiresIn: tokens.expiry_date
           ? Math.floor((tokens.expiry_date - Date.now()) / 1000)
           : 3600,
@@ -92,14 +93,13 @@ export class GoogleOAuthService implements IGoogleOAuthPort {
   }
 
   /**
-   * Get user information from Google using access token
+   * Get user information from Google using ID token
+   * @param idToken - Google ID token (JWT)
    */
-  async getUserInfo(accessToken: string): Promise<OAuthUserInfo> {
+  async getUserInfo(idToken: string): Promise<OAuthUserInfo> {
     try {
-      this.client.setCredentials({ access_token: accessToken });
-
       const ticket = await this.client.verifyIdToken({
-        idToken: accessToken,
+        idToken: idToken,
         audience: this.clientId
       });
 

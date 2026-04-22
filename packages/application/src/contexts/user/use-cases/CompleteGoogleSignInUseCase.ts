@@ -86,8 +86,11 @@ export class CompleteGoogleSignInUseCase {
         }
       });
 
-      // 2. Get user info from Google
-      const googleUserInfo = await this.googleOAuthService.getUserInfo(oauthTokens.accessToken);
+      // 2. Get user info from Google ID token
+      if (!oauthTokens.idToken) {
+        throw new Error('No ID token received from Google');
+      }
+      const googleUserInfo = await this.googleOAuthService.getUserInfo(oauthTokens.idToken);
 
       this.logger.info('Retrieved Google user info', {
         metadata: {

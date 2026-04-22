@@ -22,10 +22,6 @@ import { StructureTileGenerationService } from './structures/StructureTileGenera
 /**
  * Structures Layer - Orchestrates artificial structure generation
  * Delegates to specialized services for each generation phase
- *
- * Refactored from 900-line monolith into lightweight orchestrator pattern
- * Services handle: site calculation, building placement, road generation,
- * bridge generation, decoration placement, and tile generation
  */
 @Injectable()
 export class StructuresLayer implements IStructuresLayerService {

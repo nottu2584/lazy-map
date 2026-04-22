@@ -1,6 +1,6 @@
 import { Injectable, Inject, Optional } from '@nestjs/common';
 import {
-  TacticalMapContext,
+  MapContext,
   Seed,
   Bridge,
   type ILogger,
@@ -60,7 +60,7 @@ export class StructuresLayer implements IStructuresLayerService {
     vegetation: VegetationLayerData,
     hydrology: HydrologyLayerData,
     topography: TopographyLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed
   ): Promise<StructuresLayerData> {
     const width = vegetation.tiles[0].length;

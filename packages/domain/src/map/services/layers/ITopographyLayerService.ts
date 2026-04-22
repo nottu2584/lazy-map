@@ -1,5 +1,5 @@
 import { Seed } from '../../../common/value-objects/Seed';
-import { TacticalMapContext } from '../../value-objects/TacticalMapContext';
+import { MapContext } from '../../value-objects/MapContext';
 import { TopographyConfig } from '../../value-objects/TopographyConfig';
 import { GeologyLayerData } from './IGeologyLayerService';
 import { AspectDirection } from '../../entities/TacticalMapTile';
@@ -36,14 +36,14 @@ export interface ITopographyLayerService {
   /**
    * Generate the topographic layer from geology
    * @param geology Geological layer data
-   * @param context Tactical map context
+   * @param context Map context
    * @param seed Seed for deterministic generation
    * @param config Optional topography configuration (terrain ruggedness)
    * @returns Topographic layer data
    */
   generate(
     geology: GeologyLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed,
     config?: TopographyConfig
   ): Promise<TopographyLayerData>;

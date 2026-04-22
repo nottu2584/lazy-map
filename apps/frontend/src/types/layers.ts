@@ -150,7 +150,7 @@ export interface StructuresLayerDataDTO {
 
 // ─── Combined ──────────────────────────────────────────────
 
-export interface TacticalMapLayersDTO {
+export interface MapLayersDTO {
   geology: GeologyLayerDataDTO;
   topography: TopographyLayerDataDTO;
   hydrology: HydrologyLayerDataDTO;

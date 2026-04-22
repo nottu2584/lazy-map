@@ -1,7 +1,7 @@
 import { Injectable, Inject, Optional } from '@nestjs/common';
 import {
   GeologicalFormation,
-  TacticalMapContext,
+  MapContext,
   BiomeType,
   Seed,
   type ILogger,
@@ -26,7 +26,7 @@ export class FormationSelectionService {
   ) {}
 
   selectFormations(
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed
   ): { primary: GeologicalFormation; secondary?: GeologicalFormation } {
     const candidates = this.getFormationsForBiome(context.biome);

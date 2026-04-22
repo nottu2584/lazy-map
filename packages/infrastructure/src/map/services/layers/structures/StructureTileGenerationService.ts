@@ -4,7 +4,7 @@ import {
   BuildingType,
   BuildingMaterial,
   WallMaterial,
-  TacticalMapContext,
+  MapContext,
   DevelopmentLevel,
   RoadNetwork,
   MaterialType,
@@ -34,7 +34,7 @@ export class StructureTileGenerationService {
     roadNetwork: RoadNetwork,
     bridges: BridgeLocation[],
     decorativeStructures: { x: number; y: number; type: StructureType }[],
-    context: TacticalMapContext,
+    context: MapContext,
     width: number,
     height: number
   ): StructureTileData[][] {

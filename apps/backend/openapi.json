@@ -254,108 +254,6 @@
         ]
       }
     },
-    "/api/auth/link-google": {
-      "post": {
-        "operationId": "AccountLinkingController_linkGoogleAccount",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LinkGoogleAccountDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Google account linked successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Failed to link Google account"
-          },
-          "401": {
-            "description": "Authentication required"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Link Google account to existing user",
-        "tags": [
-          "account-linking"
-        ]
-      }
-    },
-    "/api/auth/link-discord": {
-      "post": {
-        "operationId": "AccountLinkingController_linkDiscordAccount",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LinkDiscordAccountDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Discord account linked successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Failed to link Discord account"
-          },
-          "401": {
-            "description": "Authentication required"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Link Discord account to existing user",
-        "tags": [
-          "account-linking"
-        ]
-      }
-    },
     "/api/admin/users": {
       "get": {
         "operationId": "AdminController_listUsers",
@@ -747,10 +645,13 @@
         },
         "responses": {
           "201": {
-            "description": "Tactical map generated successfully"
+            "description": "Map generated successfully"
+          },
+          "500": {
+            "description": "Map generation failed"
           }
         },
-        "summary": "Generate a new tactical battlemap",
+        "summary": "Generate a new battlemap",
         "tags": [
           "maps"
         ]
@@ -898,7 +799,7 @@
             "description": "Benchmark completed successfully"
           }
         },
-        "summary": "Run performance benchmark on tactical map generation",
+        "summary": "Run performance benchmark on map generation",
         "tags": [
           "benchmark"
         ]
@@ -1119,32 +1020,6 @@
           "email",
           "username",
           "createdAt"
-        ]
-      },
-      "LinkGoogleAccountDto": {
-        "type": "object",
-        "properties": {
-          "idToken": {
-            "type": "string",
-            "description": "Google ID token received from Google Sign-In",
-            "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjI4YTQyMWNhZmJlM..."
-          }
-        },
-        "required": [
-          "idToken"
-        ]
-      },
-      "LinkDiscordAccountDto": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string",
-            "description": "Discord access token received from Discord OAuth",
-            "example": "YOUR_DISCORD_ACCESS_TOKEN_HERE"
-          }
-        },
-        "required": [
-          "accessToken"
         ]
       },
       "UserDto": {

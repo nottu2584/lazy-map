@@ -1,6 +1,6 @@
 import { Injectable, Inject, Optional } from '@nestjs/common';
 import {
-  TacticalMapContext,
+  MapContext,
   Seed,
   NoiseGenerator,
   HydrologyType,
@@ -25,7 +25,7 @@ export class ErosionModelService {
   applyDifferentialErosion(
     elevations: number[][],
     geology: GeologyLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed,
     config?: TopographyConfig
   ): number[][] {

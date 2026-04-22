@@ -1,6 +1,6 @@
 /**
  * Valid combination constraints for map context parameters.
- * Mirrors the validation rules in TacticalMapContext (domain layer).
+ * Mirrors the validation rules in MapContext (domain layer).
  */
 
 export const BIOME_OPTIONS = [

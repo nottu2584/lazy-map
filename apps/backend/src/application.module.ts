@@ -3,7 +3,7 @@ import {
   CompleteDiscordSignInUseCase,
   CompleteGoogleSignInUseCase,
   DeleteUserUseCase,
-  GenerateTacticalMapUseCase,
+  GenerateMapUseCase,
   GetMapUseCase,
   GetUserMapsUseCase,
   GetUserPermissionsUseCase,
@@ -24,7 +24,7 @@ import {
   UpdateUserUseCase,
   ValidateSeedUseCase,
 } from '@lazy-map/application';
-import { ILogger, ITacticalMapConverter, TacticalMapConverter } from '@lazy-map/domain';
+import { ILogger, IMapConverter, MapConverter } from '@lazy-map/domain';
 import { MapEntity, PostgresMapRepository } from '@lazy-map/infrastructure';
 import { Module } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -39,9 +39,9 @@ const shouldUseDatabase = () => {
 @Module({
   imports: [InfrastructureModule],
   providers: [
-    // Tactical Map Generation Use Case
+    // Map Generation Use Case
     {
-      provide: GenerateTacticalMapUseCase,
+      provide: GenerateMapUseCase,
       useFactory: (
         geologyService,
         topographyService,
@@ -50,7 +50,7 @@ const shouldUseDatabase = () => {
         structuresService,
         logger,
       ) => {
-        return new GenerateTacticalMapUseCase(
+        return new GenerateMapUseCase(
           geologyService,
           topographyService,
           hydrologyService,
@@ -69,11 +69,11 @@ const shouldUseDatabase = () => {
       ],
     },
 
-    // Tactical Map Converter (domain service)
-    // Converts layered tactical map data to tile-based MapGrid representation
+    // Map Converter (domain service)
+    // Converts layered map data to tile-based MapGrid representation
     {
-      provide: 'ITacticalMapConverter',
-      useClass: TacticalMapConverter,
+      provide: 'IMapConverter',
+      useClass: MapConverter,
     },
 
     // PostgreSQL Map Repository (when USE_DATABASE=true)
@@ -84,8 +84,8 @@ const shouldUseDatabase = () => {
             provide: 'IMapRepository',
             useFactory: (
               mapEntityRepository: Repository<MapEntity>,
-              generateMapUseCase: GenerateTacticalMapUseCase,
-              tileConverter: ITacticalMapConverter,
+              generateMapUseCase: GenerateMapUseCase,
+              tileConverter: IMapConverter,
               logger: ILogger,
             ) => {
               return new PostgresMapRepository(
@@ -97,8 +97,8 @@ const shouldUseDatabase = () => {
             },
             inject: [
               getRepositoryToken(MapEntity),
-              GenerateTacticalMapUseCase,
-              'ITacticalMapConverter',
+              GenerateMapUseCase,
+              'IMapConverter',
               'ILogger',
             ],
           },
@@ -173,17 +173,53 @@ const shouldUseDatabase = () => {
     // User use cases
     {
       provide: RegisterUserUseCase,
-      useFactory: (userRepository, passwordService, authenticationPort, refreshTokenService, refreshTokenRepository) => {
-        return new RegisterUserUseCase(userRepository, passwordService, authenticationPort, refreshTokenService, refreshTokenRepository);
+      useFactory: (
+        userRepository,
+        passwordService,
+        authenticationPort,
+        refreshTokenService,
+        refreshTokenRepository,
+      ) => {
+        return new RegisterUserUseCase(
+          userRepository,
+          passwordService,
+          authenticationPort,
+          refreshTokenService,
+          refreshTokenRepository,
+        );
       },
-      inject: ['IUserRepository', 'IPasswordService', 'IAuthenticationPort', 'IRefreshTokenPort', 'IRefreshTokenRepository'],
+      inject: [
+        'IUserRepository',
+        'IPasswordService',
+        'IAuthenticationPort',
+        'IRefreshTokenPort',
+        'IRefreshTokenRepository',
+      ],
     },
     {
       provide: LoginUserUseCase,
-      useFactory: (userRepository, passwordService, authenticationPort, refreshTokenService, refreshTokenRepository) => {
-        return new LoginUserUseCase(userRepository, passwordService, authenticationPort, refreshTokenService, refreshTokenRepository);
+      useFactory: (
+        userRepository,
+        passwordService,
+        authenticationPort,
+        refreshTokenService,
+        refreshTokenRepository,
+      ) => {
+        return new LoginUserUseCase(
+          userRepository,
+          passwordService,
+          authenticationPort,
+          refreshTokenService,
+          refreshTokenRepository,
+        );
       },
-      inject: ['IUserRepository', 'IPasswordService', 'IAuthenticationPort', 'IRefreshTokenPort', 'IRefreshTokenRepository'],
+      inject: [
+        'IUserRepository',
+        'IPasswordService',
+        'IAuthenticationPort',
+        'IRefreshTokenPort',
+        'IRefreshTokenRepository',
+      ],
     },
     {
       provide: GetUserProfileUseCase,
@@ -375,7 +411,7 @@ const shouldUseDatabase = () => {
   ],
   exports: [
     // Export Map Use Cases
-    GenerateTacticalMapUseCase,
+    GenerateMapUseCase,
     GetMapUseCase,
     GetUserMapsUseCase,
     SaveMapUseCase,

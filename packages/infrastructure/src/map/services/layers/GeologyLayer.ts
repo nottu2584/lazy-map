@@ -1,6 +1,6 @@
 import { Injectable, Inject, Optional } from '@nestjs/common';
 import {
-  TacticalMapContext,
+  MapContext,
   Seed,
   MapGenerationErrors,
   type ILogger,
@@ -16,7 +16,7 @@ import {
 } from './geology';
 
 /**
- * Generates the geological foundation layer for tactical maps
+ * Generates the geological foundation layer for maps
  * This is the FIRST layer — all other terrain emerges from geology
  *
  * Orchestrates geology generation by delegating to specialized services
@@ -46,7 +46,7 @@ export class GeologyLayer implements IGeologyLayerService {
   async generate(
     width: number,
     height: number,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed
   ): Promise<GeologyLayerData> {
     if (width < 10 || width > 200 || height < 10 || height > 200) {

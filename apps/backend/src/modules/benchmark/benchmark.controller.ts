@@ -2,12 +2,12 @@ import { Controller, Post, Body, Get, Inject } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
   ApiResponse as ApiResponseType,
-  GenerateTacticalMapUseCase
+  GenerateMapUseCase
 } from '@lazy-map/application';
 import {
   ILogger,
   Seed,
-  TacticalMapContext,
+  MapContext,
   BiomeType,
   ElevationZone,
   HydrologyType,
@@ -40,8 +40,8 @@ interface BenchmarkResult {
 }
 
 /**
- * Controller for benchmarking tactical map generation performance
- * Uses the GenerateTacticalMapUseCase following Clean Architecture
+ * Controller for benchmarking map generation performance
+ * Uses the GenerateMapUseCase following Clean Architecture
  */
 @ApiTags('benchmark')
 @Controller('benchmark')
@@ -49,12 +49,12 @@ export class BenchmarkController {
 
   constructor(
     @Inject(LOGGER_TOKEN) private readonly logger: ILogger,
-    @Inject(GenerateTacticalMapUseCase)
-    private readonly generateTacticalMapUseCase: GenerateTacticalMapUseCase
+    @Inject(GenerateMapUseCase)
+    private readonly generateMapUseCase: GenerateMapUseCase
   ) {}
 
   @Post('run')
-  @ApiOperation({ summary: 'Run performance benchmark on tactical map generation' })
+  @ApiOperation({ summary: 'Run performance benchmark on map generation' })
   @ApiResponse({ status: 200, description: 'Benchmark completed successfully' })
   async runBenchmark(@Body() dto: BenchmarkRequestDto): Promise<ApiResponseType<any>> {
     const operationLogger = this.logger.child({
@@ -63,7 +63,7 @@ export class BenchmarkController {
     });
 
     try {
-      operationLogger.info('Starting tactical map benchmark', {
+      operationLogger.info('Starting map benchmark', {
         metadata: {
           mapSizes: dto.mapSizes,
           seeds: dto.seeds,
@@ -84,7 +84,7 @@ export class BenchmarkController {
       const results: BenchmarkResult[] = [];
 
       // Create a standard context for all benchmarks
-      const context = TacticalMapContext.create(
+      const context = MapContext.create(
         BiomeType.FOREST,
         ElevationZone.FOOTHILLS,
         HydrologyType.STREAM,
@@ -110,7 +110,7 @@ export class BenchmarkController {
 
             // Use the use case to generate the map
             // This follows Clean Architecture - controller uses use case, not infrastructure directly
-            const result = await this.generateTacticalMapUseCase.execute(
+            const result = await this.generateMapUseCase.execute(
               size.width,
               size.height,
               context,
@@ -202,7 +202,7 @@ export class BenchmarkController {
       operationLogger.info('Starting quick benchmark');
 
       const seed = Seed.fromString('quick-bench');
-      const context = TacticalMapContext.fromSeed(seed);
+      const context = MapContext.fromSeed(seed);
 
       const sizes = [
         { width: 30, height: 30 },
@@ -214,7 +214,7 @@ export class BenchmarkController {
       for (const size of sizes) {
         const startTime = Date.now();
 
-        const result = await this.generateTacticalMapUseCase.execute(
+        const result = await this.generateMapUseCase.execute(
           size.width,
           size.height,
           context,

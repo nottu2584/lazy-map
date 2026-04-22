@@ -9,7 +9,7 @@ import { PostgresUserRepository, PostgresOAuthTokenRepository, PostgresRefreshTo
  * Provides TypeORM configuration and repository implementations
  *
  * Note: PostgresMapRepository is provided in ApplicationModule
- * because it depends on GenerateTacticalMapUseCase
+ * because it depends on GenerateMapUseCase
  */
 @Global()
 @Module({

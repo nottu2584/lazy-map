@@ -9,7 +9,7 @@ import {
   HydrologyLayerData,
   VegetationLayerData,
   StructuresLayerData,
-  TacticalMapContext,
+  MapContext,
   Seed,
   VegetationConfig,
   TopographyConfig,
@@ -19,13 +19,13 @@ import {
 } from '@lazy-map/domain';
 
 /**
- * Result of tactical map generation with all layers
+ * Result of map generation with all layers
  */
-export interface TacticalMapGenerationResult {
+export interface LayeredMapResult {
   width: number;
   height: number;
   seed: Seed;
-  context: TacticalMapContext;
+  context: MapContext;
   layers: {
     geology: GeologyLayerData;
     topography: TopographyLayerData;
@@ -37,7 +37,7 @@ export interface TacticalMapGenerationResult {
 }
 
 /**
- * Use case for generating a complete tactical map with all layers
+ * Use case for generating a complete map with all layers
  * Orchestrates the layer generation services in the correct order
  *
  * This follows Clean Architecture by:
@@ -45,7 +45,7 @@ export interface TacticalMapGenerationResult {
  * - Orchestrating domain services
  * - Not depending on infrastructure details
  */
-export class GenerateTacticalMapUseCase {
+export class GenerateMapUseCase {
   constructor(
     private readonly geologyLayerService: IGeologyLayerService,
     private readonly topographyLayerService: ITopographyLayerService,
@@ -56,11 +56,11 @@ export class GenerateTacticalMapUseCase {
   ) {}
 
   /**
-   * Execute the tactical map generation
+   * Execute the map generation
    * Generates all layers in sequence, with each depending on previous layers
    * @param width Map width in tiles
    * @param height Map height in tiles
-   * @param context Tactical map context
+   * @param context Map context
    * @param seed Seed for deterministic generation
    * @param topographyConfig Optional topography configuration (terrain ruggedness)
    * @param hydrologyConfig Optional hydrology configuration (water abundance)
@@ -69,12 +69,12 @@ export class GenerateTacticalMapUseCase {
   async execute(
     width: number,
     height: number,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed,
     topographyConfig?: TopographyConfig,
     hydrologyConfig?: HydrologyConfig,
     vegetationConfig?: VegetationConfig
-  ): Promise<TacticalMapGenerationResult> {
+  ): Promise<LayeredMapResult> {
     const startTime = Date.now();
 
     // Validate parameters
@@ -82,7 +82,7 @@ export class GenerateTacticalMapUseCase {
       throw MapGenerationErrors.invalidDimensions(width, height);
     }
 
-    this.logger?.info('Starting tactical map generation', {
+    this.logger?.info('Starting map generation', {
       metadata: {
         width,
         height,
@@ -192,7 +192,7 @@ export class GenerateTacticalMapUseCase {
 
       const generationTime = Date.now() - startTime;
 
-      this.logger?.info('Tactical map generation complete', {
+      this.logger?.info('Map generation complete', {
         metadata: {
           generationTime,
           width,
@@ -216,7 +216,7 @@ export class GenerateTacticalMapUseCase {
         generationTime
       };
     } catch (error) {
-      this.logger?.error('Failed to generate tactical map', {
+      this.logger?.error('Failed to generate map', {
         metadata: {
           error: (error as Error).message,
           width,
@@ -229,16 +229,16 @@ export class GenerateTacticalMapUseCase {
   }
 
   /**
-   * Generate a tactical map with default context
+   * Generate a map with default context
    * Convenience method for quick generation
    */
   async executeWithDefaults(
     width: number,
     height: number,
     seed?: Seed
-  ): Promise<TacticalMapGenerationResult> {
+  ): Promise<LayeredMapResult> {
     const defaultSeed = seed || Seed.createDefault();
-    const defaultContext = TacticalMapContext.fromSeed(defaultSeed);
+    const defaultContext = MapContext.fromSeed(defaultSeed);
 
     return this.execute(width, height, defaultContext, defaultSeed);
   }

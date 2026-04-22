@@ -2,7 +2,7 @@ import { Injectable, Optional, Inject } from '@nestjs/common';
 import {
   Seed,
   NoiseGenerator,
-  TacticalMapContext,
+  MapContext,
   HydrologyType,
   HydrologyConfig,
   HydrologyConstants,
@@ -28,7 +28,7 @@ export class WaterDepthCalculationService {
     flowAccumulation: number[][],
     topography: TopographyLayerData,
     streamData: { isStream: boolean[][]; streamOrder: number[][] },
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed,
     width: number,
     height: number,
@@ -85,7 +85,7 @@ export class WaterDepthCalculationService {
   /**
    * Get appropriate stream depth based on order
    */
-  private getStreamDepth(order: number, context: TacticalMapContext): number {
+  private getStreamDepth(order: number, context: MapContext): number {
     const baseDepth = order * 0.5; // 0.5 feet per order
 
     // Modify by hydrology type

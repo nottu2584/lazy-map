@@ -4,7 +4,7 @@ import {
   NoiseGenerator,
   RockType,
   Seed,
-  TacticalMapContext,
+  MapContext,
   TerrainFeature,
   TopographyConfig,
   TopographyConstants,
@@ -50,7 +50,7 @@ export class ElevationGenerationService {
    */
   generateBaseElevations(
     geology: GeologyLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed,
     config?: TopographyConfig
   ): number[][] {
@@ -126,7 +126,7 @@ export class ElevationGenerationService {
    * High ruggedness = small features (young sharp terrain)
    */
   private calculateThreeLayerScales(
-    context: TacticalMapContext,
+    context: MapContext,
     config?: TopographyConfig
   ): { macro: number; tactical: number; texture: number } {
     const ruggedness = config?.terrainRuggedness ?? 1.0;
@@ -307,7 +307,7 @@ export class ElevationGenerationService {
   calculateElevationParameters(
     width: number,
     height: number,
-    context: TacticalMapContext,
+    context: MapContext,
     config?: TopographyConfig
   ): ElevationParameters {
     // Calculate physical dimensions (tiles × 5ft per tile)
@@ -382,7 +382,7 @@ export class ElevationGenerationService {
     let elevation = baseElevation;
 
     // Scale factor: normalize features to expected 50ft relief
-    // For tactical maps with 50ft relief, scale = 1.0
+    // For maps with 50ft relief, scale = 1.0
     // For smaller relief, features scale down proportionally
     const featureScale = maxElevation / 50;
 

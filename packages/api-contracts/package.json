@@ -6,7 +6,8 @@
   "types": "src/index.ts",
   "scripts": {
     "build": "echo 'No build needed - TypeScript types only'",
-    "generate": "openapi-typescript ../../apps/backend/openapi.json -o src/generated/types.ts && prettier --write src/generated/types.ts"
+    "generate": "openapi-typescript ../../apps/backend/openapi.json -o src/generated/types.ts && prettier --write src/generated/types.ts",
+    "clean": "rm -rf node_modules"
   },
   "devDependencies": {
     "openapi-typescript": "^7.4.4",

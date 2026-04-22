@@ -16,6 +16,7 @@
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
     "format": "turbo format",
+    "clean": "turbo clean && rm -rf .turbo node_modules",
     "setup": "pnpm install && turbo build --filter='@lazy-map/*'",
     "generate": "pnpm --filter @lazy-map/api-contracts generate",
     "generate:watch": "nodemon --watch apps/backend/openapi.json --exec 'pnpm generate'",

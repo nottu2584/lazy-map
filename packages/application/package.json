@@ -9,7 +9,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "oxlint src --config ../oxlint.json",
-    "lint:fix": "oxlint src --config ../oxlint.json --fix"
+    "lint:fix": "oxlint src --config ../oxlint.json --fix",
+    "clean": "rm -rf dist node_modules"
   },
   "keywords": [
     "lazy-map",

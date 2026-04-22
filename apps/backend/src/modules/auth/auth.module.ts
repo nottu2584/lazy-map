@@ -4,7 +4,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ApplicationModule } from '../../application.module';
 import { InfrastructureModule } from '../../infrastructure.module';
-import { AccountLinkingController } from './account-linking.controller';
 import { AuthController } from './auth.controller';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { OAuthController } from './oauth.controller';
@@ -30,7 +29,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     ApplicationModule,
     InfrastructureModule,
   ],
-  controllers: [AuthController, OAuthController, AccountLinkingController],
+  controllers: [AuthController, OAuthController],
   providers: [JwtStrategy, JwtAuthGuard],
   exports: [JwtStrategy, JwtAuthGuard, PassportModule],
 })

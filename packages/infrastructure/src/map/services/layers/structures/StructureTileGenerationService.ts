@@ -2,6 +2,8 @@ import { Injectable, Optional, Inject } from '@nestjs/common';
 import {
   Building,
   BuildingType,
+  BuildingMaterial,
+  WallMaterial,
   TacticalMapContext,
   DevelopmentLevel,
   RoadNetwork,
@@ -147,21 +149,17 @@ export class StructureTileGenerationService {
   /**
    * Convert domain BuildingMaterial to infrastructure MaterialType
    */
-  private convertBuildingMaterialToMaterialType(material: any): MaterialType {
-    const materialType = material.getType();
-    switch (materialType) {
-      case 'wood_rough':
-      case 'wood_planked':
+  private convertBuildingMaterialToMaterialType(material: BuildingMaterial): MaterialType {
+    switch (material.getMaterial()) {
+      case WallMaterial.WOOD:
         return MaterialType.WOOD;
-      case 'stone_rough':
-      case 'stone_cut':
-      case 'stone_fortified':
+      case WallMaterial.STONE:
         return MaterialType.STONE;
-      case 'brick':
-        return MaterialType.STONE; // Map brick to stone for simplicity
-      case 'wattle_daub':
-      case 'adobe':
-        return MaterialType.DIRT; // Map these to dirt for simplicity
+      case WallMaterial.BRICK:
+        return MaterialType.STONE;
+      case WallMaterial.EARTH:
+      case WallMaterial.COMPOSITE:
+        return MaterialType.DIRT;
       default:
         return MaterialType.WOOD;
     }

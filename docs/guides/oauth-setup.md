@@ -1,4 +1,4 @@
-# Google OAuth Quick Start Guide
+# OAuth Setup Guide
 
 ## Setup Google Cloud Console
 
@@ -12,98 +12,82 @@
    - Click "Create Credentials" > "OAuth client ID"
    - Choose "Web application"
    - Add authorized JavaScript origins:
-     - `http://localhost:3000` (backend)
+     - `http://localhost:3030` (backend)
      - `http://localhost:5173` (frontend)
    - Add authorized redirect URIs:
-     - `http://localhost:3000/auth/google/callback`
+     - `http://localhost:3030/api/auth/google/callback`
    - Copy the Client ID and Client Secret
 
 3. **Configure Environment Variables**
    ```bash
-   cp .env.example .env
+   cp apps/backend/.env.example apps/backend/.env
    ```
 
-   Edit `.env` and add:
+   Edit `apps/backend/.env` and add:
    ```env
    GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
    GOOGLE_CLIENT_SECRET=your-client-secret
    JWT_SECRET=your-secure-jwt-secret
    ```
 
+## Setup Discord OAuth
+
+1. **Create a Discord Application**
+   - Go to [Discord Developer Portal](https://discord.com/developers/applications)
+   - Create a new application
+   - Navigate to "OAuth2" settings
+   - Add redirect URI: `http://localhost:3030/api/auth/discord/callback`
+   - Copy the Client ID and Client Secret
+
+2. **Configure Environment Variables**
+
+   Add to `apps/backend/.env`:
+   ```env
+   DISCORD_CLIENT_ID=your-discord-client-id
+   DISCORD_CLIENT_SECRET=your-discord-client-secret
+   ```
+
 ## Running the Application
 
 1. **Start Database Services**
    ```bash
-   docker-compose up -d
+   docker compose up -d postgres
    ```
 
-2. **Run Database Migration**
+2. **Run Database Migrations**
    ```bash
-   # Apply the OAuth schema changes
-   psql -h localhost -p 5432 -U postgres -d lazy_map < packages/infrastructure/src/adapters/persistence/postgres/migrations/add-oauth-support.sql
+   cd apps/backend && pnpm migration:run
    ```
 
 3. **Start the Backend**
    ```bash
-   pnpm run dev:backend
+   cd apps/backend && pnpm start:dev
    ```
 
 4. **Start the Frontend**
    ```bash
-   pnpm run dev:frontend
+   cd apps/frontend && pnpm dev
    ```
 
-## Testing the OAuth Endpoints
+## OAuth Flow
 
-### 1. Google Sign-In
-```bash
-# POST /auth/google
-curl -X POST http://localhost:3000/auth/google \
-  -H "Content-Type: application/json" \
-  -d '{
-    "idToken": "GOOGLE_ID_TOKEN_FROM_FRONTEND"
-  }'
-```
+The application uses server-side OAuth (authorization code flow):
 
-Expected Response:
-```json
-{
-  "accessToken": "jwt.token.here",
-  "user": {
-    "id": "user-uuid",
-    "email": "user@gmail.com",
-    "username": "john"
-  }
-}
-```
-
-### 2. Link Google Account (Requires Authentication)
-```bash
-# POST /auth/link-google
-curl -X POST http://localhost:3000/auth/link-google \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{
-    "idToken": "GOOGLE_ID_TOKEN"
-  }'
-```
-
-Expected Response:
-```json
-{
-  "success": true,
-  "message": "Google account linked successfully"
-}
-```
+1. Frontend calls `GET /api/auth/google/login` or `GET /api/auth/discord/login`
+2. Backend returns an `authorizationUrl` for the OAuth provider
+3. Frontend opens the authorization URL (popup or redirect)
+4. User authenticates with the provider
+5. Provider redirects to backend callback with authorization code
+6. Backend exchanges the code for tokens server-side
+7. Backend creates/finds user account and returns a JWT
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Invalid Google Token Error**
-   - Ensure the Client ID matches between frontend and backend
-   - Check that the token hasn't expired
-   - Verify the domain is in authorized origins
+1. **OAuth Callback Errors**
+   - Ensure redirect URIs match exactly between provider console and backend config
+   - Check that Client ID and Secret are correct in `.env`
 
 2. **Database Connection Issues**
    - Ensure PostgreSQL is running: `docker ps`
@@ -111,17 +95,16 @@ Expected Response:
    - Verify migrations have been applied
 
 3. **JWT Token Issues**
-   - Ensure JWT_SECRET is set in .env
+   - Ensure JWT_SECRET is set in `.env`
    - Check token expiration settings
    - Verify the token format in Authorization header
 
 ## Security Checklist
 
-- ✅ Never expose GOOGLE_CLIENT_SECRET to frontend
-- ✅ Always validate tokens server-side
-- ✅ Use HTTPS in production
-- ✅ Implement rate limiting on auth endpoints
-- ✅ Store JWT tokens securely (httpOnly cookies recommended)
-- ✅ Validate email verification status
-- ✅ Log authentication attempts for security monitoring
-
+- Never expose Client Secrets to frontend
+- All token exchange happens server-side (authorization code flow)
+- Use HTTPS in production
+- Implement rate limiting on auth endpoints
+- Store JWT tokens securely (httpOnly cookies recommended)
+- Validate email verification status
+- Log authentication attempts for security monitoring

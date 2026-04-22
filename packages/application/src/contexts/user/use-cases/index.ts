@@ -2,8 +2,6 @@ export * from './admin';
 export * from './RegisterUserUseCase';
 export * from './LoginUserUseCase';
 export * from './GetUserProfileUseCase';
-export * from './LinkGoogleAccountUseCase';
-export * from './LinkDiscordAccountUseCase';
 export * from './InitiateGoogleSignInUseCase';
 export * from './CompleteGoogleSignInUseCase';
 export * from './InitiateDiscordSignInUseCase';

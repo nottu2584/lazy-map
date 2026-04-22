@@ -90,30 +90,47 @@ export class TacticalMapContext {
    * Generate a context deterministically from a seed
    */
   static fromSeed(seed: Seed): TacticalMapContext {
-    // Use seed to deterministically generate context
     const value = seed.getValue();
 
-    // Simple deterministic selection based on seed value
     const biomes = Object.values(BiomeType);
     const elevations = Object.values(ElevationZone);
-    const hydrologies = Object.values(HydrologyType);
     const developments = Object.values(DevelopmentLevel);
     const seasons = Object.values(Season);
 
-    // Use different parts of the seed for different attributes
     const biomeIndex = Math.abs(value % biomes.length);
-    const elevationIndex = Math.abs(Math.floor(value / 100) % elevations.length);
-    const hydrologyIndex = Math.abs(Math.floor(value / 10000) % hydrologies.length);
+    const biome = biomes[biomeIndex];
+
+    const compatibleElevations = biome === BiomeType.UNDERGROUND
+      ? elevations.filter(e => e !== ElevationZone.ALPINE)
+      : elevations;
+    const elevationIndex = Math.abs(Math.floor(value / 100) % compatibleElevations.length);
+
+    const compatibleHydrologies = this.getCompatibleHydrologies(biome);
+    const hydrologyIndex = Math.abs(Math.floor(value / 10000) % compatibleHydrologies.length);
+
     const developmentIndex = Math.abs(Math.floor(value / 1000000) % developments.length);
     const seasonIndex = Math.abs(Math.floor(value / 100000000) % seasons.length);
 
     return new TacticalMapContext(
-      biomes[biomeIndex],
-      elevations[elevationIndex],
-      hydrologies[hydrologyIndex],
+      biome,
+      compatibleElevations[elevationIndex],
+      compatibleHydrologies[hydrologyIndex],
       developments[developmentIndex],
       seasons[seasonIndex]
     );
+  }
+
+  private static getCompatibleHydrologies(biome: BiomeType): HydrologyType[] {
+    switch (biome) {
+      case BiomeType.COASTAL:
+        return [HydrologyType.COASTAL];
+      case BiomeType.SWAMP:
+        return [HydrologyType.WETLAND];
+      case BiomeType.DESERT:
+        return [HydrologyType.ARID, HydrologyType.SEASONAL, HydrologyType.STREAM];
+      default:
+        return Object.values(HydrologyType);
+    }
   }
 
   /**

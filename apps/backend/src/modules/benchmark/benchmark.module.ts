@@ -4,7 +4,7 @@ import { ApplicationModule } from '../../application.module';
 
 /**
  * Benchmark Module
- * Handles performance benchmarking for tactical map generation
+ * Handles performance benchmarking for map generation
  * Uses Clean Architecture - controllers call use cases from application layer
  */
 @Module({

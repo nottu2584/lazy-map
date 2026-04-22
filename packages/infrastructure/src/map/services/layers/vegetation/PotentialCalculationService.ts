@@ -4,7 +4,7 @@ import {
   GeologyLayerData,
   HydrologyLayerData,
   MoistureLevel,
-  TacticalMapContext,
+  MapContext,
   TopographyLayerData,
   type ILogger
 } from '@lazy-map/domain';
@@ -27,7 +27,7 @@ export class PotentialCalculationService {
     hydrology: HydrologyLayerData,
     topography: TopographyLayerData,
     geology: GeologyLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     width: number,
     height: number
   ): number[][] {

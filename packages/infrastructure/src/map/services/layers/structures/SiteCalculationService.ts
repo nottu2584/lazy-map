@@ -3,7 +3,7 @@ import {
   VegetationLayerData,
   HydrologyLayerData,
   TopographyLayerData,
-  TacticalMapContext,
+  MapContext,
   VegetationType,
   type ILogger
 } from '@lazy-map/domain';
@@ -27,7 +27,7 @@ export class SiteCalculationService {
     vegetation: VegetationLayerData,
     hydrology: HydrologyLayerData,
     topography: TopographyLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     width: number,
     height: number
   ): { x: number; y: number; quality: number }[] {

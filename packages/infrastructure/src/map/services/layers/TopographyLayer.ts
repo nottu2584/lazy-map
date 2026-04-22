@@ -1,6 +1,6 @@
 import { Injectable, Inject, Optional } from '@nestjs/common';
 import {
-  TacticalMapContext,
+  MapContext,
   Seed,
   MapGenerationErrors,
   type ILogger,
@@ -54,7 +54,7 @@ export class TopographyLayer implements ITopographyLayerService {
    */
   async generate(
     geology: GeologyLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed,
     config?: TopographyConfig
   ): Promise<TopographyLayerData> {

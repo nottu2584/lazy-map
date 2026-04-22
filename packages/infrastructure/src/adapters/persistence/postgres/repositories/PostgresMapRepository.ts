@@ -10,12 +10,12 @@ import {
   UserId,
   ILogger,
   Seed,
-  TacticalMapContext,
+  MapContext,
   Dimensions,
-  ITacticalMapConverter,
+  IMapConverter,
   MapMetadata
 } from '@lazy-map/domain';
-import { GenerateTacticalMapUseCase } from '@lazy-map/application';
+import { GenerateMapUseCase } from '@lazy-map/application';
 import { MapEntity } from '../entities/MapEntity';
 import { MapMapper } from '../mappers/MapMapper';
 
@@ -29,10 +29,10 @@ export class PostgresMapRepository implements IMapRepository {
   constructor(
     @InjectRepository(MapEntity)
     private readonly repository: Repository<MapEntity>,
-    @Inject(GenerateTacticalMapUseCase)
-    private readonly generateMapUseCase: GenerateTacticalMapUseCase,
-    @Inject('ITacticalMapConverter')
-    private readonly tileConverter: ITacticalMapConverter,
+    @Inject(GenerateMapUseCase)
+    private readonly generateMapUseCase: GenerateMapUseCase,
+    @Inject('IMapConverter')
+    private readonly tileConverter: IMapConverter,
     @Inject('ILogger')
     private readonly logger?: ILogger
   ) {}
@@ -255,7 +255,7 @@ export class PostgresMapRepository implements IMapRepository {
 
   /**
    * Helper method to regenerate a MapGrid from stored parameters
-   * Uses GenerateTacticalMapUseCase to deterministically regenerate from seed
+   * Uses GenerateMapUseCase to deterministically regenerate from seed
    */
   private async regenerateMapFromEntity(entity: MapEntity): Promise<MapGrid | null> {
     try {
@@ -268,7 +268,7 @@ export class PostgresMapRepository implements IMapRepository {
       const height = entity.settings.dimensions.height;
 
       // Create context from seed (deterministic based on seed)
-      const context = TacticalMapContext.fromSeed(seed);
+      const context = MapContext.fromSeed(seed);
 
       this.logger?.debug(`Regenerating map ${entity.id} from seed`, {
         component: 'PostgresMapRepository',
@@ -279,7 +279,7 @@ export class PostgresMapRepository implements IMapRepository {
       // Regenerate the map using the use case
       const result = await this.generateMapUseCase.execute(width, height, context, seed);
 
-      // Convert the tactical map layers to tiles using the converter
+      // Convert the map layers to tiles using the converter
       const tiles = this.tileConverter.convertToTiles(
         width,
         height,
@@ -308,7 +308,7 @@ export class PostgresMapRepository implements IMapRepository {
         new MapId(entity.id), // Use stored ID
         entity.name,
         dimensions,
-        5, // Tactical map cell size (5 feet per tile)
+        5, // Map cell size (5 feet per tile)
         tiles,
         metadata,
         seed,

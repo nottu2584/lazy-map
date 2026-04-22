@@ -1,5 +1,5 @@
 import { Seed } from '../../../common/value-objects/Seed';
-import { TacticalMapContext } from '../../value-objects/TacticalMapContext';
+import { MapContext } from '../../value-objects/MapContext';
 import {
   GeologicalFormation,
   PermeabilityLevel,
@@ -9,7 +9,7 @@ import { Position } from '../../../common/value-objects/Position';
 
 /**
  * Geological layer data structure
- * Represents the geological foundation of the tactical map
+ * Represents the geological foundation of the map
  */
 export interface GeologyLayerData {
   tiles: GeologyTileData[][];
@@ -38,14 +38,14 @@ export interface IGeologyLayerService {
    * Generate the geological foundation layer
    * @param width Map width in tiles
    * @param height Map height in tiles
-   * @param context Tactical map context
+   * @param context Map context
    * @param seed Seed for deterministic generation
    * @returns Geological layer data
    */
   generate(
     width: number,
     height: number,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed
   ): Promise<GeologyLayerData>;
 }

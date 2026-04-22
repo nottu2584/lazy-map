@@ -2,13 +2,13 @@ import { MapTile } from '../../entities';
 import { Position } from '../../../common/value-objects/Position';
 import { Seed } from '../../../common/value-objects/Seed';
 import { Terrain } from '../../../contexts/relief/value-objects/TerrainType';
-import { TacticalMapContext } from '../../value-objects/TacticalMapContext';
-import { ITacticalMapConverter, TacticalMapLayers } from '../ITacticalMapConverter';
+import { MapContext } from '../../value-objects/MapContext';
+import { IMapConverter, MapLayers } from '../IMapConverter';
 import { StructureType } from '../layers/IStructuresLayerService';
 import { VegetationType } from '../../entities/TacticalMapTile';
 
 /**
- * Domain service that converts layered tactical map data
+ * Domain service that converts layered map data
  * into tile-based MapGrid representation
  *
  * Flattens complex layer data into simple tile properties:
@@ -16,15 +16,15 @@ import { VegetationType } from '../../entities/TacticalMapTile';
  * - Geology + Hydrology + Vegetation → terrain type
  * - Structures + Features → blocked status, features
  */
-export class TacticalMapConverter implements ITacticalMapConverter {
+export class MapConverter implements IMapConverter {
   /**
-   * Convert layered tactical map data into 2D tile array
+   * Convert layered map data into 2D tile array
    */
   convertToTiles(
     width: number,
     height: number,
-    layers: TacticalMapLayers,
-    _context: TacticalMapContext,
+    layers: MapLayers,
+    _context: MapContext,
     _seed: Seed
   ): MapTile[][] {
     const tiles: MapTile[][] = [];
@@ -42,7 +42,7 @@ export class TacticalMapConverter implements ITacticalMapConverter {
   /**
    * Convert a single tile's layered data into MapTile
    */
-  private convertTile(x: number, y: number, layers: TacticalMapLayers): MapTile {
+  private convertTile(x: number, y: number, layers: MapLayers): MapTile {
     const position = new Position(x, y);
 
     // Extract data from each layer

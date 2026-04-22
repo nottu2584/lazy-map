@@ -2,7 +2,7 @@ import { Injectable, Optional, Inject } from '@nestjs/common';
 import {
   NoiseGenerator,
   Seed,
-  TacticalMapContext,
+  MapContext,
   VegetationConfig,
   type ILogger
 } from '@lazy-map/domain';
@@ -22,7 +22,7 @@ export class ForestGenerationService {
    */
   generateForestPatches(
     potential: number[][],
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed,
     config: VegetationConfig,
     width: number,

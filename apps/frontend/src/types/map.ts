@@ -60,7 +60,7 @@ export interface GeneratedMap {
     elevation: number;
     features: string[];
   }>;
-  layers?: import('./layers').TacticalMapLayersDTO;
+  layers?: import('./layers').MapLayersDTO;
 }
 
 export interface SeedValidation {

@@ -95,11 +95,11 @@ export function MapGenerator() {
       ? {
           ...advancedSettings,
           seed: seedInput,
-          name: advancedSettings.name || seedInput || 'Tactical Map',
+          name: advancedSettings.name || seedInput || 'Map',
           contextSettings: hasContext ? contextSettings : undefined,
         }
       : {
-          name: seedInput || 'Tactical Map',
+          name: seedInput || 'Map',
           width: 50,
           height: 50,
           cellSize: 5,
@@ -172,7 +172,7 @@ export function MapGenerator() {
             Generate Your Map
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mt-6">
-            Tactical battlemap generator for tabletop RPGs. Enter a seed value to create your map.
+            Battlemap generator for tabletop RPGs. Enter a seed value to create your map.
           </p>
         </section>
 
@@ -402,7 +402,7 @@ export function MapGenerator() {
                 </EmptyMedia>
                 <EmptyTitle>No map generated yet</EmptyTitle>
                 <EmptyDescription>
-                  Enter a seed value above and click Generate to create your tactical battlemap. The
+                  Enter a seed value above and click Generate to create your battlemap. The
                   map will appear here once generation is complete.
                 </EmptyDescription>
               </EmptyHeader>

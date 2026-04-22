@@ -1,14 +1,14 @@
-import type { TacticalMapGenerationResult } from '@lazy-map/application';
+import type { LayeredMapResult } from '@lazy-map/application';
 
 /**
- * Serializes TacticalMapGenerationResult into plain JSON-safe objects.
+ * Serializes LayeredMapResult into plain JSON-safe objects.
  *
  * Domain classes with private fields (Seed, Building) don't survive
  * JSON.stringify. This serializer extracts the data we need via getters
  * and omits heavyweight collections (plants[], buildings[], bridges[])
  * since tile-level data already contains the rendering info.
  */
-export function serializeTacticalMapResult(result: TacticalMapGenerationResult) {
+export function serializeMapResult(result: LayeredMapResult) {
   return {
     width: result.width,
     height: result.height,
@@ -25,7 +25,7 @@ export function serializeTacticalMapResult(result: TacticalMapGenerationResult) 
   };
 }
 
-function serializeContext(context: TacticalMapGenerationResult['context']) {
+function serializeContext(context: LayeredMapResult['context']) {
   return {
     biome: context.biome,
     elevation: context.elevation,
@@ -36,7 +36,7 @@ function serializeContext(context: TacticalMapGenerationResult['context']) {
   };
 }
 
-function serializeGeologyLayer(geology: TacticalMapGenerationResult['layers']['geology']) {
+function serializeGeologyLayer(geology: LayeredMapResult['layers']['geology']) {
   return {
     tiles: geology.tiles,
     primaryFormation: geology.primaryFormation,
@@ -45,7 +45,7 @@ function serializeGeologyLayer(geology: TacticalMapGenerationResult['layers']['g
   };
 }
 
-function serializeHydrologyLayer(hydrology: TacticalMapGenerationResult['layers']['hydrology']) {
+function serializeHydrologyLayer(hydrology: LayeredMapResult['layers']['hydrology']) {
   return {
     tiles: hydrology.tiles,
     streams: hydrology.streams,
@@ -54,7 +54,7 @@ function serializeHydrologyLayer(hydrology: TacticalMapGenerationResult['layers'
   };
 }
 
-function serializeVegetationLayer(vegetation: TacticalMapGenerationResult['layers']['vegetation']) {
+function serializeVegetationLayer(vegetation: LayeredMapResult['layers']['vegetation']) {
   // Strip plants[] from tiles - too heavy and not needed for rendering
   const tiles = vegetation.tiles.map((row) =>
     row.map((tile) => ({
@@ -78,7 +78,7 @@ function serializeVegetationLayer(vegetation: TacticalMapGenerationResult['layer
   };
 }
 
-function serializeStructuresLayer(structures: TacticalMapGenerationResult['layers']['structures']) {
+function serializeStructuresLayer(structures: LayeredMapResult['layers']['structures']) {
   // Omit buildings[] and bridges[] - they have private fields and tile-level data suffices
   return {
     tiles: structures.tiles,

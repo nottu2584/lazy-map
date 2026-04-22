@@ -1,6 +1,6 @@
 import { Injectable, Inject, Optional } from '@nestjs/common';
 import {
-  TacticalMapContext,
+  MapContext,
   Seed,
   MapGenerationErrors,
   type ILogger,
@@ -60,7 +60,7 @@ export class HydrologyLayer implements IHydrologyLayerService {
   async generate(
     topography: TopographyLayerData,
     geology: GeologyLayerData,
-    context: TacticalMapContext,
+    context: MapContext,
     seed: Seed,
     config?: HydrologyConfig
   ): Promise<HydrologyLayerData> {

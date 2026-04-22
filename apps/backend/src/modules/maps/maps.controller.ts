@@ -1,6 +1,6 @@
 import {
   ApiResponse as ApiResponseType,
-  GenerateTacticalMapUseCase,
+  GenerateMapUseCase,
   GetMapQuery,
   GetMapUseCase,
   GetUserMapsQuery,
@@ -25,25 +25,37 @@ import {
   Position,
   Season,
   Seed,
-  TacticalMapContext,
+  MapContext,
   Terrain,
   TopographyConfig,
   UserId,
   VegetationConfig,
 } from '@lazy-map/domain';
 import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
-import { Body, Controller, Get, Inject, Param, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Inject,
+  InternalServerErrorException,
+  NotFoundException,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GenerateMapDto, SaveMapDto, SaveMapResponseDto, ValidateSeedDto } from './dto';
-import { serializeTacticalMapResult } from './serializers';
+import { serializeMapResult } from './serializers';
 
 @ApiTags('maps')
 @Controller('maps')
 export class MapsController {
   constructor(
-    @Inject(GenerateTacticalMapUseCase)
-    private readonly generateTacticalMapUseCase: GenerateTacticalMapUseCase,
+    @Inject(GenerateMapUseCase)
+    private readonly generateMapUseCase: GenerateMapUseCase,
     @Inject(GetMapUseCase)
     private readonly getMapUseCase: GetMapUseCase,
     @Inject(GetUserMapsUseCase)
@@ -56,8 +68,9 @@ export class MapsController {
   ) {}
 
   @Post('generate')
-  @ApiOperation({ summary: 'Generate a new tactical battlemap' })
-  @ApiResponse({ status: 201, description: 'Tactical map generated successfully' })
+  @ApiOperation({ summary: 'Generate a new battlemap' })
+  @ApiResponse({ status: 201, description: 'Map generated successfully' })
+  @ApiResponse({ status: 500, description: 'Map generation failed' })
   async generateMap(
     @Body() dto: GenerateMapDto,
     @Request() req: any,
@@ -69,7 +82,7 @@ export class MapsController {
     });
 
     try {
-      operationLogger.info('Tactical map generation request received', {
+      operationLogger.info('Map generation request received', {
         metadata: {
           mapName: dto.name || 'New Map',
           dimensions: {
@@ -93,8 +106,8 @@ export class MapsController {
             : Seed.fromString(seedValue);
 
       // Build context: user-provided params override seed-derived defaults
-      const seedContext = TacticalMapContext.fromSeed(seed);
-      const context = TacticalMapContext.create(
+      const seedContext = MapContext.fromSeed(seed);
+      const context = MapContext.create(
         (dto.biome as BiomeType) ?? seedContext.biome,
         (dto.elevation as ElevationZone) ?? seedContext.elevation,
         (dto.hydrology as HydrologyType) ?? seedContext.hydrology,
@@ -121,9 +134,9 @@ export class MapsController {
         vegetationConfig = VegetationConfig.create(dto.vegetationMultiplier);
       }
 
-      // Execute tactical map generation
+      // Execute map generation
       const startTime = Date.now();
-      const result = await this.generateTacticalMapUseCase.execute(
+      const result = await this.generateMapUseCase.execute(
         width,
         height,
         context,
@@ -134,7 +147,7 @@ export class MapsController {
       );
       const duration = Date.now() - startTime;
 
-      operationLogger.info('Tactical map generation completed successfully', {
+      operationLogger.info('Map generation completed successfully', {
         metadata: {
           width: result.width,
           height: result.height,
@@ -143,7 +156,7 @@ export class MapsController {
         },
       });
 
-      const serializedMap = serializeTacticalMapResult(result);
+      const serializedMap = serializeMapResult(result);
 
       return {
         success: true,
@@ -154,7 +167,7 @@ export class MapsController {
           context: result.context?.getDescription(),
           totalTime: duration,
         },
-        message: `Tactical map generated successfully in ${duration}ms`,
+        message: `Map generated successfully in ${duration}ms`,
       };
     } catch (error) {
       operationLogger.logError(error, {
@@ -165,10 +178,8 @@ export class MapsController {
         },
       });
 
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to generate map',
-      };
+      const message = error instanceof Error ? error.message : 'Failed to generate map';
+      throw new InternalServerErrorException(message);
     }
   }
 
@@ -278,12 +289,13 @@ export class MapsController {
           },
         });
 
-        return {
-          success: false,
-          error: result.error || 'Failed to save map',
-        };
+        throw new BadRequestException(result.error || 'Failed to save map');
       }
     } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
       operationLogger.logError(error, {
         metadata: {
           mapId: dto.id,
@@ -291,10 +303,8 @@ export class MapsController {
         },
       });
 
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to save map',
-      };
+      const message = error instanceof Error ? error.message : 'Failed to save map';
+      throw new InternalServerErrorException(message);
     }
   }
 
@@ -305,29 +315,19 @@ export class MapsController {
   @ApiResponse({ status: 200, description: 'Map history retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Authentication required' })
   async getMyMaps(@Request() req: any): Promise<ApiResponseType<MapGrid[]>> {
-    try {
-      const userId = req.user?.id || req.user?.userId || req.user?.sub;
-      if (!userId) {
-        return {
-          success: false,
-          error: 'User ID not found in token',
-        };
-      }
-      const query = new GetUserMapsQuery(userId);
-      const result = await this.getUserMapsUseCase.execute(query);
-
-      return {
-        success: result.success,
-        data: result.data,
-        message: result.success ? 'Maps retrieved successfully' : undefined,
-        error: result.error,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to get user maps',
-      };
+    const userId = req.user?.id || req.user?.userId || req.user?.sub;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in token');
     }
+    const query = new GetUserMapsQuery(userId);
+    const result = await this.getUserMapsUseCase.execute(query);
+
+    return {
+      success: result.success,
+      data: result.data,
+      message: result.success ? 'Maps retrieved successfully' : undefined,
+      error: result.error,
+    };
   }
 
   @Get(':id')
@@ -356,10 +356,7 @@ export class MapsController {
             error: result.error,
           },
         });
-        return {
-          success: false,
-          error: result.error || 'Map not found',
-        };
+        throw new NotFoundException(result.error || 'Map not found');
       }
 
       operationLogger.debug('Map retrieved successfully', {
@@ -372,14 +369,16 @@ export class MapsController {
         message: 'Map found',
       };
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
       operationLogger.logError(error, {
         metadata: { mapId: id },
       });
 
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to get map',
-      };
+      const message = error instanceof Error ? error.message : 'Failed to get map';
+      throw new InternalServerErrorException(message);
     }
   }
 
@@ -396,10 +395,8 @@ export class MapsController {
         message: result.valid ? 'Seed is valid' : 'Seed validation failed',
       };
     } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to validate seed',
-      };
+      const message = error instanceof Error ? error.message : 'Failed to validate seed';
+      throw new BadRequestException(message);
     }
   }
 

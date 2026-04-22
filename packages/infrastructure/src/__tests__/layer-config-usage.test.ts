@@ -18,7 +18,7 @@ import {
   SegmentGenerationService
 } from '../map/services/layers/hydrology';
 import {
-  TacticalMapContext,
+  MapContext,
   BiomeType,
   ElevationZone,
   HydrologyType,
@@ -56,7 +56,7 @@ describe('Layer Config Usage', () => {
     new SegmentGenerationService()
   );
 
-  const testContext = TacticalMapContext.create(
+  const testContext = MapContext.create(
     BiomeType.FOREST,
     ElevationZone.FOOTHILLS,
     HydrologyType.STREAM,

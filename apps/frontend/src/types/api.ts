@@ -4,7 +4,7 @@
  */
 
 /**
- * Request payload for generating a tactical map
+ * Request payload for generating a map
  */
 export interface GenerateMapRequest {
   name?: string;
@@ -38,12 +38,12 @@ export interface GenerateMapRequest {
 }
 
 /**
- * Response from tactical map generation endpoint.
+ * Response from map generation endpoint.
  *
  * The backend returns layer data at the map level (2D tile arrays per layer),
  * NOT nested inside each individual tile.
  */
-export interface TacticalMapResponse {
+export interface MapResponse {
   map: {
     width: number;
     height: number;

@@ -1,1 +1,1 @@
-export * from './TacticalMapConverter';
+export * from './MapConverter';

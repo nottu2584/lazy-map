@@ -208,11 +208,11 @@ export class PlantGenerationService {
       waterRequirement: 'medium',
       hardiness: 5
     };
-    const trunkDiameter = size === PlantSize.TINY ? 0.1 :
-                          size === PlantSize.SMALL ? 0.2 :
-                          size === PlantSize.MEDIUM ? 0.5 :
-                          size === PlantSize.LARGE ? 1.0 :
-                          size === PlantSize.HUGE ? 2.0 : 3.0;
+    const trunkDiameter = size === PlantSize.TINY ? 0.3 :
+                          size === PlantSize.SMALL ? 0.5 :
+                          size === PlantSize.MEDIUM ? 1.0 :
+                          size === PlantSize.LARGE ? 1.5 :
+                          size === PlantSize.HUGE ? 2.5 : 3.5;
 
     return new TreePlant(id, species, position, size, 1.0, 1, properties, trunkDiameter, 0.7, false);
   }

@@ -56,31 +56,31 @@ export function MapCanvas({ map }: MapCanvasProps) {
     return TERRAIN_COLORS[terrain as keyof typeof TERRAIN_COLORS] || TERRAIN_COLORS.default;
   };
 
-  // Helper to get feature symbol
-  const getFeatureSymbol = (feature: string): string => {
-    // Vegetation features
-    if (feature.includes('dense_trees')) return '🌲';
-    if (feature.includes('sparse_trees')) return '🌳';
-    if (feature.includes('shrubs')) return '🌿';
+  const FEATURE_PRIORITY: Record<string, { symbol: string; priority: number }> = {
+    dense_trees:   { symbol: '🌲', priority: 10 },
+    sparse_trees:  { symbol: '🌳', priority: 9 },
+    undergrowth:   { symbol: '🌿', priority: 7 },
+    shrubs:        { symbol: '🌿', priority: 6 },
+    tall_grass:    { symbol: '🌾', priority: 5 },
+    building:      { symbol: '🏠', priority: 12 },
+    wall:          { symbol: '🧱', priority: 11 },
+    road:          { symbol: '═',  priority: 8 },
+    cover_full:    { symbol: '▓',  priority: 4 },
+    cover_partial: { symbol: '▒',  priority: 3 },
+    cover_light:   { symbol: '░',  priority: 2 },
+    tree:          { symbol: '🌲', priority: 10 },
+    rock:          { symbol: '🗿', priority: 8 },
+  };
 
-    // Structure features
-    if (feature.includes('building')) return '🏠';
-    if (feature.includes('wall')) return '🧱';
-    if (feature.includes('road')) return '═';
-
-    // Cover features
-    if (feature.includes('cover_full')) return '▓';
-    if (feature.includes('cover_partial')) return '▒';
-    if (feature.includes('cover_light')) return '░';
-
-    // Legacy features
-    switch (feature) {
-      case 'tree': return '🌲';
-      case 'rock': return '🗿';
-      case 'building': return '🏠';
-      case 'road': return '🛤️';
-      default: return '•';
+  const getTopFeature = (features: string[]): { symbol: string; priority: number } | null => {
+    let best: { symbol: string; priority: number } | null = null;
+    for (const feature of features) {
+      const match = Object.entries(FEATURE_PRIORITY).find(([key]) => feature.includes(key));
+      if (match && (!best || match[1].priority > best.priority)) {
+        best = match[1];
+      }
     }
+    return best;
   };
 
   // Draw the map on canvas
@@ -147,15 +147,14 @@ export function MapCanvas({ map }: MapCanvasProps) {
     map.tiles.forEach((tile) => {
       if (tile.features.length === 0) return;
 
+      const top = getTopFeature(tile.features);
+      if (!top) return;
+
       const centerX = tile.x * cellSize + cellSize / 2;
       const centerY = tile.y * cellSize + cellSize / 2;
-
-      tile.features.forEach((feature) => {
-        const symbol = getFeatureSymbol(feature);
-        ctx.fillText(symbol, centerX, centerY);
-      });
+      ctx.fillText(top.symbol, centerX, centerY);
     });
-  }, [map, cellSize, canvasWidth, canvasHeight, getTerrainColor, getFeatureSymbol]);
+  }, [map, cellSize, canvasWidth, canvasHeight]);
 
   // Export canvas as PNG
   const handleExportPNG = () => {
@@ -205,9 +204,10 @@ export function MapCanvas({ map }: MapCanvasProps) {
           { symbol: '🌲', label: 'Dense trees' },
           { symbol: '🌳', label: 'Sparse trees' },
           { symbol: '🌿', label: 'Shrubs' },
+          { symbol: '🌾', label: 'Tall grass' },
           { symbol: '═', label: 'Road' },
           { symbol: '🏠', label: 'Building' },
-          { symbol: '•', label: 'Feature' },
+          { symbol: '🧱', label: 'Wall' },
         ].map(({ symbol, label }) => (
           <div key={label} className="flex items-center gap-1.5">
             <span className="w-3.5 text-center text-xs">{symbol}</span>

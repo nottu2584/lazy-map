@@ -139,7 +139,7 @@ function mapResponseToGeneratedMap(
 
       // Extract vegetation type
       const vegTile = layers?.vegetation?.tiles?.[y]?.[x];
-      if (vegTile?.vegetationType && vegTile.vegetationType !== 'none') {
+      if (vegTile?.vegetationType && vegTile.vegetationType !== 'none' && vegTile.vegetationType !== 'grass') {
         features.push(vegTile.vegetationType);
       }
 

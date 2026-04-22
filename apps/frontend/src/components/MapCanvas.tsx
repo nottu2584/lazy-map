@@ -1,15 +1,14 @@
-import { useRef, useEffect, useState } from 'react';
-import { Download } from 'lucide-react';
+import { useRef, useEffect, useState, useCallback } from 'react';
+import { Download, Info } from 'lucide-react';
 import type { GeneratedMap } from '../types';
 import { Button } from './ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Separator } from './ui/separator';
 
 interface MapCanvasProps {
   map: GeneratedMap;
 }
 
-const TERRAIN_COLORS = {
+const TERRAIN_COLORS: Record<string, string> = {
   grass: '#7CB342',
   dirt: '#8D6E63',
   stone: '#757575',
@@ -17,11 +16,10 @@ const TERRAIN_COLORS = {
   marsh: '#4E342E',
   sand: '#FFD54F',
   snow: '#ECEFF1',
-  // Legacy terrain types (fallback)
   grassland: '#7CB342',
   forest: '#2E7D32',
   mountain: '#5D4037',
-  default: '#9E9E9E'
+  default: '#9E9E9E',
 };
 
 const TERRAIN_LEGEND = [
@@ -73,37 +71,34 @@ function getTopFeature(features: string[]): { symbol: string; priority: number }
 
 export function MapCanvas({ map }: MapCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [maxWidth, setMaxWidth] = useState(800);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [parentWidth, setParentWidth] = useState(0);
+  const [showLegend, setShowLegend] = useState(false);
 
   useEffect(() => {
-    const update = () => {
-      if (containerRef.current) {
-        setMaxWidth(containerRef.current.getBoundingClientRect().width);
-      }
-    };
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+    const el = wrapperRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => setParentWidth(entry.contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
-  const cellSize = Math.min(maxWidth / map.width, 600 / map.height, 25);
-  const canvasWidth = map.width * cellSize;
-  const canvasHeight = map.height * cellSize;
+  const cellSize = parentWidth > 0 ? Math.min(parentWidth / map.width, 25) : 0;
+  const canvasWidth = Math.floor(map.width * cellSize);
+  const canvasHeight = Math.floor(map.height * cellSize);
 
-  useEffect(() => {
+  const draw = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || cellSize === 0) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    // Terrain tiles
     map.tiles.forEach((tile) => {
       const x = tile.x * cellSize;
       const y = tile.y * cellSize;
-      ctx.fillStyle = TERRAIN_COLORS[tile.terrain as keyof typeof TERRAIN_COLORS] || TERRAIN_COLORS.default;
+      ctx.fillStyle = TERRAIN_COLORS[tile.terrain] || TERRAIN_COLORS.default;
       ctx.globalAlpha = 0.8;
       ctx.fillRect(x, y, cellSize, cellSize);
       ctx.globalAlpha = 1.0;
@@ -112,7 +107,6 @@ export function MapCanvas({ map }: MapCanvasProps) {
       ctx.strokeRect(x, y, cellSize, cellSize);
     });
 
-    // Grid
     ctx.strokeStyle = '#666';
     ctx.globalAlpha = 0.3;
     ctx.lineWidth = 1;
@@ -130,7 +124,6 @@ export function MapCanvas({ map }: MapCanvasProps) {
     }
     ctx.globalAlpha = 1.0;
 
-    // Features
     ctx.fillStyle = '#333';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -143,6 +136,8 @@ export function MapCanvas({ map }: MapCanvasProps) {
       ctx.fillText(top.symbol, tile.x * cellSize + cellSize / 2, tile.y * cellSize + cellSize / 2);
     });
   }, [map, cellSize, canvasWidth, canvasHeight]);
+
+  useEffect(draw, [draw]);
 
   const handleExportPNG = () => {
     const canvas = canvasRef.current;
@@ -159,55 +154,67 @@ export function MapCanvas({ map }: MapCanvasProps) {
   };
 
   return (
-    <div ref={containerRef} className="inline-flex flex-col items-start">
-      <Card className="w-auto">
-        <CardHeader className="pb-3">
-          <div className="flex items-baseline justify-between gap-4">
-            <CardTitle className="text-base">{map.name}</CardTitle>
-            <CardDescription>
-              {map.width}&times;{map.height} cells &middot; {cellSize.toFixed(1)}px/cell
-            </CardDescription>
+    <div ref={wrapperRef} className="w-full space-y-3">
+      {/* Map info */}
+      <div className="flex items-baseline justify-between text-sm text-muted-foreground">
+        <span className="font-medium text-foreground">{map.name}</span>
+        <span>{map.width}&times;{map.height} cells</span>
+      </div>
+
+      {/* Canvas + floating legend */}
+      <div className="relative">
+        <canvas
+          ref={canvasRef}
+          width={canvasWidth}
+          height={canvasHeight}
+          className="block w-full rounded-md"
+          style={{ height: canvasHeight || 'auto' }}
+        />
+
+        {/* Floating legend */}
+        {showLegend && (
+          <div className="absolute top-2 left-2 rounded-md border bg-background/95 backdrop-blur-sm shadow-md p-3 max-w-[220px]">
+            <p className="text-xs font-medium mb-2">Terrain</p>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-muted-foreground">
+              {TERRAIN_LEGEND.map(({ key, label }) => (
+                <div key={key} className="flex items-center gap-1.5">
+                  <div
+                    className="size-2.5 rounded-sm border border-border shrink-0"
+                    style={{ backgroundColor: TERRAIN_COLORS[key] }}
+                  />
+                  <span>{label}</span>
+                </div>
+              ))}
+            </div>
+            <Separator className="my-2" />
+            <p className="text-xs font-medium mb-2">Features</p>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-muted-foreground">
+              {FEATURE_LEGEND.map(({ symbol, label }) => (
+                <div key={label} className="flex items-center gap-1.5">
+                  <span className="size-2.5 text-center text-[10px] leading-none shrink-0">{symbol}</span>
+                  <span>{label}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </CardHeader>
+        )}
+      </div>
 
-        <CardContent className="space-y-3">
-          {/* Legend */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
-            {TERRAIN_LEGEND.map(({ key, label }) => (
-              <div key={key} className="flex items-center gap-1">
-                <div
-                  className="size-3 rounded-sm border border-border"
-                  style={{ backgroundColor: TERRAIN_COLORS[key as keyof typeof TERRAIN_COLORS] }}
-                />
-                <span>{label}</span>
-              </div>
-            ))}
-            <Separator orientation="vertical" className="h-3" />
-            {FEATURE_LEGEND.map(({ symbol, label }) => (
-              <div key={label} className="flex items-center gap-1">
-                <span className="size-3 text-center leading-3">{symbol}</span>
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Canvas */}
-          <canvas
-            ref={canvasRef}
-            width={canvasWidth}
-            height={canvasHeight}
-            className="rounded-md"
-            style={{ display: 'block', width: canvasWidth, height: canvasHeight }}
-          />
-        </CardContent>
-
-        <CardFooter>
-          <Button onClick={handleExportPNG} variant="outline" size="sm">
-            <Download className="mr-1.5 size-3.5" />
-            Export PNG
-          </Button>
-        </CardFooter>
-      </Card>
+      {/* Actions */}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowLegend(!showLegend)}
+        >
+          <Info className="mr-1.5 size-3.5" />
+          Legend
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleExportPNG}>
+          <Download className="mr-1.5 size-3.5" />
+          Export PNG
+        </Button>
+      </div>
     </div>
   );
 }

@@ -370,46 +370,40 @@ export function MapGenerator() {
             <MapError error={error} onClear={clearError} />
           </div>
         </section>
-      </div>
-
-      {/* Map Display Section - Full Width */}
-      <section
-        ref={mapSectionRef}
-        className="relative w-full min-h-[70vh] border-t border-border bg-muted/30"
-      >
-        {/* Loading State */}
-        {isGenerating && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-background">
-            <h2 className="text-4xl mb-4">Generating Map...</h2>
-            {progress && <p className="text-lg text-muted-foreground font-mono">{progress}</p>}
-          </div>
-        )}
 
         {/* Map Display */}
-        {generatedMap && !isGenerating && (
-          <div className="w-full h-full flex items-center justify-center p-8">
-            <MapCanvas map={generatedMap} />
-          </div>
-        )}
+        <section ref={mapSectionRef} className="px-6 pb-8">
+          <div className="max-w-3xl mx-auto">
+            {isGenerating && (
+              <div className="flex flex-col items-center justify-center py-16">
+                <h2 className="text-4xl mb-4">Generating Map...</h2>
+                {progress && <p className="text-lg text-muted-foreground font-mono">{progress}</p>}
+              </div>
+            )}
 
-        {/* Empty State */}
-        {!isGenerating && !generatedMap && (
-          <div className="absolute inset-0 flex items-center justify-center p-8">
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Map className="size-6" />
-                </EmptyMedia>
-                <EmptyTitle>No map generated yet</EmptyTitle>
-                <EmptyDescription>
-                  Enter a seed value above and click Generate to create your battlemap. The
-                  map will appear here once generation is complete.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+            {generatedMap && !isGenerating && (
+              <MapCanvas map={generatedMap} />
+            )}
+
+            {!isGenerating && !generatedMap && (
+              <div className="flex items-center justify-center py-16">
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <Map className="size-6" />
+                    </EmptyMedia>
+                    <EmptyTitle>No map generated yet</EmptyTitle>
+                    <EmptyDescription>
+                      Enter a seed value above and click Generate to create your battlemap. The
+                      map will appear here once generation is complete.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              </div>
+            )}
           </div>
-        )}
-      </section>
+        </section>
+      </div>
     </>
   );
 }

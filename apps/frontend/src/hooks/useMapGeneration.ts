@@ -10,7 +10,7 @@ export function useMapGeneration() {
   const [progress, setProgress] = useState<string>('');
   const [progressValue, setProgressValue] = useState<number>(0);
 
-  const generateMap = async (settings: MapSettings) => {
+  const generateMap = async (settings: MapSettings): Promise<GeneratedMap | null> => {
     setIsGenerating(true);
     setError(null);
     setProgress('Initializing map generation...');
@@ -46,6 +46,8 @@ export function useMapGeneration() {
         setProgress('');
         setProgressValue(0);
       }, 2000);
+
+      return response;
     } catch (err) {
       setProgress('');
       setProgressValue(0);
@@ -57,6 +59,7 @@ export function useMapGeneration() {
       });
 
       setTimeout(() => setError(null), 10000);
+      return null;
     } finally {
       setIsGenerating(false);
     }

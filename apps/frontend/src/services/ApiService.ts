@@ -341,6 +341,11 @@ export const apiService = {
     }
   },
 
+  async getOAuthLoginUrl(provider: 'google' | 'discord'): Promise<string> {
+    const response = await apiClient.get<{ authorizationUrl: string }>(`/auth/${provider}/login`);
+    return response.data.authorizationUrl;
+  },
+
   async checkHealth(): Promise<string> {
     try {
       const response = await apiClient.get<ApiResponse<string>>('/maps/health');

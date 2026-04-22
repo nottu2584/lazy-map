@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { Download, Info } from 'lucide-react';
 import type { GeneratedMap } from '../types';
+import type { MapLayersDTO } from '../types/layers';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
 
@@ -8,18 +9,17 @@ interface MapCanvasProps {
   map: GeneratedMap;
 }
 
-const TERRAIN_COLORS: Record<string, string> = {
-  grass: '#7CB342',
-  dirt: '#8D6E63',
-  stone: '#757575',
-  water: '#1976D2',
-  marsh: '#4E342E',
-  sand: '#FFD54F',
-  snow: '#ECEFF1',
-  grassland: '#7CB342',
-  forest: '#2E7D32',
-  mountain: '#5D4037',
-  default: '#9E9E9E',
+type RGB = [number, number, number];
+
+const TERRAIN_RGB: Record<string, RGB> = {
+  grass:  [124, 179, 66],
+  dirt:   [141, 110, 99],
+  stone:  [117, 117, 117],
+  water:  [25, 118, 210],
+  marsh:  [78, 52, 46],
+  sand:   [255, 213, 79],
+  snow:   [236, 239, 241],
+  forest: [46, 125, 50],
 };
 
 const TERRAIN_LEGEND = [
@@ -30,6 +30,7 @@ const TERRAIN_LEGEND = [
   { key: 'marsh', label: 'Marsh' },
   { key: 'sand', label: 'Sand' },
   { key: 'snow', label: 'Snow' },
+  { key: 'forest', label: 'Forest' },
 ];
 
 const FEATURE_LEGEND = [
@@ -69,6 +70,86 @@ function getTopFeature(features: string[]): { symbol: string; priority: number }
   return best;
 }
 
+function blendRGB(weights: [RGB, number][]): RGB {
+  let totalWeight = 0;
+  let r = 0, g = 0, b = 0;
+  for (const [color, w] of weights) {
+    if (w <= 0) continue;
+    r += color[0] * w;
+    g += color[1] * w;
+    b += color[2] * w;
+    totalWeight += w;
+  }
+  if (totalWeight === 0) return TERRAIN_RGB.grass;
+  return [Math.round(r / totalWeight), Math.round(g / totalWeight), Math.round(b / totalWeight)];
+}
+
+function clamp(v: number, min: number, max: number): number {
+  return v < min ? min : v > max ? max : v;
+}
+
+function computeTileColor(layers: MapLayersDTO, x: number, y: number): string {
+  const geo = layers.geology?.tiles?.[y]?.[x];
+  const topo = layers.topography?.tiles?.[y]?.[x];
+  const hydro = layers.hydrology?.tiles?.[y]?.[x];
+  const veg = layers.vegetation?.tiles?.[y]?.[x];
+
+  const soilDepth = geo?.soilDepth ?? 2;
+  const slope = topo?.slope ?? 0;
+  const waterDepth = hydro?.waterDepth ?? 0;
+  const moisture = hydro?.moisture ?? 'moderate';
+  const canopyDensity = veg?.canopyDensity ?? 0;
+  const groundCover = veg?.groundCover ?? 0;
+  const isEvaporite = geo?.formation?.rockType === 'evaporite';
+
+  const weights: [RGB, number][] = [];
+
+  // Water — strong when deep, partial when shallow
+  if (waterDepth > 0) {
+    const waterW = clamp(waterDepth / 0.8, 0, 1);
+    weights.push([TERRAIN_RGB.water, waterW]);
+  }
+
+  // Marsh — wet/saturated moisture or very shallow water
+  const isMarshy = moisture === 'saturated' || moisture === 'wet';
+  if (isMarshy && waterDepth < 0.5) {
+    weights.push([TERRAIN_RGB.marsh, 0.6]);
+  }
+
+  // Sand — evaporite geology
+  if (isEvaporite) {
+    weights.push([TERRAIN_RGB.sand, 0.8]);
+  }
+
+  // Stone — steep slopes or very thin soil
+  const slopeStone = clamp((slope - 20) / 40, 0, 1);
+  const soilStone = clamp((1 - soilDepth) / 1, 0, 1);
+  const stoneW = Math.max(slopeStone, soilStone * 0.7);
+  if (stoneW > 0.05) {
+    weights.push([TERRAIN_RGB.stone, stoneW]);
+  }
+
+  // Dirt — moderate soil, low vegetation
+  const dirtFromSoil = clamp(1 - soilDepth / 2, 0, 0.6);
+  const dirtFromVeg = clamp(1 - groundCover, 0, 1);
+  const dirtW = dirtFromSoil * dirtFromVeg * 0.8;
+  if (dirtW > 0.05) {
+    weights.push([TERRAIN_RGB.dirt, dirtW]);
+  }
+
+  // Forest canopy darkens toward deep green
+  if (canopyDensity > 0) {
+    weights.push([TERRAIN_RGB.forest, canopyDensity * 0.8]);
+  }
+
+  // Grass — base layer, weighted by ground cover and remaining soil
+  const grassW = clamp(groundCover * 0.6 + soilDepth / 4, 0.1, 1);
+  weights.push([TERRAIN_RGB.grass, grassW]);
+
+  const [r, g, b] = blendRGB(weights);
+  return `rgb(${r},${g},${b})`;
+}
+
 export function MapCanvas({ map }: MapCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -95,11 +176,15 @@ export function MapCanvas({ map }: MapCanvasProps) {
 
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
+    const hasLayers = !!map.layers;
+
     map.tiles.forEach((tile) => {
       const x = tile.x * cellSize;
       const y = tile.y * cellSize;
-      ctx.fillStyle = TERRAIN_COLORS[tile.terrain] || TERRAIN_COLORS.default;
-      ctx.globalAlpha = 0.8;
+      ctx.fillStyle = hasLayers
+        ? computeTileColor(map.layers!, tile.x, tile.y)
+        : `rgb(${(TERRAIN_RGB[tile.terrain] ?? TERRAIN_RGB.grass).join(',')})`;
+      ctx.globalAlpha = 0.85;
       ctx.fillRect(x, y, cellSize, cellSize);
       ctx.globalAlpha = 1.0;
       ctx.strokeStyle = '#333';
@@ -167,7 +252,7 @@ export function MapCanvas({ map }: MapCanvasProps) {
           ref={canvasRef}
           width={canvasWidth}
           height={canvasHeight}
-          className="block w-full rounded-md"
+          className="block max-w-full rounded-md"
           style={{ height: canvasHeight || 'auto' }}
         />
 
@@ -180,7 +265,7 @@ export function MapCanvas({ map }: MapCanvasProps) {
                 <div key={key} className="flex items-center gap-1.5">
                   <div
                     className="size-2.5 rounded-sm border border-border shrink-0"
-                    style={{ backgroundColor: TERRAIN_COLORS[key] }}
+                    style={{ backgroundColor: `rgb(${(TERRAIN_RGB[key] ?? TERRAIN_RGB.grass).join(',')})` }}
                   />
                   <span>{label}</span>
                 </div>

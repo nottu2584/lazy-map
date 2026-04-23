@@ -4,22 +4,23 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
     "build": "tsc -b && vite build",
+    "clean": "rm -rf dist node_modules",
+    "dev": "vite",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "lint": "oxlint src --config oxlint.json",
     "lint:fix": "oxlint src --config oxlint.json --fix",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:update-snapshots": "playwright test --update-snapshots",
-    "clean": "rm -rf dist node_modules"
+    "test:e2e:update-snapshots": "playwright test --update-snapshots"
   },
   "dependencies": {
     "@lazy-map/api-contracts": "workspace:*",
     "@lazy-map/application": "workspace:*",
     "@lazy-map/domain": "workspace:*",
     "@lazy-map/infrastructure": "workspace:*",
+    "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",

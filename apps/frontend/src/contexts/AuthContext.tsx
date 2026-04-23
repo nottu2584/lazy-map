@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { AuthUser } from '../types';
 import { apiService, logger } from '../services';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -48,6 +49,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             id: profile.id,
             email: profile.email,
             username: profile.username,
+            avatarUrl: profile.avatarUrl,
           };
           setUser(validatedUser);
           localStorage.setItem('user', JSON.stringify(validatedUser));
@@ -81,6 +83,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    toast.success('You have been signed out');
   };
 
   const value = {

@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -24,6 +23,7 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
+import { useSeedHistory } from '@/hooks';
 import { History, X } from 'lucide-react';
 import type { SeedHistoryEntry } from '@/types';
 import { seedHistoryService } from '@/services';
@@ -33,20 +33,14 @@ interface SeedHistorySheetProps {
 }
 
 export function SeedHistorySheet({ onApplySeed }: SeedHistorySheetProps) {
-  const [seedHistory, setSeedHistory] = useState<SeedHistoryEntry[]>([]);
-
-  useEffect(() => {
-    setSeedHistory(seedHistoryService.getRecentSeeds(10));
-  }, []);
+  const seedHistory = useSeedHistory(10);
 
   const removeSeedFromHistory = (id: string) => {
     seedHistoryService.removeEntry(id);
-    setSeedHistory(seedHistoryService.getRecentSeeds(10));
   };
 
   const clearAllHistory = () => {
     seedHistoryService.clearHistory();
-    setSeedHistory([]);
   };
 
   return (

@@ -22,7 +22,6 @@ import {
   GeologicalFeaturesService,
   GeologyLayer,
   GeologyTileGenerationService,
-  HtmlTemplateService,
   HybridMapRepository,
   InMemoryOAuthStateService,
   RefreshTokenService,
@@ -60,24 +59,14 @@ import {
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-// Create a function to determine if database should be used
-const shouldUseDatabase = () => {
-  const useDb = process.env.USE_DATABASE === 'true';
-  console.log(
-    '[InfrastructureModule] USE_DATABASE:',
-    process.env.USE_DATABASE,
-    '-> shouldUseDatabase:',
-    useDb,
-  );
-  return useDb;
-};
+const useDatabase = process.env.USE_DATABASE === 'true';
 
 @Module({
   imports: [
     ConfigModule,
     LoggingModule,
     // Import DatabaseModule when database is enabled
-    ...(shouldUseDatabase() ? [DatabaseModule] : []),
+    ...(useDatabase ? [DatabaseModule] : []),
   ],
   providers: [
     // Map layer service implementations
@@ -133,7 +122,7 @@ const shouldUseDatabase = () => {
 
     // Output port implementations
     // Only provide IMapPersistencePort when NOT using database
-    ...(shouldUseDatabase()
+    ...(useDatabase
       ? []
       : [{ provide: 'IMapPersistencePort', useClass: InMemoryMapPersistence }]),
     { provide: 'INotificationPort', useClass: ConsoleNotificationService },
@@ -146,10 +135,6 @@ const shouldUseDatabase = () => {
       provide: 'IAuthenticationPort',
       useFactory: (configService: ConfigService) => {
         const jwtSecret = configService.get<string>('JWT_SECRET', 'your-secret-key');
-        console.log(
-          '[InfrastructureModule JwtAuthenticationService] JWT_SECRET:',
-          jwtSecret?.substring(0, 20) + '...',
-        );
         const logger = new BackLoggingService('JwtAuthenticationService');
         return new JwtAuthenticationService(jwtSecret, logger);
       },
@@ -163,25 +148,6 @@ const shouldUseDatabase = () => {
         const encryptionKey = configService.get<string>('OAUTH_TOKEN_ENCRYPTION_KEY');
         const logger = new BackLoggingService('TokenEncryptionService');
         return new AesTokenEncryptionService(encryptionKey, logger);
-      },
-      inject: [ConfigService],
-    },
-
-    // HTML Template Service
-    {
-      provide: 'ITemplatePort',
-      useFactory: (configService: ConfigService) => {
-        // Templates are located in apps/backend/src/templates
-        const templatesPath = require('path').join(__dirname, 'templates');
-
-        // Get allowed frontend URLs from environment
-        const allowedUrlsStr = configService.get<string>(
-          'ALLOWED_FRONTEND_URLS',
-          'http://localhost:5173',
-        );
-        const allowedOrigins = allowedUrlsStr.split(',').map((url) => url.trim());
-
-        return new HtmlTemplateService(templatesPath, allowedOrigins);
       },
       inject: [ConfigService],
     },
@@ -239,7 +205,7 @@ const shouldUseDatabase = () => {
     // Repository implementations
     // When USE_DATABASE=true, DatabaseModule provides database repositories
     // When USE_DATABASE=false, we use in-memory implementations
-    ...(shouldUseDatabase()
+    ...(useDatabase
       ? []
       : [
           { provide: 'IUserRepository', useClass: InMemoryUserRepository },
@@ -249,7 +215,7 @@ const shouldUseDatabase = () => {
 
     // Hybrid Map Repository - only when NOT using database
     // When USE_DATABASE=true, ApplicationModule provides IMapRepository (PostgresMapRepository)
-    ...(shouldUseDatabase()
+    ...(useDatabase
       ? []
       : [
           {
@@ -287,19 +253,18 @@ const shouldUseDatabase = () => {
     'IPasswordService',
     'IAuthenticationPort',
     'ITokenEncryptionPort',
-    'ITemplatePort',
     'IGoogleOAuthPort',
     'IDiscordOAuthPort',
     // When USE_DATABASE=false, export in-memory implementations
     // When USE_DATABASE=true, DatabaseModule exports these (IUserRepository, IOAuthTokenRepository, IMapRepository)
-    ...(shouldUseDatabase()
+    ...(useDatabase
       ? []
       : ['IUserRepository', 'IOAuthTokenRepository', 'IRefreshTokenRepository', 'IMapRepository', 'IMapPersistencePort']),
     'IMapHistoryRepository',
     'IOAuthStatePort',
     'IRefreshTokenPort',
     // Re-export DatabaseModule when enabled (provides IUserRepository, IMapRepository, IOAuthTokenRepository)
-    ...(shouldUseDatabase() ? [DatabaseModule] : []),
+    ...(useDatabase ? [DatabaseModule] : []),
   ],
 })
 export class InfrastructureModule {}

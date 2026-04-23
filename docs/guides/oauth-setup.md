@@ -61,7 +61,7 @@
 
 3. **Start the Backend**
    ```bash
-   cd apps/backend && pnpm start:dev
+   cd apps/backend && pnpm dev
    ```
 
 4. **Start the Frontend**

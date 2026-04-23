@@ -7,7 +7,6 @@ import {
   InitiateDiscordSignInUseCase,
   InitiateGoogleSignInCommand,
   InitiateGoogleSignInUseCase,
-  ITemplatePort,
 } from '@lazy-map/application';
 import { ILogger } from '@lazy-map/domain';
 import { LOGGER_TOKEN } from '@lazy-map/infrastructure';
@@ -20,6 +19,7 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
@@ -33,14 +33,19 @@ import {
 @ApiTags('oauth')
 @Controller('auth')
 export class OAuthController {
+  private readonly frontendUrl: string;
+
   constructor(
     private readonly initiateGoogleSignInUseCase: InitiateGoogleSignInUseCase,
     private readonly completeGoogleSignInUseCase: CompleteGoogleSignInUseCase,
     private readonly initiateDiscordSignInUseCase: InitiateDiscordSignInUseCase,
     private readonly completeDiscordSignInUseCase: CompleteDiscordSignInUseCase,
     @Inject(LOGGER_TOKEN) private readonly logger: ILogger,
-    @Inject('ITemplatePort') private readonly templateService: ITemplatePort,
-  ) {}
+    configService: ConfigService,
+  ) {
+    const allowedUrls = configService.get<string>('ALLOWED_FRONTEND_URLS', 'http://localhost:5173');
+    this.frontendUrl = allowedUrls.split(',')[0].trim();
+  }
 
   @Get('google/login')
   @Throttle({ long: { ttl: 60000, limit: 5 } })
@@ -135,12 +140,12 @@ export class OAuthController {
           metadata: { errors: result.errors },
         });
 
-        const errorHtml = this.templateService.renderOAuthError({
+        const params = new URLSearchParams({
+          status: 'error',
           provider: 'google',
-          errorMessage: result.errors.join(', '),
+          error: result.errors.join(', '),
         });
-
-        res.status(HttpStatus.BAD_REQUEST).send(errorHtml);
+        res.redirect(`${this.frontendUrl}/oauth/callback?${params}`);
         return;
       }
 
@@ -154,16 +159,17 @@ export class OAuthController {
       res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
       res.cookie(REFRESH_COOKIE_NAME, result.refreshToken!, getRefreshCookieOptions());
 
-      const successHtml = this.templateService.renderOAuthSuccess({
+      const params = new URLSearchParams({
+        status: 'success',
         provider: 'google',
-        user: {
-          id: result.user!.id.value,
-          email: result.user!.email.value,
-          username: result.user!.username.value,
-        },
+        id: result.user!.id.value,
+        email: result.user!.email.value,
+        username: result.user!.username.value,
       });
-
-      res.status(HttpStatus.OK).send(successHtml);
+      if (result.user!.profilePicture) {
+        params.set('avatarUrl', result.user!.profilePicture);
+      }
+      res.redirect(`${this.frontendUrl}/oauth/callback?${params}`);
     } catch (error) {
       operationLogger.logError(error);
 
@@ -172,12 +178,12 @@ export class OAuthController {
           ? error.message
           : 'OAuth sign-in failed: ' + (error instanceof Error ? error.message : 'Unknown error');
 
-      const errorHtml = this.templateService.renderOAuthError({
+      const params = new URLSearchParams({
+        status: 'error',
         provider: 'google',
-        errorMessage,
+        error: errorMessage,
       });
-
-      res.status(HttpStatus.BAD_REQUEST).send(errorHtml);
+      res.redirect(`${this.frontendUrl}/oauth/callback?${params}`);
     }
   }
 
@@ -274,12 +280,12 @@ export class OAuthController {
           metadata: { errors: result.errors },
         });
 
-        const errorHtml = this.templateService.renderOAuthError({
+        const params = new URLSearchParams({
+          status: 'error',
           provider: 'discord',
-          errorMessage: result.errors.join(', '),
+          error: result.errors.join(', '),
         });
-
-        res.status(HttpStatus.BAD_REQUEST).send(errorHtml);
+        res.redirect(`${this.frontendUrl}/oauth/callback?${params}`);
         return;
       }
 
@@ -293,16 +299,17 @@ export class OAuthController {
       res.cookie(ACCESS_COOKIE_NAME, result.token!, getAccessCookieOptions());
       res.cookie(REFRESH_COOKIE_NAME, result.refreshToken!, getRefreshCookieOptions());
 
-      const successHtml = this.templateService.renderOAuthSuccess({
+      const params = new URLSearchParams({
+        status: 'success',
         provider: 'discord',
-        user: {
-          id: result.user!.id.value,
-          email: result.user!.email.value,
-          username: result.user!.username.value,
-        },
+        id: result.user!.id.value,
+        email: result.user!.email.value,
+        username: result.user!.username.value,
       });
-
-      res.status(HttpStatus.OK).send(successHtml);
+      if (result.user!.profilePicture) {
+        params.set('avatarUrl', result.user!.profilePicture);
+      }
+      res.redirect(`${this.frontendUrl}/oauth/callback?${params}`);
     } catch (error) {
       operationLogger.logError(error);
 
@@ -311,12 +318,12 @@ export class OAuthController {
           ? error.message
           : 'OAuth sign-in failed: ' + (error instanceof Error ? error.message : 'Unknown error');
 
-      const errorHtml = this.templateService.renderOAuthError({
+      const params = new URLSearchParams({
+        status: 'error',
         provider: 'discord',
-        errorMessage,
+        error: errorMessage,
       });
-
-      res.status(HttpStatus.BAD_REQUEST).send(errorHtml);
+      res.redirect(`${this.frontendUrl}/oauth/callback?${params}`);
     }
   }
 }

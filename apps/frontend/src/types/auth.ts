@@ -10,6 +10,7 @@ export interface AuthUser {
   id: string;
   email: string;
   username: string;
+  avatarUrl?: string;
   role?: string;
 }
 
@@ -28,6 +29,7 @@ export interface UserProfile {
   id: string;
   email: string;
   username: string;
+  avatarUrl?: string;
   createdAt: string;
   lastLogin?: string;
 }

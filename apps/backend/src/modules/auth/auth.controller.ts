@@ -256,6 +256,7 @@ export class AuthController {
         id: user.id.value,
         email: user.email.value,
         username: user.username.value,
+        avatarUrl: user.profilePicture || undefined,
         createdAt: user.createdAt,
         lastLogin: user.lastLoginAt || undefined,
       };

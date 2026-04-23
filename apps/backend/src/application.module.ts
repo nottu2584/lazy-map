@@ -31,10 +31,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InfrastructureModule } from './infrastructure.module';
 
-// Helper function to check if database should be used
-const shouldUseDatabase = () => {
-  return process.env.USE_DATABASE === 'true';
-};
+const useDatabase = process.env.USE_DATABASE === 'true';
 
 @Module({
   imports: [InfrastructureModule],
@@ -78,7 +75,7 @@ const shouldUseDatabase = () => {
 
     // PostgreSQL Map Repository (when USE_DATABASE=true)
     // Provides IMapRepository using PostgresMapRepository with proper dependencies
-    ...(shouldUseDatabase()
+    ...(useDatabase
       ? [
           {
             provide: 'IMapRepository',

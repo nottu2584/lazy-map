@@ -17,7 +17,6 @@ import {
   validatePassword,
 } from '@/components/ui/password-requirements';
 import { Separator } from '@/components/ui/separator';
-import { useOAuthPopup } from '@/hooks';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts';
 import { apiService, logger } from '@/services';
@@ -39,15 +38,14 @@ export function LoginModal({ onClose }: LoginModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false);
 
-  const { openOAuthPopup } = useOAuthPopup({
-    onSuccess: (user) => {
-      login(user);
-      onClose();
-    },
-    onError: (errorMessage) => {
-      setError(errorMessage);
-    },
-  });
+  const handleOAuthLogin = async (provider: 'google' | 'discord') => {
+    try {
+      const authorizationUrl = await apiService.getOAuthLoginUrl(provider);
+      window.location.href = authorizationUrl;
+    } catch (err) {
+      setError(`Failed to start ${provider} login. Please try again.`);
+    }
+  };
 
   // Validate password in real-time for signup
   const passwordValidation = isSignUp
@@ -130,12 +128,12 @@ export function LoginModal({ onClose }: LoginModalProps) {
 
         {/* OAuth Buttons */}
         <div className="space-y-3">
-          <Button variant="outline" onClick={() => openOAuthPopup('google')} className="w-full">
+          <Button variant="outline" onClick={() => handleOAuthLogin('google')} className="w-full">
             <GoogleIcon />
             Continue with Google
           </Button>
 
-          <Button variant="outline" onClick={() => openOAuthPopup('discord')} className="w-full">
+          <Button variant="outline" onClick={() => handleOAuthLogin('discord')} className="w-full">
             <DiscordIcon />
             Continue with Discord
           </Button>

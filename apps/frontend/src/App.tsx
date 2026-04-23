@@ -4,6 +4,8 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { MapGenerator } from './components/map/MapGenerator';
 import { MapHistory } from './components/MapHistory';
 import { Navigation } from './components/Navigation';
+import { OAuthCallback } from './components/OAuthCallback';
+import { OAuthNotifier } from './components/OAuthNotifier';
 import { Toaster } from './components/ui/sonner';
 import { TooltipProvider } from './components/ui/tooltip';
 import { AuthProvider } from './contexts/AuthContext';
@@ -15,6 +17,7 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <BrowserRouter>
+            <OAuthNotifier />
             <ErrorBoundary>
               <div className="min-h-screen relative z-10">
                 <Navigation />
@@ -22,6 +25,7 @@ function App() {
                 <main className="pt-16">
                   <Routes>
                     <Route path="/" element={<MapGenerator />} />
+                    <Route path="/oauth/callback" element={<OAuthCallback />} />
 
                     <Route
                       path="/history"

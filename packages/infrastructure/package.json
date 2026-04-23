@@ -13,11 +13,11 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "clean": "rm -rf dist node_modules",
     "lint": "oxlint src --config ../oxlint.json",
     "lint:fix": "oxlint src --config ../oxlint.json --fix",
-    "clean": "rm -rf dist node_modules"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@lazy-map/application": "workspace:*",

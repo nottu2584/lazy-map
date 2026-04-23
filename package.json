@@ -8,19 +8,19 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "turbo dev",
-    "dev:backend": "pnpm --filter backend start:dev",
-    "dev:frontend": "pnpm --filter frontend dev",
     "build": "turbo build",
-    "test": "turbo test",
-    "lint": "turbo lint",
-    "lint:fix": "turbo lint:fix",
-    "format": "turbo format",
     "clean": "turbo clean && rm -rf .turbo node_modules",
-    "setup": "pnpm install && turbo build --filter='@lazy-map/*'",
+    "dev": "turbo dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "format": "turbo format",
     "generate": "pnpm --filter @lazy-map/api-contracts generate",
     "generate:watch": "nodemon --watch apps/backend/openapi.json --exec 'pnpm generate'",
-    "prepare": "node -e \"if (process.env.CI !== 'true') { require('child_process').execSync('husky', { stdio: 'inherit' }) }\""
+    "lint": "turbo lint",
+    "lint:fix": "turbo lint:fix",
+    "prepare": "node -e \"if (process.env.CI !== 'true') { require('child_process').execSync('husky', { stdio: 'inherit' }) }\"",
+    "setup": "pnpm install && turbo build --filter='@lazy-map/*'",
+    "test": "turbo test"
   },
   "engines": {
     "node": ">=20.11.0",

@@ -196,7 +196,7 @@ export function MapGenerator() {
             Generate Your Map
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mt-6">
-            Battlemap generator for tabletop RPGs. Enter a seed value to create your map.
+            Battlemap generator for tabletop RPGs.Enter a seed value to create your map.
           </p>
         </section>
 

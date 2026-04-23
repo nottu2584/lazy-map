@@ -5,9 +5,27 @@
 import { logger } from './LoggerService';
 import type { SeedHistoryEntry } from '../types';
 
+type Listener = () => void;
+
 export class SeedHistoryService {
   private readonly STORAGE_KEY = 'lazy-map-seed-history';
   private readonly MAX_ENTRIES = 20;
+  private listeners = new Set<Listener>();
+  private version = 0;
+
+  subscribe(listener: Listener): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  getVersion(): number {
+    return this.version;
+  }
+
+  private notify(): void {
+    this.version++;
+    this.listeners.forEach((fn) => fn());
+  }
 
   /**
    * Save a new seed entry to history
@@ -33,6 +51,7 @@ export class SeedHistoryService {
     const trimmedHistory = updatedHistory.slice(0, this.MAX_ENTRIES);
 
     this.saveToStorage(trimmedHistory);
+    this.notify();
     return newEntry;
   }
 
@@ -70,6 +89,7 @@ export class SeedHistoryService {
     const history = this.getHistory();
     const updatedHistory = history.filter(entry => entry.id !== id);
     this.saveToStorage(updatedHistory);
+    this.notify();
   }
 
   /**
@@ -77,6 +97,7 @@ export class SeedHistoryService {
    */
   clearHistory(): void {
     localStorage.removeItem(this.STORAGE_KEY);
+    this.notify();
   }
 
   /**

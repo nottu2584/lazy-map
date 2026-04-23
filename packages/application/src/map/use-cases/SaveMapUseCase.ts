@@ -19,9 +19,12 @@ export interface SaveMapResult {
 }
 
 /**
- * Use case for saving a generated map to persistent storage
+ * Use case for saving a generated map to persistent storage.
+ * Enforces a per-user limit: when exceeded, the oldest maps are deleted.
  */
 export class SaveMapUseCase {
+  private static readonly MAX_MAPS_PER_USER = 10;
+
   constructor(
     private readonly mapRepository: IMapRepository,
     private readonly logger?: ILogger
@@ -39,12 +42,10 @@ export class SaveMapUseCase {
         }
       });
 
-      // Validate user ID
       const userId = UserId.fromString(command.userId);
 
-      // The map is already a MapGrid entity from the controller
-      // Just save it directly to the repository
       await this.mapRepository.save(command.map);
+      await this.evictOldMaps(userId);
 
       this.logger?.info('Map saved successfully', {
         component: 'SaveMapUseCase',
@@ -75,6 +76,26 @@ export class SaveMapUseCase {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to save map'
       };
+    }
+  }
+
+  private async evictOldMaps(userId: UserId): Promise<void> {
+    const count = await this.mapRepository.countByOwnerId(userId);
+    if (count <= SaveMapUseCase.MAX_MAPS_PER_USER) return;
+
+    const allMaps = await this.mapRepository.findByOwnerId(userId);
+    const sortedByNewest = allMaps.sort(
+      (a, b) => b.metadata.createdAt.getTime() - a.metadata.createdAt.getTime()
+    );
+    const toDelete = sortedByNewest.slice(SaveMapUseCase.MAX_MAPS_PER_USER);
+
+    for (const map of toDelete) {
+      await this.mapRepository.delete(map.id);
+      this.logger?.debug('Evicted old map', {
+        component: 'SaveMapUseCase',
+        operation: 'evictOldMaps',
+        metadata: { mapId: map.id.value, userId: userId.value }
+      });
     }
   }
 }

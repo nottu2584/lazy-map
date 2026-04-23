@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useSeedHistory } from '@/hooks';
 import type { SeedHistoryEntry } from '../../../types';
 import { seedHistoryService } from '../../../services';
 
@@ -10,21 +11,15 @@ interface SeedHistoryProps {
 }
 
 export function SeedHistory({ onApplySeed }: SeedHistoryProps) {
-  const [seedHistory, setSeedHistory] = useState<SeedHistoryEntry[]>([]);
+  const seedHistory = useSeedHistory(10);
   const [showSeedHistory, setShowSeedHistory] = useState(false);
-
-  useEffect(() => {
-    setSeedHistory(seedHistoryService.getRecentSeeds(10));
-  }, []);
 
   const removeSeedFromHistory = (id: string) => {
     seedHistoryService.removeEntry(id);
-    setSeedHistory(seedHistoryService.getRecentSeeds(10));
   };
 
   const clearAllHistory = () => {
     seedHistoryService.clearHistory();
-    setSeedHistory([]);
   };
 
   if (seedHistory.length === 0) {

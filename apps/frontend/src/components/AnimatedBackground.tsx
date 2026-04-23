@@ -172,11 +172,9 @@ export function AnimatedBackground() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Check for reduced motion preference
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const effectiveSpeed = prefersReducedMotion ? 0 : SHADER_CONFIG.speed;
 
-    // Initialize WebGL2 context
     const gl = canvas.getContext('webgl2', {
       alpha: true,
       antialias: false,
@@ -191,13 +189,11 @@ export function AnimatedBackground() {
 
     glRef.current = gl;
 
-    // Create shader program
     const program = createProgram(gl, vertexShaderSource, fragmentShaderSource);
     if (!program) return;
 
     programRef.current = program;
 
-    // Get uniform locations
     uniformLocationsRef.current = {
       u_time: gl.getUniformLocation(program, 'u_time'),
       u_resolution: gl.getUniformLocation(program, 'u_resolution'),
@@ -206,7 +202,6 @@ export function AnimatedBackground() {
       u_pxSize: gl.getUniformLocation(program, 'u_pxSize'),
     };
 
-    // Set up geometry (fullscreen quad)
     const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -215,7 +210,6 @@ export function AnimatedBackground() {
     gl.enableVertexAttribArray(positionAttributeLocation);
     gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 
-    // Set canvas size to match window
     const resizeCanvas = () => {
       const dpr = window.devicePixelRatio || 1;
       canvas.width = window.innerWidth * dpr;
@@ -226,7 +220,6 @@ export function AnimatedBackground() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Animation loop
     const render = () => {
       const currentTime = (Date.now() - startTimeRef.current) * 0.001 * effectiveSpeed;
 
@@ -240,7 +233,6 @@ export function AnimatedBackground() {
 
       const locations = uniformLocationsRef.current;
 
-      // Set uniforms
       if (locations.u_time) context.uniform1f(locations.u_time, currentTime);
       if (locations.u_resolution)
         context.uniform2f(locations.u_resolution, canvas.width, canvas.height);
@@ -258,7 +250,6 @@ export function AnimatedBackground() {
 
     animationRef.current = requestAnimationFrame(render);
 
-    // Cleanup
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       if (animationRef.current) {

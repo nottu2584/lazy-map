@@ -93,11 +93,9 @@ export class MapsController {
         },
       });
 
-      // Convert DTO to parameters
       const width = dto.width || dto.dimensions?.width || 50;
       const height = dto.height || dto.dimensions?.height || 50;
       const seedValue = dto.seed || Math.floor(Math.random() * 1000000).toString();
-      // Handle seed: if it's a number, use fromNumber; if it's a numeric string, parse and use fromNumber; otherwise use fromString
       const seed =
         typeof seedValue === 'number'
           ? Seed.fromNumber(seedValue)
@@ -105,7 +103,6 @@ export class MapsController {
             ? Seed.fromNumber(Number(seedValue))
             : Seed.fromString(seedValue);
 
-      // Build context: user-provided params override seed-derived defaults
       const seedContext = MapContext.fromSeed(seed);
       const context = MapContext.create(
         (dto.biome as BiomeType) ?? seedContext.biome,
@@ -116,25 +113,22 @@ export class MapsController {
         dto.requiredFeatures,
       );
 
-      // Create topography config if provided
       let topographyConfig: TopographyConfig | undefined;
       if (dto.terrainRuggedness !== undefined) {
         topographyConfig = TopographyConfig.create(dto.terrainRuggedness);
       }
 
-      // Create hydrology config if provided
       let hydrologyConfig: HydrologyConfig | undefined;
       if (dto.waterAbundance !== undefined) {
         hydrologyConfig = HydrologyConfig.create(dto.waterAbundance);
       }
 
-      // Create vegetation config if provided
       let vegetationConfig: VegetationConfig | undefined;
       if (dto.vegetationMultiplier !== undefined) {
         vegetationConfig = VegetationConfig.create(dto.vegetationMultiplier);
       }
 
-      // Execute map generation
+
       const startTime = Date.now();
       const result = await this.generateMapUseCase.execute(
         width,
@@ -209,7 +203,6 @@ export class MapsController {
         },
       });
 
-      // Create domain objects
       const mapId = new MapId(dto.id);
       const dimensions = new Dimensions(dto.width, dto.height);
       const metadata = new MapMetadata(
@@ -218,21 +211,18 @@ export class MapsController {
         req.user?.username || req.user?.email,
         dto.description,
       );
-      // Handle seed: if it's a numeric string, use fromNumber, otherwise use fromString
       const seed = /^\d+$/.test(dto.seed)
         ? Seed.fromNumber(Number(dto.seed))
         : Seed.fromString(dto.seed);
       const userId = req.user?.id || req.user?.userId || req.user?.sub;
       const ownerId = userId ? UserId.fromString(userId) : undefined;
 
-      // Convert tile DTOs to MapTile entities
       const tiles: MapTile[][] = [];
       for (let y = 0; y < dto.height; y++) {
         tiles[y] = [];
         for (let x = 0; x < dto.width; x++) {
           const tileDto = dto.tiles.find((t) => t.x === x && t.y === y);
           if (tileDto) {
-            // Create terrain object - for now just use grass as default
             // TODO: Create proper terrain mapping from string to Terrain objects
             const terrain = Terrain.grass();
             tiles[y][x] = new MapTile(new Position(x, y), terrain, tileDto.elevation || 1.0);
@@ -242,7 +232,6 @@ export class MapsController {
         }
       }
 
-      // Create the MapGrid entity
       const mapGrid = new MapGrid(
         mapId,
         dto.name || 'Untitled Map',
@@ -254,7 +243,6 @@ export class MapsController {
         ownerId,
       );
 
-      // Create save command
       const command: SaveMapCommand = {
         map: mapGrid,
         userId: req.user?.id || req.user?.userId || req.user?.sub,
@@ -262,7 +250,6 @@ export class MapsController {
         description: dto.description,
       };
 
-      // Execute save
       const result = await this.saveMapUseCase.execute(command);
 
       if (result.success) {

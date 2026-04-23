@@ -28,7 +28,6 @@ export class GenerateMapUseCase {
     const startTime = Date.now();
 
     try {
-      // Log use case start
       operationLogger.logUseCase('GenerateMapUseCase', 'execute', 'started', {
         metadata: {
           mapName: input.mapName,
@@ -38,20 +37,16 @@ export class GenerateMapUseCase {
         }
       });
 
-      // Validate input with detailed logging
       const validatedInput = await this.validateInput(input, operationLogger);
 
-      // Generate seed with error handling
       const processedSeed = await this.processSeed(validatedInput.seed, operationLogger);
 
-      // Generate map phases with progress logging
       const terrain = await this.generateTerrain(validatedInput, processedSeed, operationLogger);
       const features = await this.generateFeatures(terrain, operationLogger);
       const finalMap = await this.finalizeMa(features, operationLogger);
 
       const processingTime = Date.now() - startTime;
 
-      // Log successful completion with metrics
       operationLogger.logUseCase('GenerateMapUseCase', 'execute', 'completed', {
         metadata: {
           mapId: finalMap.id,
@@ -77,7 +72,6 @@ export class GenerateMapUseCase {
     } catch (error) {
       const processingTime = Date.now() - startTime;
 
-      // Log use case failure with context
       operationLogger.logUseCase('GenerateMapUseCase', 'execute', 'failed', {
         metadata: {
           failurePoint: this.identifyFailurePoint(error),
@@ -89,7 +83,6 @@ export class GenerateMapUseCase {
         }
       });
 
-      // Log the structured error
       operationLogger.logError(error, {
         metadata: {
           recoveryAttempts: 0,
@@ -97,7 +90,6 @@ export class GenerateMapUseCase {
         }
       });
 
-      // Re-throw for upper layers to handle
       throw error;
     }
   }
@@ -113,7 +105,6 @@ export class GenerateMapUseCase {
 
     validationLogger.debug('Starting input validation');
 
-    // Validate map name
     if (!input.mapName || input.mapName.trim().length === 0) {
       const error = new Error('Map name is required');
       validationLogger.warn('Map name validation failed', {
@@ -122,7 +113,6 @@ export class GenerateMapUseCase {
       throw error;
     }
 
-    // Validate dimensions
     if (!input.dimensions || input.dimensions.width <= 0 || input.dimensions.height <= 0) {
       const error = new Error('Invalid map dimensions');
       validationLogger.warn('Dimensions validation failed', {
@@ -131,7 +121,6 @@ export class GenerateMapUseCase {
       throw error;
     }
 
-    // Log validation success
     validationLogger.debug('Input validation completed successfully', {
       metadata: {
         mapName: input.mapName,
@@ -164,7 +153,6 @@ export class GenerateMapUseCase {
       let processedSeed: number;
 
       if (seed === undefined) {
-        // Generate random seed
         processedSeed = Math.floor(Math.random() * 1000000);
         seedLogger.info('Generated random seed', {
           metadata: { generatedSeed: processedSeed }
@@ -175,8 +163,6 @@ export class GenerateMapUseCase {
           metadata: { providedSeed: seed }
         });
       } else if (typeof seed === 'string') {
-        // Convert string to seed using the domain service
-        // This would normally call a proper domain service
         if (seed.trim().length === 0) {
           throw SeedErrors.emptyStringInput({
             component: 'GenerateMapUseCase',
@@ -232,7 +218,6 @@ export class GenerateMapUseCase {
       }
     });
 
-    // Simulate terrain generation phases
     await this.simulateTerrainPhase('heightmap', terrainLogger);
     await this.simulateTerrainPhase('biomes', terrainLogger);
     await this.simulateTerrainPhase('textures', terrainLogger);
@@ -272,7 +257,6 @@ export class GenerateMapUseCase {
       }
     });
 
-    // Generate features based on terrain complexity
     const featureCount = Math.min(terrain.complexity * 2, 50);
     const features = [];
 
@@ -309,10 +293,9 @@ export class GenerateMapUseCase {
       metadata: { featureCount: features.length }
     });
 
-    // Simulate finalization steps
-    await new Promise(resolve => setTimeout(resolve, 50)); // Validation
-    await new Promise(resolve => setTimeout(resolve, 30)); // Optimization
-    await new Promise(resolve => setTimeout(resolve, 20)); // Serialization
+    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise(resolve => setTimeout(resolve, 30));
+    await new Promise(resolve => setTimeout(resolve, 20));
 
     const mapId = `map-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -335,7 +318,6 @@ export class GenerateMapUseCase {
     const startTime = Date.now();
     phaseLogger.debug(`Starting ${phase} generation`);
 
-    // Simulate processing time
     await new Promise(resolve => setTimeout(resolve, Math.random() * 100 + 50));
 
     const phaseTime = Date.now() - startTime;
@@ -350,7 +332,7 @@ export class GenerateMapUseCase {
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
+      hash = hash & hash;
     }
     return Math.abs(hash);
   }
@@ -361,7 +343,7 @@ export class GenerateMapUseCase {
 
   private calculateEfficiency(processingTime: number, dimensions: { width: number; height: number }): number {
     const cellCount = dimensions.width * dimensions.height;
-    return cellCount / processingTime; // cells per millisecond
+    return cellCount / processingTime;
   }
 
   private identifyFailurePoint(error: any): string {
@@ -373,10 +355,8 @@ export class GenerateMapUseCase {
 
   private isRetryableError(error: any): boolean {
     if (isDomainError(error)) {
-      // Deterministic errors are generally not retryable
       return error.details.category !== 'DETERMINISTIC';
     }
-    // Standard errors might be retryable depending on type
     return !error.message.includes('validation');
   }
 }

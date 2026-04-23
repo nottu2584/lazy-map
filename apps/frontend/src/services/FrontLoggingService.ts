@@ -153,7 +153,6 @@ export class FrontLoggingService implements ILogger {
    * Log structured error objects
    */
   logError(error: any, context?: ErrorContext): void {
-    // Extract error information
     const message = error?.message || String(error);
     const stack = error?.stack;
 

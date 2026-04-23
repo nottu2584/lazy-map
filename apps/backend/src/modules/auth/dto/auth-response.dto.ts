@@ -37,6 +37,13 @@ export class UserProfileDto {
   username!: string;
 
   @ApiProperty({
+    description: 'Profile picture URL from OAuth provider',
+    example: 'https://lh3.googleusercontent.com/a/photo',
+    required: false
+  })
+  avatarUrl?: string;
+
+  @ApiProperty({
     description: 'Account creation date',
     example: '2024-01-15T10:30:00Z'
   })

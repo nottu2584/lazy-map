@@ -26,20 +26,16 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    // Handle different exception types
     const { httpStatus, errorResponse } = this.processException(
       exception,
       request
     );
 
-    // Generate correlation ID
     const correlationId = request.headers['x-correlation-id'] as string ||
                           this.generateCorrelationId();
 
-    // Log the error
     this.logError(exception, request, correlationId, httpStatus);
 
-    // Prepare final response
     const finalResponse = {
       statusCode: httpStatus,
       timestamp: new Date().toISOString(),
@@ -49,7 +45,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       ...errorResponse,
     };
 
-    // Set correlation ID header
     response.setHeader('X-Correlation-Id', correlationId);
 
     response.status(httpStatus).json(finalResponse);
@@ -62,7 +57,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     httpStatus: number;
     errorResponse: any;
   } {
-    // Handle NestJS HttpException
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
@@ -85,9 +79,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       };
     }
 
-    // Handle native JavaScript errors
     if (exception instanceof Error) {
-      // Check for specific error types
       if (exception.name === 'ValidationError') {
         // Mongoose/Class-validator validation errors
         return {
@@ -117,7 +109,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         };
       }
 
-      // Generic error
       return {
         httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
         errorResponse: {
@@ -132,7 +123,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       };
     }
 
-    // Handle unknown exceptions
     return {
       httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
       errorResponse: {
@@ -167,7 +157,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       httpStatus,
     };
 
-    // Determine log level based on status code
     if (httpStatus >= 500) {
       this.logger.error(
         `Unhandled exception: ${this.getErrorMessage(exception)}`,
@@ -205,7 +194,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
    * Extracts validation errors from validation exceptions
    */
   private extractValidationErrors(exception: any): any {
-    // Handle class-validator errors
     if (exception.errors && Array.isArray(exception.errors)) {
       return exception.errors.map((err: any) => ({
         field: err.property,
@@ -214,7 +202,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }));
     }
 
-    // Handle mongoose validation errors
     if (exception.errors && typeof exception.errors === 'object') {
       return Object.keys(exception.errors).map(key => ({
         field: key,
@@ -297,10 +284,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (!body) return null;
 
     try {
-      // Convert to JSON string for safe logging
       const jsonString = JSON.stringify(body);
 
-      // Redact sensitive fields using regex
       const sensitivePatterns = [
         /"password"\s*:\s*"[^"]*"/gi,
         /"token"\s*:\s*"[^"]*"/gi,
@@ -319,7 +304,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
       return sanitized;
     } catch {
-      // If JSON serialization fails, return safe fallback
       return '[Unable to sanitize body]';
     }
   }

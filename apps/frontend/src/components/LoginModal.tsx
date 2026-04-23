@@ -47,7 +47,6 @@ export function LoginModal({ onClose }: LoginModalProps) {
     }
   };
 
-  // Validate password in real-time for signup
   const passwordValidation = isSignUp
     ? validatePassword(
         formData.password,
@@ -59,7 +58,6 @@ export function LoginModal({ onClose }: LoginModalProps) {
     !isSignUp ||
     (isPasswordValid(passwordValidation!) && formData.password === formData.confirmPassword);
 
-  // Reset confirmation state when switching between login/signup
   useEffect(() => {
     setConfirmPasswordTouched(false);
     setError(null);

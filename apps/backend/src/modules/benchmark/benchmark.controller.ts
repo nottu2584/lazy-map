@@ -83,7 +83,6 @@ export class BenchmarkController {
 
       const results: BenchmarkResult[] = [];
 
-      // Create a standard context for all benchmarks
       const context = MapContext.create(
         BiomeType.FOREST,
         ElevationZone.FOOTHILLS,
@@ -119,16 +118,12 @@ export class BenchmarkController {
 
             iterationResults.push(result.generationTime);
 
-            // Extract layer timings from the result (if available)
-            // For now, we'll use the total time divided by number of layers
-            // In a production system, you'd want to instrument each layer individually
             const avgLayerTime = result.generationTime / 6;
             Object.keys(layerTimings).forEach(layer => {
               layerTimings[layer].push(avgLayerTime);
             });
           }
 
-          // Calculate statistics for this map size and seed
           const totalTiles = size.width * size.height;
           const avgTotal = iterationResults.reduce((a, b) => a + b, 0) / iterations;
 
@@ -154,7 +149,6 @@ export class BenchmarkController {
         }
       }
 
-      // Calculate overall statistics
       const stats = this.calculateBenchmarkStats(results);
 
       operationLogger.info('Benchmark completed', {

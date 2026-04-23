@@ -30,7 +30,6 @@ export class MapRepositoryAdapter implements IMapRepository {
     const allMaps: MapGrid[] = [];
 
     // Current limitation: IMapPersistencePort lacks full querying capability
-    // Returns empty result set until proper querying is implemented
 
     return {
       maps: allMaps,
@@ -70,8 +69,6 @@ export class MapRepositoryAdapter implements IMapRepository {
 
   async canUserAccessMap(mapId: MapId, userId?: UserId): Promise<boolean> {
     if (!userId) {
-      // Public maps are accessible without authentication
-      // This logic might need to be refined based on business rules
       return true;
     }
 
@@ -80,8 +77,6 @@ export class MapRepositoryAdapter implements IMapRepository {
       return false;
     }
 
-    // Check if the user is the owner
-    // MapGrid has ownerId property at the root level
     return map.ownerId === userId;
   }
 }

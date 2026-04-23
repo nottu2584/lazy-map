@@ -35,17 +35,13 @@ export class DomainErrorFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    // Map domain error to HTTP status code
     const httpStatus = this.mapErrorToHttpStatus(exception);
 
-    // Generate correlation ID for request tracing
     const correlationId = request.headers['x-correlation-id'] as string ||
                           this.generateCorrelationId();
 
-    // Log the error with appropriate severity
     this.logError(exception, request, correlationId);
 
-    // Prepare error response
     const errorResponse = {
       statusCode: httpStatus,
       timestamp: new Date().toISOString(),
@@ -69,13 +65,11 @@ export class DomainErrorFilter implements ExceptionFilter {
       })
     };
 
-    // Set retry header if applicable
     if (exception.details.recovery?.canRetry && exception.details.recovery?.retryAfterMs) {
       response.setHeader('Retry-After',
         Math.ceil(exception.details.recovery.retryAfterMs / 1000).toString());
     }
 
-    // Set correlation ID header for tracking
     response.setHeader('X-Correlation-Id', correlationId);
 
     response.status(httpStatus).json(errorResponse);
@@ -85,7 +79,6 @@ export class DomainErrorFilter implements ExceptionFilter {
    * Maps domain errors to appropriate HTTP status codes
    */
   private mapErrorToHttpStatus(error: DomainError): number {
-    // Check if error is an instance of specific error types
     if (error instanceof ValidationError) {
       return HttpStatus.BAD_REQUEST; // 400
     }

@@ -21,7 +21,6 @@ export function extractErrorInfo(error: any): {
     return error.toLogData();
   }
 
-  // Handle standard Error objects
   if (error instanceof Error) {
     return {
       message: error.message,
@@ -32,14 +31,12 @@ export function extractErrorInfo(error: any): {
     };
   }
 
-  // Handle string errors
   if (typeof error === 'string') {
     return {
       message: error
     };
   }
 
-  // Handle unknown error types
   return {
     message: 'Unknown error occurred',
     context: { originalError: error }

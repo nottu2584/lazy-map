@@ -26,17 +26,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus();
     const exceptionResponse = exception.getResponse();
 
-    // Generate correlation ID
     const correlationId = request.headers['x-correlation-id'] as string ||
                           this.generateCorrelationId();
 
-    // Parse exception response
     const errorDetails = this.parseExceptionResponse(exceptionResponse);
 
-    // Log the exception
     this.logHttpException(exception, request, correlationId);
 
-    // Build error response
     const errorResponse = {
       statusCode: status,
       timestamp: new Date().toISOString(),
@@ -51,7 +47,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
           validationErrors: errorDetails.validationErrors
         }),
       },
-      // Add rate limit info if applicable
       ...(status === 429 && {
         rateLimit: {
           limit: request.headers['x-ratelimit-limit'],
@@ -61,10 +56,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }),
     };
 
-    // Set response headers
     response.setHeader('X-Correlation-Id', correlationId);
 
-    // Set cache control for client errors
     if (status >= 400 && status < 500) {
       response.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     }
@@ -119,7 +112,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const message = `HTTP ${status}: ${exception.message}`;
 
-    // Log based on status code
     if (status >= 500) {
       this.logger.error(message, {
         component: 'HttpExceptionFilter',
@@ -130,14 +122,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
         }
       });
     } else if (status === 429) {
-      // Rate limiting
       this.logger.warn(`Rate limit exceeded: ${message}`, {
         component: 'HttpExceptionFilter',
         operation: 'catch',
         metadata: logContext
       });
     } else if (status >= 400) {
-      // Client errors - log at debug level
       this.logger.debug(message, {
         component: 'HttpExceptionFilter',
         operation: 'catch',

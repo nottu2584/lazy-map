@@ -17,7 +17,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
-  // Security headers
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
@@ -33,33 +32,26 @@ async function bootstrap() {
     crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   }));
 
-  // Cookie parsing for httpOnly auth cookies
   app.use(cookieParser());
 
-  // Enable validation
   app.useGlobalPipes(new ValidationPipe({
     transform: true,
     whitelist: true,
     forbidNonWhitelisted: true,
   }));
 
-  // Setup global exception filters
   // Order matters: most specific first, most general last
-  const logger = app.get('ILogger'); // Get the logger from DI container
-
-  // Register all filters in a single call with correct order
+  const logger = app.get('ILogger');
   app.useGlobalFilters(
     new GlobalExceptionFilter(logger),    // Most general (catch-all)
     new HttpExceptionFilter(logger),      // HTTP exceptions
     new DomainErrorFilter(logger)         // Most specific (domain errors)
   );
 
-  // Enable CORS with configuration
   const nodeEnv = configService.get<string>('NODE_ENV', 'development');
   const corsOrigin = configService.get<string>('CORS_ORIGIN', '*');
 
-  // In development, allow all origins for simplicity
-  // In production, restrict to specific origins
+  // In development, allow all origins; in production, restrict to specific origins
   app.enableCors({
     origin: nodeEnv === 'development' || corsOrigin === '*'
       ? true
@@ -68,11 +60,9 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   });
 
-  // Set global prefix for all routes
   const apiPrefix = configService.get<string>('API_PREFIX', 'api');
   app.setGlobalPrefix(apiPrefix);
 
-  // Setup Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Lazy Map API')
     .setDescription('API for generating battle maps')
@@ -103,7 +93,6 @@ async function bootstrap() {
     }
   }
 
-  // Start server
   const port = configService.get<number>('PORT', 3000);
   await app.listen(port);
   logger.info(`Application is running on: http://localhost:${port}/${apiPrefix}`, {

@@ -14,7 +14,7 @@ pnpm dev:backend
 
 # Or standalone
 cd apps/backend
-pnpm start:dev
+pnpm dev
 ```
 
 **Access:**

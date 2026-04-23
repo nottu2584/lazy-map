@@ -17,6 +17,16 @@ export class PostgresOAuthTokenRepository implements IOAuthTokenRepository {
 
   async save(token: OAuthToken): Promise<void> {
     const entity = OAuthTokenMapper.toPersistence(token);
+
+    const existing = await this.repository.findOne({
+      where: { userId: entity.userId, provider: entity.provider },
+      select: ['id']
+    });
+
+    if (existing) {
+      entity.id = existing.id;
+    }
+
     await this.repository.save(entity);
   }
 

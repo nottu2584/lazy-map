@@ -52,7 +52,7 @@
     "globals": "^17.5.0",
     "lucide-react": "^1.8.0",
     "playwright": "^1.59.1",
-    "postcss": "^8.5.1",
+    "postcss": "^8.5.12",
     "tailwindcss": "^4.1.18",
     "typescript": "~6.0.3",
     "vite": "^8.0.9"

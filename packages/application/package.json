@@ -24,7 +24,7 @@
   "devDependencies": {
     "@types/node": "^25.0.9",
     "typescript": "^6.0.3",
-    "vitest": "^4.0.10"
+    "vitest": "^4.1.0"
   },
   "dependencies": {
     "@lazy-map/domain": "workspace:*"
